@@ -1,0 +1,34 @@
+{
+    "name": "tsufeki/tenkawa-php-language-server",
+    "description": "Language server protocol implementation for PHP",
+    "license": "GPL-3.0+",
+    "authors": [
+        {
+            "name": "tsufeki",
+            "email": "tsufeki@ymail.com"
+        }
+    ],
+    "require": {
+        "recoil/react": "^1.0",
+        "tsufeki/blanche-json-rpc": "dev-master",
+        "phpdocumentor/type-resolver": "dev-master as 0.4.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.5",
+        "phpstan/phpstan": "^0.9.1",
+        "phpstan/phpstan-phpunit": "^0.9.1",
+        "php-coveralls/php-coveralls": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tsufeki\\Tenkawa\\": "src/Tsufeki/Tenkawa/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\Tsufeki\\Tenkawa\\": "tests/Tsufeki/Tenkawa/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
