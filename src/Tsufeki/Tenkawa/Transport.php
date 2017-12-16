@@ -5,6 +5,7 @@ namespace Tsufeki\Tenkawa;
 use Recoil\Recoil;
 use Tsufeki\BlancheJsonRpc\Transport\Transport as RpcTransport;
 use Tsufeki\BlancheJsonRpc\Transport\TransportMessageObserver;
+use Tsufeki\Tenkawa\Exception\TransportException;
 
 class Transport implements RpcTransport
 {
@@ -37,8 +38,6 @@ class Transport implements RpcTransport
     const HEADER_SEP = ': ';
     const CONTENT_LENGTH = 'Content-Length';
     const MAX_HEADERS_SIZE = 4096;
-
-    // TODO logger
 
     /**
      * @param resource $readStream
@@ -75,23 +74,15 @@ class Transport implements RpcTransport
         yield Recoil::write($this->writeStream, $buffer);
     }
 
+    /**
+     * Receive one message and pass it to the observers.
+     */
     public function receive(): \Generator
     {
         $headers = [];
+        $size = strlen($this->buffer);
 
         while (true) {
-            $toRead = self::MAX_HEADERS_SIZE - strlen($this->buffer);
-            if ($toRead === 0) {
-                throw new \RuntimeException('Headers too big');
-            }
-
-            $data = yield Recoil::read($this->readStream, 1, $toRead);
-            if (!$data) {
-                throw new \RuntimeException('Input stream closed');
-            }
-
-            $this->buffer .= $data;
-
             while (strpos($this->buffer, self::EOL) !== false) {
                 list($line, $this->buffer) = explode(self::EOL, $this->buffer, 2);
 
@@ -102,14 +93,27 @@ class Transport implements RpcTransport
                 list($key, $value) = explode(self::HEADER_SEP, $line, 2);
                 $headers[strtolower($key)] = trim($value);
             }
+
+            $toRead = self::MAX_HEADERS_SIZE - $size;
+            if ($toRead <= 0) {
+                throw new TransportException('Headers too big');
+            }
+
+            $data = yield Recoil::read($this->readStream, 1, $toRead);
+            if ($data === '') {
+                throw new TransportException('Input stream closed');
+            }
+
+            $this->buffer .= $data;
+            $size += strlen($data);
         }
 
         $length = (int)$headers[strtolower(self::CONTENT_LENGTH)];
         $toRead = $length - strlen($this->buffer);
         if ($toRead > 0) {
             $data = yield Recoil::read($this->readStream, $toRead, $toRead);
-            if (!$data) {
-                throw new \RuntimeException('Input stream closed');
+            if (strlen($data) < $toRead) {
+                throw new TransportException('Input stream closed');
             }
 
             $this->buffer .= $data;
@@ -123,10 +127,13 @@ class Transport implements RpcTransport
         }, $this->observers);
     }
 
+    /**
+     * Receive messages indefinitely (until stream is closed or Recoil stops).
+     */
     public function run(): \Generator
     {
         while (true) {
             yield $this->receive();
         }
-    }
+    } // @codeCoverageIgnore
 }
