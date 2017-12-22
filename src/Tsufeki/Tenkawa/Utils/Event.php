@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Tsufeki\Tenkawa\Utils;
 
@@ -10,8 +10,8 @@ final class Event
 {
     /**
      * @param EventEmitterInterface $emitter
-     * @param string[]|string $events
-     * @param string[]|string $errorEvents
+     * @param string[]|string       $events
+     * @param string[]|string       $errorEvents
      *
      * @resolve array Event args.
      */
@@ -21,7 +21,6 @@ final class Event
         $errorEvents = !is_array($errorEvents) ? [$errorEvents] : $errorEvents;
 
         return yield Recoil::suspend(function (Listener $strand) use ($emitter, $events, $errorEvents) {
-
             $listener = function (...$args) use ($strand, &$removeListeners) {
                 $removeListeners();
                 $strand->send($args);

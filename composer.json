@@ -13,7 +13,8 @@
         "tsufeki/blanche-json-rpc": "dev-master",
         "phpdocumentor/type-resolver": "dev-master as 0.4.0",
         "react/child-process": "^0.5.0",
-        "react/promise-stream": "^1.1"
+        "react/promise-stream": "^1.1",
+        "tsufeki/hmcontainer": "^0.3.2"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.5",

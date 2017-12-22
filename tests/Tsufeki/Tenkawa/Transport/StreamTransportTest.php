@@ -1,17 +1,17 @@
 <?php declare(strict_types=1);
 
-namespace Tests\Tsufeki\Tenkawa;
+namespace Tests\Tsufeki\Tenkawa\Transport;
 
 use PHPUnit\Framework\TestCase;
 use Recoil\React\ReactKernel;
 use Tsufeki\BlancheJsonRpc\Transport\TransportMessageObserver;
 use Tsufeki\Tenkawa\Exception\TransportException;
-use Tsufeki\Tenkawa\Transport;
+use Tsufeki\Tenkawa\Transport\StreamTransport;
 
 /**
- * @covers \Tsufeki\Tenkawa\Transport
+ * @covers \Tsufeki\Tenkawa\Transport\StreamTransport
  */
-class TransportTest extends TestCase
+class StreamTransportTest extends TestCase
 {
     public function test_send()
     {
@@ -20,7 +20,7 @@ class TransportTest extends TestCase
         stream_set_blocking($readStream, false);
         stream_set_blocking($writeStream, false);
 
-        $transport = new Transport($readStream, $writeStream, []);
+        $transport = new StreamTransport($readStream, $writeStream, []);
 
         ReactKernel::start(function () use ($transport) {
             yield $transport->send('foobar');
@@ -46,7 +46,7 @@ class TransportTest extends TestCase
         stream_set_blocking($readStream, false);
         stream_set_blocking($writeStream, false);
 
-        $transport = new Transport($readStream, $writeStream, []);
+        $transport = new StreamTransport($readStream, $writeStream, []);
 
         $observer = $this->createMock(TransportMessageObserver::class);
         $observer
@@ -86,7 +86,7 @@ class TransportTest extends TestCase
         stream_set_blocking($readStream, false);
         stream_set_blocking($writeStream, false);
 
-        $transport = new Transport($readStream, $writeStream, []);
+        $transport = new StreamTransport($readStream, $writeStream, []);
 
         $this->expectException(TransportException::class);
 
@@ -123,7 +123,7 @@ class TransportTest extends TestCase
         stream_set_blocking($readStream, false);
         stream_set_blocking($writeStream, false);
 
-        $transport = new Transport($readStream, $writeStream, []);
+        $transport = new StreamTransport($readStream, $writeStream, []);
 
         $observer = $this->createMock(TransportMessageObserver::class);
         $observer

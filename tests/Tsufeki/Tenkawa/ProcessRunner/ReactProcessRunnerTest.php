@@ -1,11 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Tests\Tsufeki\Tenkawa\ProcessRunner;
 
 use PHPUnit\Framework\TestCase;
-use Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner;
-use Tsufeki\Tenkawa\ProcessRunner\ProcessResult;
 use Recoil\React\ReactKernel;
+use Tsufeki\Tenkawa\ProcessRunner\ProcessResult;
+use Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner;
 
 /**
  * @covers \Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner

@@ -1,13 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa;
+namespace Tsufeki\Tenkawa\Transport;
 
 use Recoil\Recoil;
-use Tsufeki\BlancheJsonRpc\Transport\Transport as RpcTransport;
 use Tsufeki\BlancheJsonRpc\Transport\TransportMessageObserver;
 use Tsufeki\Tenkawa\Exception\TransportException;
 
-class Transport implements RpcTransport
+class StreamTransport implements RunnableTransport
 {
     /**
      * @var resource
@@ -127,13 +126,12 @@ class Transport implements RpcTransport
         }, $this->observers);
     }
 
-    /**
-     * Receive messages indefinitely (until stream is closed or Recoil stops).
-     */
     public function run(): \Generator
     {
         while (true) {
             yield $this->receive();
         }
-    } // @codeCoverageIgnore
+    }
+
+    // @codeCoverageIgnore
 }

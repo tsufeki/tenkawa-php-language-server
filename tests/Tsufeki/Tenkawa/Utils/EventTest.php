@@ -1,9 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Tests\Tsufeki\Tenkawa\Utils;
 
-use PHPUnit\Framework\TestCase;
 use Evenement\EventEmitter;
+use PHPUnit\Framework\TestCase;
 use Recoil\React\ReactKernel;
 use Tsufeki\Tenkawa\Utils\Event;
 

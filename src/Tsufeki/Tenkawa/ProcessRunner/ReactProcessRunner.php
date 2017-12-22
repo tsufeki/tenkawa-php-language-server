@@ -1,12 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Tsufeki\Tenkawa\ProcessRunner;
 
 use React\ChildProcess\Process;
-use function React\Promise\Stream\buffer;
 use Recoil\Recoil;
-use Recoil\Listener;
 use Tsufeki\Tenkawa\Utils\Event;
+use function React\Promise\Stream\buffer;
 
 class ReactProcessRunner implements ProcessRunner
 {
@@ -28,7 +27,7 @@ class ReactProcessRunner implements ProcessRunner
         list(
             list($result->exitCode, $result->signal),
             $result->stdout,
-            $result->stderr,
+            $result->stderr
         ) = yield [
             Event::first($process, 'exit'),
             buffer($process->stdout),
