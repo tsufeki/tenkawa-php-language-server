@@ -131,7 +131,8 @@ class StreamTransport implements RunnableTransport
         while (true) {
             yield $this->receive();
         }
+        // @codeCoverageIgnoreStart
     }
 
-    // @codeCoverageIgnore
+    // @codeCoverageIgnoreEnd
 }

@@ -765,12 +765,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsufeki/blanche-json-rpc.git",
-                "reference": "52f560e413b45ffd4f2c29e3d0903d377c0dd8fe"
+                "reference": "ef6818e4f589e74a819e949b3e2125de403b9170"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsufeki/blanche-json-rpc/zipball/52f560e413b45ffd4f2c29e3d0903d377c0dd8fe",
-                "reference": "52f560e413b45ffd4f2c29e3d0903d377c0dd8fe",
+                "url": "https://api.github.com/repos/tsufeki/blanche-json-rpc/zipball/ef6818e4f589e74a819e949b3e2125de403b9170",
+                "reference": "ef6818e4f589e74a819e949b3e2125de403b9170",
                 "shasum": ""
             },
             "require": {
@@ -803,7 +803,7 @@
                 }
             ],
             "description": "Async JSON-RPC library for Recoil PHP",
-            "time": "2017-12-22T19:14:03+00:00"
+            "time": "2017-12-26T18:28:11+00:00"
         },
         {
             "name": "tsufeki/hmcontainer",
@@ -856,12 +856,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsufeki/kayo-json-mapper.git",
-                "reference": "52a35892cbe690c1fab69e14c269d008723d4839"
+                "reference": "0d7148269889ea325929e53a6c3ec26b7c4244d2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsufeki/kayo-json-mapper/zipball/52a35892cbe690c1fab69e14c269d008723d4839",
-                "reference": "52a35892cbe690c1fab69e14c269d008723d4839",
+                "url": "https://api.github.com/repos/tsufeki/kayo-json-mapper/zipball/0d7148269889ea325929e53a6c3ec26b7c4244d2",
+                "reference": "0d7148269889ea325929e53a6c3ec26b7c4244d2",
                 "shasum": ""
             },
             "require": {
@@ -890,7 +890,7 @@
                 }
             ],
             "description": "Map JSON data to PHP objects",
-            "time": "2017-12-20T19:11:13+00:00"
+            "time": "2017-12-25T15:08:12+00:00"
         },
         {
             "name": "webmozart/assert",
@@ -1730,16 +1730,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v3.1.2",
+            "version": "v3.1.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "08131e7ff29de6bb9f12275c7d35df71f25f4d89"
+                "reference": "579f4ce846734a1cf55d6a531d00ca07a43e3cda"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/08131e7ff29de6bb9f12275c7d35df71f25f4d89",
-                "reference": "08131e7ff29de6bb9f12275c7d35df71f25f4d89",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/579f4ce846734a1cf55d6a531d00ca07a43e3cda",
+                "reference": "579f4ce846734a1cf55d6a531d00ca07a43e3cda",
                 "shasum": ""
             },
             "require": {
@@ -1777,7 +1777,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2017-11-04T11:48:34+00:00"
+            "time": "2017-12-26T14:43:21+00:00"
         },
         {
             "name": "ocramius/package-versions",

@@ -2,7 +2,7 @@
 
 use Recoil\React\ReactKernel;
 use Tsufeki\Tenkawa\PluginFinder;
-use Tsufeki\Tenkawa\Server;
+use Tsufeki\Tenkawa\Tenkawa;
 use Tsufeki\Tenkawa\Transport\StreamTransport;
 
 foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
@@ -21,7 +21,7 @@ $kernel = ReactKernel::create();
 
 $kernel->execute(function () use ($plugins): \Generator {
     $transport = new StreamTransport(STDIN, STDOUT);
-    $server = new Server();
+    $server = new Tenkawa();
 
     yield $server->run($transport, $plugins);
 });
