@@ -7,6 +7,7 @@ use Tsufeki\BlancheJsonRpc\Dispatcher\MethodRegistry;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
 use Tsufeki\BlancheJsonRpc\MappedJsonRpc;
 use Tsufeki\HmContainer\Container;
+use Tsufeki\HmContainer\Definition\Value;
 use Tsufeki\KayoJsonMapper\Mapper;
 use Tsufeki\KayoJsonMapper\MapperBuilder;
 use Tsufeki\KayoJsonMapper\NameMangler\NullNameMangler;
@@ -20,7 +21,9 @@ use Tsufeki\Tenkawa\Event\OnStart;
 use Tsufeki\Tenkawa\Mapper\UriMapper;
 use Tsufeki\Tenkawa\ProcessRunner\ProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner;
+use Tsufeki\Tenkawa\ProcessRunner\ThrottledProcessRunner;
 use Tsufeki\Tenkawa\Protocol\LanguageClient;
+use Tsufeki\Tenkawa\Utils\Throttler;
 
 class CorePlugin extends Plugin
 {
@@ -31,7 +34,11 @@ class CorePlugin extends Plugin
         $container->setClass(MethodRegistry::class, SimpleMethodRegistry::class);
         $container->setCallable(MappedJsonRpc::class, [MappedJsonRpc::class, 'create']);
 
-        $container->setClass(ProcessRunner::class, ReactProcessRunner::class);
+        $container->setClass(ReactProcessRunner::class);
+        $container->setClass(ProcessRunner::class, ThrottledProcessRunner::class, false, [
+            ReactProcessRunner::class,
+            new Value(new Throttler(8)),
+        ]);
 
         $container->setClass(MethodProvider::class, Server::class, true);
         $container->setClass(LanguageClient::class, Client::class);
