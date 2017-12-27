@@ -13,12 +13,15 @@ use Tsufeki\KayoJsonMapper\MapperBuilder;
 use Tsufeki\KayoJsonMapper\NameMangler\NullNameMangler;
 use Tsufeki\Tenkawa\Diagnostics\DiagnosticsAggregator;
 use Tsufeki\Tenkawa\Diagnostics\DiagnosticsProvider;
+use Tsufeki\Tenkawa\Diagnostics\ParserDiagnosticsProvider;
 use Tsufeki\Tenkawa\Diagnostics\PhplDiagnosticsProvider;
 use Tsufeki\Tenkawa\Document\DocumentStore;
 use Tsufeki\Tenkawa\Event\Document\OnChange;
 use Tsufeki\Tenkawa\Event\Document\OnOpen;
 use Tsufeki\Tenkawa\Event\OnStart;
 use Tsufeki\Tenkawa\Mapper\UriMapper;
+use Tsufeki\Tenkawa\Parser\Parser;
+use Tsufeki\Tenkawa\Parser\PhpParserAdapter;
 use Tsufeki\Tenkawa\ProcessRunner\ProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ThrottledProcessRunner;
@@ -48,6 +51,9 @@ class CorePlugin extends Plugin
         $container->setAlias(OnOpen::class, DiagnosticsAggregator::class, true);
         $container->setAlias(OnChange::class, DiagnosticsAggregator::class, true);
         $container->setClass(DiagnosticsProvider::class, PhplDiagnosticsProvider::class, true);
+
+        $container->setClass(Parser::class, PhpParserAdapter::class);
+        $container->setClass(DiagnosticsProvider::class, ParserDiagnosticsProvider::class, true);
     }
 
     /**
