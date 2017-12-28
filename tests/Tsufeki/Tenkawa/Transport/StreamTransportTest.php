@@ -57,9 +57,11 @@ class StreamTransportTest extends TestCase
 
         $transport->attach($observer);
 
-        ReactKernel::start(function () use ($transport) {
+        $kernel = ReactKernel::create();
+        $kernel->execute(function () use ($transport) {
             yield $transport->receive();
         });
+        $kernel->run();
     }
 
     public function receive_data(): array
@@ -140,10 +142,13 @@ class StreamTransportTest extends TestCase
 
         $transport->attach($observer);
 
-        $this->expectException(TransportException::class);
-
-        ReactKernel::start(function () use ($transport) {
-            yield $transport->run();
+        $kernel = ReactKernel::create();
+        $kernel->execute(function () use ($transport) {
+            try {
+                yield $transport->run();
+            } catch (TransportException $e) {
+            }
         });
+        $kernel->run();
     }
 }

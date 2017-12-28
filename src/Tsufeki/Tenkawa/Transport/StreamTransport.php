@@ -121,9 +121,9 @@ class StreamTransport implements RunnableTransport
         $message = substr($this->buffer, 0, $length);
         $this->buffer = substr($this->buffer, $length);
 
-        yield array_map(function (TransportMessageObserver $observer) use ($message) {
+        yield Recoil::execute(array_map(function (TransportMessageObserver $observer) use ($message) {
             yield $observer->receive($message);
-        }, $this->observers);
+        }, $this->observers));
     }
 
     public function run(): \Generator
