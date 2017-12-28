@@ -5,8 +5,8 @@ namespace Tsufeki\Tenkawa\Document;
 use Tsufeki\Tenkawa\Event\Document\OnChange;
 use Tsufeki\Tenkawa\Event\Document\OnClose;
 use Tsufeki\Tenkawa\Event\Document\OnOpen;
-use Tsufeki\Tenkawa\Event\Project\OnClose as OnProjectClose;
-use Tsufeki\Tenkawa\Event\Project\OnOpen as OnProjectOpen;
+use Tsufeki\Tenkawa\Event\Document\OnProjectClose;
+use Tsufeki\Tenkawa\Event\Document\OnProjectOpen;
 use Tsufeki\Tenkawa\Exception\DocumentNotOpenException;
 use Tsufeki\Tenkawa\Exception\ProjectNotOpenException;
 use Tsufeki\Tenkawa\Uri;
@@ -177,8 +177,8 @@ class DocumentStore
         $uriString = (string)$project->getRootUri();
         $this->projects[$uriString] = $project;
 
-        yield array_map(function (OnProjectOpen $onOpen) use ($project) {
-            return $onOpen->onOpen($project);
+        yield array_map(function (OnProjectOpen $onProjectOpen) use ($project) {
+            return $onProjectOpen->onProjectOpen($project);
         }, $this->onProjectOpen);
 
         return $project;
@@ -190,8 +190,8 @@ class DocumentStore
         unset($this->projects[$uriString]);
         $project->close();
 
-        yield array_map(function (OnProjectClose $onClose) use ($project) {
-            return $onClose->onClose($project);
+        yield array_map(function (OnProjectClose $onProjectClose) use ($project) {
+            return $onProjectClose->onProjectClose($project);
         }, $this->onProjectClose);
     }
 
