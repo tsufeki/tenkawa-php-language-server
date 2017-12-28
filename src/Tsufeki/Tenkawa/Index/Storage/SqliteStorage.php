@@ -102,6 +102,8 @@ class SqliteStorage implements IndexStorage
 
     public function replaceFile(Uri $uri, array $entries, int $timestamp = null): \Generator
     {
+        $this->getPdo()->beginTransaction();
+
         $uriString = (string)$uri;
 
         $stmt = $this->getPdo()->prepare('
@@ -127,6 +129,8 @@ class SqliteStorage implements IndexStorage
                 'timestamp' => $timestamp,
             ]);
         }
+
+        $this->getPdo()->commit();
 
         return;
         yield;
