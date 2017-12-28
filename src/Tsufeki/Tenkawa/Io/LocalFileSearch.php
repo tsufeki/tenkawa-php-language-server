@@ -28,7 +28,8 @@ class LocalFileSearch implements FileSearch
                     \RecursiveIteratorIterator::SELF_FIRST,
                     \RecursiveIteratorIterator::CATCH_GET_CHILD
                 ),
-                GlobFilterIterator::FILTER_KEY
+                GlobFilterIterator::FILTER_KEY |
+                GlobFilterIterator::KEY_AS_KEY
             );
         } catch (\Exception $e) {
             return [];
