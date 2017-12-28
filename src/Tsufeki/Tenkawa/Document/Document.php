@@ -3,9 +3,12 @@
 namespace Tsufeki\Tenkawa\Document;
 
 use Tsufeki\Tenkawa\Uri;
+use Tsufeki\Tenkawa\Utils\KeyValueStateTrait;
 
 class Document
 {
+    use KeyValueStateTrait;
+
     /**
      * @var Uri
      */
@@ -27,19 +30,15 @@ class Document
     private $text = '';
 
     /**
-     * @var bool
+     * @var Project
      */
-    private $closed = false;
+    private $project;
 
-    /**
-     * @var mixed[]
-     */
-    private $data = [];
-
-    public function __construct(Uri $uri, string $language)
+    public function __construct(Uri $uri, string $language, Project $project)
     {
         $this->uri = $uri;
         $this->language = $language;
+        $this->project = $project;
     }
 
     public function getUri(): Uri
@@ -65,9 +64,9 @@ class Document
         return $this->text;
     }
 
-    public function isClosed(): bool
+    public function getProject(): Project
     {
-        return $this->closed;
+        return $this->project;
     }
 
     public function update(string $text, int $version = null): self
@@ -75,25 +74,6 @@ class Document
         $this->text = $text;
         $this->version = $version;
         $this->data = [];
-
-        return $this;
-    }
-
-    public function close()
-    {
-        $this->closed = true;
-        $this->data = [];
-        $this->text = '';
-    }
-
-    public function get(string $key)
-    {
-        return $this->data[$key] ?? null;
-    }
-
-    public function set(string $key, $data): self
-    {
-        $this->data[$key] = $data;
 
         return $this;
     }

@@ -24,6 +24,10 @@ class ParserDiagnosticsProvider implements DiagnosticsProvider
 
     public function getDiagnostics(Document $document): \Generator
     {
+        if ($document->getLanguage() !== 'php') {
+            return;
+        }
+
         /** @var Ast $ast */
         $ast = yield $this->parser->parse($document);
 

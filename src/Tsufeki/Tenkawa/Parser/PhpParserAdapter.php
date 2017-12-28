@@ -39,6 +39,10 @@ class PhpParserAdapter implements Parser
      */
     public function parse(Document $document): \Generator
     {
+        if ($document->getLanguage() !== 'php') {
+            throw new \LogicException('Can only parse PHP documents');
+        }
+
         $astPromise = $document->get('parser.ast');
         if ($astPromise !== null) {
             return yield $astPromise;

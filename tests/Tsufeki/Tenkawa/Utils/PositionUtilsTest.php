@@ -4,6 +4,7 @@ namespace Tests\Tsufeki\Tenkawa\Utils;
 
 use PHPUnit\Framework\TestCase;
 use Tsufeki\Tenkawa\Document\Document;
+use Tsufeki\Tenkawa\Document\Project;
 use Tsufeki\Tenkawa\Protocol\Common\Position;
 use Tsufeki\Tenkawa\Protocol\Common\Range;
 use Tsufeki\Tenkawa\Uri;
@@ -19,7 +20,8 @@ class PositionUtilsTest extends TestCase
      */
     public function test_position_from_offset($expectedLine, $expectedColumn, $text, $offset)
     {
-        $document = new Document(Uri::fromString('file:///foo'), 'php');
+        $project = new Project(Uri::fromString('file:///'));
+        $document = new Document(Uri::fromString('file:///foo'), 'php', $project);
         $document->update($text);
 
         $pos = PositionUtils::positionFromOffset($offset, $document);
@@ -57,7 +59,8 @@ class PositionUtilsTest extends TestCase
 
     public function test_range_from_node_attrs()
     {
-        $document = new Document(Uri::fromString('file:///foo'), 'php');
+        $project = new Project(Uri::fromString('file:///'));
+        $document = new Document(Uri::fromString('file:///foo'), 'php', $project);
         $document->update("foo\nbar");
 
         $range = PositionUtils::rangeFromNodeAttrs([

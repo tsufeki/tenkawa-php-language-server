@@ -41,6 +41,10 @@ class Server extends LanguageServer
     ): \Generator {
         $rootUri = $rootUri ?? ($rootPath ? Uri::fromFilesystemPath($rootPath) : null);
 
+        if ($rootUri !== null) {
+            yield $this->documentStore->openProject($rootUri);
+        }
+
         $serverCapabilities = new ServerCapabilities();
         $serverCapabilities->textDocumentSync = new TextDocumentSyncOptions();
         $serverCapabilities->textDocumentSync->openClose = true;
@@ -50,15 +54,11 @@ class Server extends LanguageServer
         $result->capabilities = $serverCapabilities;
 
         return $result;
-        yield;
     }
 
     public function shutdown(): \Generator
     {
-        $this->documentStore->closeAll();
-
-        return;
-        yield;
+        yield $this->documentStore->closeAll();
     }
 
     public function exit(): \Generator

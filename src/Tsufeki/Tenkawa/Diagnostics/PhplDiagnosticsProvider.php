@@ -26,6 +26,10 @@ class PhplDiagnosticsProvider implements DiagnosticsProvider
 
     public function getDiagnostics(Document $document): \Generator
     {
+        if ($document->getLanguage() !== 'php') {
+            return;
+        }
+
         $cmd = [
             'php',
             '-n',
