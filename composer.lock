@@ -2318,16 +2318,16 @@
         },
         {
             "name": "phpstan/phpstan-phpunit",
-            "version": "0.9.2",
+            "version": "0.9.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan-phpunit.git",
-                "reference": "96d24214755c07dc5e7d7595f4233b080412ed04"
+                "reference": "669990e486c1efe7d4a2f6d337c229f6a317795b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan-phpunit/zipball/96d24214755c07dc5e7d7595f4233b080412ed04",
-                "reference": "96d24214755c07dc5e7d7595f4233b080412ed04",
+                "url": "https://api.github.com/repos/phpstan/phpstan-phpunit/zipball/669990e486c1efe7d4a2f6d337c229f6a317795b",
+                "reference": "669990e486c1efe7d4a2f6d337c229f6a317795b",
                 "shasum": ""
             },
             "require": {
@@ -2359,7 +2359,7 @@
                 "MIT"
             ],
             "description": "PHPUnit extensions and rules for PHPStan",
-            "time": "2017-12-11T09:46:38+00:00"
+            "time": "2017-12-27T13:41:45+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",

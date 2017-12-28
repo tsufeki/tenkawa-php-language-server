@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Tsufeki\Tenkawa\Io;
 
@@ -9,7 +9,7 @@ interface FileSearch
     /**
      * @param string $pattern Glob pattern, like "**\/*.php"
      *
-     * @resolve Uri[]
+     * @resolve array<string,int|null> URI string => last modified timestamp
      */
-    public function search(Uri $baseDir, string $pattern): \Generator;
+    public function searchWithTimestamps(Uri $baseDir, string $pattern): \Generator;
 }

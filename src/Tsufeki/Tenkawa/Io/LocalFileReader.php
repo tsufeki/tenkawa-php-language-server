@@ -1,10 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Tsufeki\Tenkawa\Io;
 
-use Tsufeki\Tenkawa\Uri;
-use Tsufeki\Tenkawa\Exception\IoException;
 use Recoil\Recoil;
+use Tsufeki\Tenkawa\Exception\IoException;
+use Tsufeki\Tenkawa\Uri;
 
 class LocalFileReader implements FileReader
 {
