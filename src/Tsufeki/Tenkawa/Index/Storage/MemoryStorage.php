@@ -8,75 +8,65 @@ use Tsufeki\Tenkawa\Utils\StringUtils;
 class MemoryStorage implements IndexStorage
 {
     /**
-     * @var IndexEntry[]
+     * @var array<string,IndexEntry[]>
      */
     private $entries = [];
+
+    /**
+     * @var array<string,int|null>
+     */
+    private $timestamps = [];
 
     public function search(string $category = null, string $key, int $match = self::FULL): \Generator
     {
         $result = [];
 
-        foreach ($this->entries as $entry) {
-            if ($category !== null && $entry->category !== $category) {
-                continue;
-            }
+        foreach ($this->entries as $fileEntries) {
+            foreach ($fileEntries as $entry) {
+                if ($category !== null && $entry->category !== $category) {
+                    continue;
+                }
 
-            if ($match === self::FULL && $entry->key !== $key) {
-                continue;
-            }
+                if ($match === self::FULL && $entry->key !== $key) {
+                    continue;
+                }
 
-            if ($match === self::PREFIX && !StringUtils::startsWith($entry->key, $key)) {
-                continue;
-            }
+                if ($match === self::PREFIX && !StringUtils::startsWith($entry->key, $key)) {
+                    continue;
+                }
 
-            if ($match === self::SUFFIX && !StringUtils::endsWith($entry->key, $key)) {
-                continue;
-            }
+                if ($match === self::SUFFIX && !StringUtils::endsWith($entry->key, $key)) {
+                    continue;
+                }
 
-            $result[] = $entry;
+                $result[] = $entry;
+            }
         }
 
         return $result;
         yield;
     }
 
-    public function add(IndexEntry $entry): \Generator
+    public function replaceFile(Uri $uri, array $entries, int $timestamp = null): \Generator
     {
-        $this->entries[] = $entry;
+        $uriString = (string)$uri;
+        unset($this->entries[$uriString]);
+        unset($this->timestamps[$uriString]);
 
-        return;
-        yield;
-    }
-
-    public function purgeFile(Uri $uri): \Generator
-    {
-        foreach ($this->entries as $i => $entry) {
-            if ($entry->sourceUri == $uri) {
-                unset($this->entries[$i]);
-            }
+        foreach ($entries as $entry) {
+            $entry->sourceUri = $uri;
+            $this->entries[$uriString][] = $entry;
         }
 
-        return;
-        yield;
-    }
+        $this->timestamps[$uriString] = $timestamp;
 
-    public function setFileTimestamp(Uri $uri, int $timestamp = null): \Generator
-    {
-        // @codeCoverageIgnoreStart
         return;
         yield;
-        // @codeCoverageIgnoreEnd
     }
 
     public function getFileTimestamps(): \Generator
     {
-        $result = [];
-
-        foreach ($this->entries as $entry) {
-            $result[(string)$entry->sourceUri] = null;
-        }
-
-        return $result;
+        return $this->timestamps;
         yield;
     }
 }

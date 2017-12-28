@@ -29,10 +29,7 @@ abstract class IndexStorageTest extends TestCase
     private function getStorageWithEntries(): \Generator
     {
         $storage = $this->getStorage();
-
-        foreach ($this->getEntries() as $entry) {
-            yield $storage->add($entry);
-        }
+        yield $storage->replaceFile(Uri::fromString('file:///foo'), $this->getEntries(), 123456);
 
         return $storage;
     }
@@ -86,26 +83,26 @@ abstract class IndexStorageTest extends TestCase
         ];
     }
 
-    public function test_purges()
+    public function test_replaces()
     {
         ReactKernel::start(function (): \Generator {
             /** @var IndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
-            yield $storage->purgeFile(Uri::fromString('file:///foo'));
+            yield $storage->replaceFile(Uri::fromString('file:///foo'), []);
             $result = yield $storage->search('cat1', 'foobar');
 
             $this->assertSame([], $result);
         });
     }
 
-    public function test_doesnt_purge()
+    public function test_doesnt_replace()
     {
         ReactKernel::start(function (): \Generator {
             /** @var IndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
-            yield $storage->purgeFile(Uri::fromString('file:///bar'));
+            yield $storage->replaceFile(Uri::fromString('file:///bar'), []);
             $result = yield $storage->search('cat1', 'foobar');
 
             $this->assertCount(1, $result);
@@ -120,7 +117,7 @@ abstract class IndexStorageTest extends TestCase
 
             $result = yield $storage->getFileTimestamps();
 
-            $this->assertSame(['file:///foo'], array_keys($result));
+            $this->assertSame(['file:///foo' => 123456], $result);
         });
     }
 }

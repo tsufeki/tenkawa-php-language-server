@@ -15,11 +15,10 @@ interface IndexStorage
      */
     public function search(string $category = null, string $key, int $match = self::FULL): \Generator;
 
-    public function add(IndexEntry $entry): \Generator;
-
-    public function purgeFile(Uri $uri): \Generator;
-
-    public function setFileTimestamp(Uri $uri, int $timestamp = null): \Generator;
+    /**
+     * @param IndexEntry[] $entries
+     */
+    public function replaceFile(Uri $uri, array $entries, int $timestamp = null): \Generator;
 
     /**
      * @resolve array<string,int|null> string URI => int timestamp

@@ -32,10 +32,13 @@ class SqliteStorage implements IndexStorage
         return $this->pdo;
     }
 
+    // @codeCoverageIgnoreStart
     public function close()
     {
         $this->pdo = null;
     }
+
+    // @codeCoverageIgnoreEnd
 
     private function initialize()
     {
@@ -97,50 +100,33 @@ class SqliteStorage implements IndexStorage
         yield;
     }
 
-    public function add(IndexEntry $entry): \Generator
+    public function replaceFile(Uri $uri, array $entries, int $timestamp = null): \Generator
     {
-        $stmt = $this->getPdo()->prepare('
-            insert
-                into tenkawa_index (source_uri, category, key, data)
-                values (:sourceUri, :category, :key, :data)
-        ');
+        $uriString = (string)$uri;
 
-        $stmt->bindValue(':sourceUri', (string)$entry->sourceUri);
-        $stmt->bindValue(':category', $entry->category);
-        $stmt->bindValue(':key', $entry->key);
-        $stmt->bindValue(':data', Json::encode($entry->data));
-        $stmt->execute();
-
-        return;
-        yield;
-    }
-
-    public function purgeFile(Uri $uri): \Generator
-    {
         $stmt = $this->getPdo()->prepare('
             delete
                 from tenkawa_index
                 where source_uri = :sourceUri
         ');
 
-        $stmt->bindValue(':sourceUri', (string)$uri);
-        $stmt->execute();
+        $stmt->execute(['sourceUri' => $uriString]);
 
-        return;
-        yield;
-    }
-
-    public function setFileTimestamp(Uri $uri, int $timestamp = null): \Generator
-    {
         $stmt = $this->getPdo()->prepare('
-            update tenkawa_index
-                set timestamp = :timestamp
-                where source_uri = :sourceUri
+            insert
+                into tenkawa_index (source_uri, category, key, data, timestamp)
+                values (:sourceUri, :category, :key, :data, :timestamp)
         ');
 
-        $stmt->bindValue(':sourceUri', (string)$uri);
-        $stmt->bindValue(':timestamp', $timestamp);
-        $stmt->execute();
+        foreach ($entries as $entry) {
+            $stmt->execute([
+                'sourceUri' => $uriString,
+                'category' => $entry->category,
+                'key' => $entry->key,
+                'data' => Json::encode($entry->data),
+                'timestamp' => $timestamp,
+            ]);
+        }
 
         return;
         yield;
@@ -157,7 +143,7 @@ class SqliteStorage implements IndexStorage
         $stmt->execute();
         $result = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $result[$row['source_uri']] = $row['timestamp'];
+            $result[$row['source_uri']] = (int)$row['timestamp'] ?: null;
         }
 
         return $result;
