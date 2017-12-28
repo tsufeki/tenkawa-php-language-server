@@ -4,7 +4,7 @@ namespace Tests\Tsufeki\Tenkawa\Index\Storage;
 
 use PHPUnit\Framework\TestCase;
 use Recoil\React\ReactKernel;
-use Tsufeki\Tenkawa\Index\Storage\IndexEntry;
+use Tsufeki\Tenkawa\Index\IndexEntry;
 use Tsufeki\Tenkawa\Index\Storage\IndexStorage;
 use Tsufeki\Tenkawa\Index\Storage\WritableIndexStorage;
 use Tsufeki\Tenkawa\Uri;

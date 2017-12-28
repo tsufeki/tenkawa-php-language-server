@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Index\Storage;
 
 use Tsufeki\BlancheJsonRpc\Json;
+use Tsufeki\Tenkawa\Index\IndexEntry;
 use Tsufeki\Tenkawa\Uri;
 
 class SqliteStorage implements WritableIndexStorage

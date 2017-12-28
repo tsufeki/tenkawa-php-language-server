@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Index\Storage;
 
+use Tsufeki\Tenkawa\Index\IndexEntry;
 use Tsufeki\Tenkawa\Uri;
 
 interface IndexStorage
