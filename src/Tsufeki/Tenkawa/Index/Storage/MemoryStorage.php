@@ -5,7 +5,7 @@ namespace Tsufeki\Tenkawa\Index\Storage;
 use Tsufeki\Tenkawa\Uri;
 use Tsufeki\Tenkawa\Utils\StringUtils;
 
-class MemoryStorage implements IndexStorage
+class MemoryStorage implements WritableIndexStorage
 {
     /**
      * @var array<string,IndexEntry[]>

@@ -6,11 +6,12 @@ use PHPUnit\Framework\TestCase;
 use Recoil\React\ReactKernel;
 use Tsufeki\Tenkawa\Index\Storage\IndexEntry;
 use Tsufeki\Tenkawa\Index\Storage\IndexStorage;
+use Tsufeki\Tenkawa\Index\Storage\WritableIndexStorage;
 use Tsufeki\Tenkawa\Uri;
 
-abstract class IndexStorageTest extends TestCase
+abstract class WritableIndexStorageTest extends TestCase
 {
-    abstract protected function getStorage(): IndexStorage;
+    abstract protected function getStorage(): WritableIndexStorage;
 
     private function getEntries(): array
     {
@@ -40,7 +41,7 @@ abstract class IndexStorageTest extends TestCase
     public function test_finds($category, $key, $match)
     {
         ReactKernel::start(function () use ($category, $key, $match): \Generator {
-            /** @var IndexStorage $storage */
+            /** @var WritableIndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
             $result = yield $storage->search($category, $key, $match);
@@ -64,7 +65,7 @@ abstract class IndexStorageTest extends TestCase
     public function test_doesnt_find($category, $key, $match)
     {
         ReactKernel::start(function () use ($category, $key, $match): \Generator {
-            /** @var IndexStorage $storage */
+            /** @var WritableIndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
             $result = yield $storage->search($category, $key, $match);
@@ -86,7 +87,7 @@ abstract class IndexStorageTest extends TestCase
     public function test_replaces()
     {
         ReactKernel::start(function (): \Generator {
-            /** @var IndexStorage $storage */
+            /** @var WritableIndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
             yield $storage->replaceFile(Uri::fromString('file:///foo'), []);
@@ -99,7 +100,7 @@ abstract class IndexStorageTest extends TestCase
     public function test_doesnt_replace()
     {
         ReactKernel::start(function (): \Generator {
-            /** @var IndexStorage $storage */
+            /** @var WritableIndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
             yield $storage->replaceFile(Uri::fromString('file:///bar'), []);
@@ -112,7 +113,7 @@ abstract class IndexStorageTest extends TestCase
     public function test_get_files()
     {
         ReactKernel::start(function (): \Generator {
-            /** @var IndexStorage $storage */
+            /** @var WritableIndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
             $result = yield $storage->getFileTimestamps();

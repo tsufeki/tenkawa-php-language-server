@@ -5,7 +5,7 @@ namespace Tsufeki\Tenkawa\Index\Storage;
 use Tsufeki\BlancheJsonRpc\Json;
 use Tsufeki\Tenkawa\Uri;
 
-class SqliteStorage implements IndexStorage
+class SqliteStorage implements WritableIndexStorage
 {
     /**
      * @var string
