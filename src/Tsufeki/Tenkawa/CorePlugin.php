@@ -21,6 +21,7 @@ use Tsufeki\Tenkawa\Event\Document\OnClose;
 use Tsufeki\Tenkawa\Event\Document\OnOpen;
 use Tsufeki\Tenkawa\Event\Document\OnProjectClose;
 use Tsufeki\Tenkawa\Event\Document\OnProjectOpen;
+use Tsufeki\Tenkawa\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Event\OnStart;
 use Tsufeki\Tenkawa\Index\Indexer;
 use Tsufeki\Tenkawa\Index\IndexStorageFactory;
@@ -43,6 +44,8 @@ class CorePlugin extends Plugin
 {
     public function configureContainer(Container $container)
     {
+        $container->setValue(EventDispatcher::class, new EventDispatcher($container));
+
         $container->setClass(OnStart::class, CorePluginInit::class, true);
         $container->setCallable(Mapper::class, [$this, 'createMapper']);
         $container->setClass(MethodRegistry::class, SimpleMethodRegistry::class);

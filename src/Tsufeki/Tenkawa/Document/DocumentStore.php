@@ -7,6 +7,7 @@ use Tsufeki\Tenkawa\Event\Document\OnClose;
 use Tsufeki\Tenkawa\Event\Document\OnOpen;
 use Tsufeki\Tenkawa\Event\Document\OnProjectClose;
 use Tsufeki\Tenkawa\Event\Document\OnProjectOpen;
+use Tsufeki\Tenkawa\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Exception\DocumentNotOpenException;
 use Tsufeki\Tenkawa\Exception\ProjectNotOpenException;
 use Tsufeki\Tenkawa\Uri;
@@ -24,49 +25,13 @@ class DocumentStore
     private $projects = [];
 
     /**
-     * @var OnOpen[]
+     * @var EventDispatcher
      */
-    private $onOpen;
+    private $eventDispatcher;
 
-    /**
-     * @var OnChange[]
-     */
-    private $onChange;
-
-    /**
-     * @var OnClose[]
-     */
-    private $onClose;
-
-    /**
-     * @var OnProjectOpen[]
-     */
-    private $onProjectOpen;
-
-    /**
-     * @var OnProjectClose[]
-     */
-    private $onProjectClose;
-
-    /**
-     * @param OnOpen[]         $onOpen
-     * @param OnChange[]       $onChange
-     * @param OnClose[]        $onClose
-     * @param OnProjectOpen[]  $onProjectOpen
-     * @param OnProjectClose[] $onProjectClose
-     */
-    public function __construct(
-        array $onOpen,
-        array $onChange,
-        array $onClose,
-        array $onProjectOpen,
-        array $onProjectClose
-    ) {
-        $this->onOpen = $onOpen;
-        $this->onChange = $onChange;
-        $this->onClose = $onClose;
-        $this->onProjectOpen = $onProjectOpen;
-        $this->onProjectClose = $onProjectClose;
+    public function __construct(EventDispatcher $eventDispatcher)
+    {
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -94,9 +59,7 @@ class DocumentStore
         $uriString = (string)$document->getUri();
         $this->documents[$uriString] = $document;
 
-        yield array_map(function (OnOpen $onOpen) use ($document) {
-            return $onOpen->onOpen($document);
-        }, $this->onOpen);
+        yield $this->eventDispatcher->dispatch(OnOpen::class, $document);
 
         return $document;
     }
@@ -122,9 +85,7 @@ class DocumentStore
 
         $document->update($text, $version);
 
-        yield array_map(function (OnChange $onChange) use ($document) {
-            return $onChange->onChange($document);
-        }, $this->onChange);
+        yield $this->eventDispatcher->dispatch(OnChange::class, $document);
     }
 
     public function close(Document $document): \Generator
@@ -137,9 +98,7 @@ class DocumentStore
         $document->getProject()->removeDocument($document);
         $document->close();
 
-        yield array_map(function (OnClose $onClose) use ($document) {
-            return $onClose->onClose($document);
-        }, $this->onClose);
+        yield $this->eventDispatcher->dispatch(OnClose::class, $document);
     }
 
     /**
@@ -177,9 +136,7 @@ class DocumentStore
         $uriString = (string)$project->getRootUri();
         $this->projects[$uriString] = $project;
 
-        yield array_map(function (OnProjectOpen $onProjectOpen) use ($project) {
-            return $onProjectOpen->onProjectOpen($project);
-        }, $this->onProjectOpen);
+        yield $this->eventDispatcher->dispatch(OnProjectOpen::class, $project);
 
         return $project;
     }
@@ -190,9 +147,7 @@ class DocumentStore
         unset($this->projects[$uriString]);
         $project->close();
 
-        yield array_map(function (OnProjectClose $onProjectClose) use ($project) {
-            return $onProjectClose->onProjectClose($project);
-        }, $this->onProjectClose);
+        yield $this->eventDispatcher->dispatch(OnProjectClose::class, $project);
     }
 
     public function closeAll(): \Generator

@@ -135,6 +135,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
     {
         $this->globalIndex = $this->indexStorageFactory->createGlobalIndex();
         // TODO
+        yield;
     }
 
     public function onProjectOpen(Project $project): \Generator

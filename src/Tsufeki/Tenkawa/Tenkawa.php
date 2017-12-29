@@ -5,6 +5,7 @@ namespace Tsufeki\Tenkawa;
 use Tsufeki\BlancheJsonRpc\MappedJsonRpc;
 use Tsufeki\BlancheJsonRpc\Transport\Transport;
 use Tsufeki\HmContainer\Container;
+use Tsufeki\Tenkawa\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Event\OnStart;
 use Tsufeki\Tenkawa\Transport\RunnableTransport;
 
@@ -16,18 +17,18 @@ class Tenkawa
     public function run(RunnableTransport $transport, array $plugins): \Generator
     {
         $container = new Container();
+        $container->setValue(Transport::class, $transport);
 
         foreach ($plugins as $plugin) {
             $plugin->configureContainer($container);
         }
 
-        // Materialize the RPC server
-        $container->setValue(Transport::class, $transport);
-        $rpc = $container->get(MappedJsonRpc::class);
+        /** @var EventDispatcher $eventDispatcher */
+        $eventDispatcher = $container->get(EventDispatcher::class);
+        yield $eventDispatcher->dispatchAndWait(OnStart::class);
 
-        yield array_map(function (OnStart $onStart) {
-            yield $onStart->onStart();
-        }, $container->get(OnStart::class));
+        // Materialize the RPC server
+        $rpc = $container->get(MappedJsonRpc::class);
 
         yield $transport->run();
     }
