@@ -21,4 +21,9 @@ class Client extends LanguageClient
     {
         yield $this->rpc->notify('textDocument/publishDiagnostics', compact('uri', 'diagnostics'));
     }
+
+    public function logMessage(int $type, string $message): \Generator
+    {
+        yield $this->rpc->notify('window/logMessage', compact('type', 'message'));
+    }
 }

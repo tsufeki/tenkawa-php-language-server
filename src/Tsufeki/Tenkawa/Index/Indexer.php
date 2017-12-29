@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Index;
 
+use Psr\Log\LoggerInterface;
 use Recoil\Recoil;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Document\DocumentStore;
@@ -18,6 +19,7 @@ use Tsufeki\Tenkawa\Index\Storage\WritableIndexStorage;
 use Tsufeki\Tenkawa\Io\FileReader;
 use Tsufeki\Tenkawa\Io\FileSearch;
 use Tsufeki\Tenkawa\Uri;
+use Tsufeki\Tenkawa\Utils\Stopwatch;
 use Webmozart\Glob\Glob;
 
 class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnProjectClose
@@ -58,6 +60,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
     private $globs = [];
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @param IndexDataProvider[] $indexDataProviders
      */
     public function __construct(
@@ -65,13 +72,15 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         IndexStorageFactory $indexStorageFactory,
         DocumentStore $documentStore,
         FileReader $fileReader,
-        FileSearch $fileSearch
+        FileSearch $fileSearch,
+        LoggerInterface $logger
     ) {
         $this->indexDataProviders = $indexDataProviders;
         $this->indexStorageFactory = $indexStorageFactory;
         $this->documentStore = $documentStore;
         $this->fileReader = $fileReader;
         $this->fileSearch = $fileSearch;
+        $this->logger = $logger;
 
         $this->globs = ['**/*.php' => 'php'];
     }
@@ -107,6 +116,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
             return;
         }
 
+        $stopwatch = new Stopwatch();
         $rootUri = $project->getRootUri();
 
         $glob = count($this->globs) === 1 ? array_keys($this->globs)[0] : '{' . implode(',', array_keys($this->globs)) . '}';
@@ -129,6 +139,8 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
             $uri = Uri::fromString($uriString);
             yield $this->clearDocument($uri, $indexStorage);
         }
+
+        $this->logger->info("Project indexing finished. [$stopwatch]");
     }
 
     public function onStart(): \Generator

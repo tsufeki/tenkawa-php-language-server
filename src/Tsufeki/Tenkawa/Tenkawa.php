@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa;
 
+use Recoil\Kernel;
 use Tsufeki\BlancheJsonRpc\MappedJsonRpc;
 use Tsufeki\BlancheJsonRpc\Transport\Transport;
 use Tsufeki\HmContainer\Container;
@@ -14,10 +15,11 @@ class Tenkawa
     /**
      * @param Plugin[] $plugins
      */
-    public function run(RunnableTransport $transport, array $plugins): \Generator
+    public function run(RunnableTransport $transport, Kernel $kernel, array $plugins): \Generator
     {
         $container = new Container();
         $container->setValue(Transport::class, $transport);
+        $container->setValue(Kernel::class, $kernel);
 
         foreach ($plugins as $plugin) {
             $plugin->configureContainer($container);

@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa;
 
+use Psr\Log\LoggerInterface;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodRegistry;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
@@ -31,6 +32,8 @@ use Tsufeki\Tenkawa\Io\FileReader;
 use Tsufeki\Tenkawa\Io\FileSearch;
 use Tsufeki\Tenkawa\Io\LocalFileReader;
 use Tsufeki\Tenkawa\Io\LocalFileSearch;
+use Tsufeki\Tenkawa\Logger\ClientLogger;
+use Tsufeki\Tenkawa\Logger\CompositeLogger;
 use Tsufeki\Tenkawa\Mapper\UriMapper;
 use Tsufeki\Tenkawa\Parser\Parser;
 use Tsufeki\Tenkawa\Parser\PhpParserAdapter;
@@ -45,6 +48,8 @@ class CorePlugin extends Plugin
     public function configureContainer(Container $container)
     {
         $container->setValue(EventDispatcher::class, new EventDispatcher($container));
+        $container->setClass(LoggerInterface::class, CompositeLogger::class);
+        $container->setClass(ClientLogger::class);
 
         $container->setClass(OnStart::class, CorePluginInit::class, true);
         $container->setCallable(Mapper::class, [$this, 'createMapper']);

@@ -32,4 +32,14 @@ abstract class LanguageClient
      * @param Diagnostic[] $diagnostics An array of diagnostic information items.
      */
     abstract public function publishDiagnostics(Uri $uri, array $diagnostics): \Generator;
+
+    /**
+     * The log message notification is sent from the server to the client to ask the client to log a particular message.
+     *
+     * method: window/logMessage
+     *
+     * @param int    $type    The message type. See MessageType
+     * @param string $message The actual message
+     */
+    abstract public function logMessage(int $type, string $message): \Generator;
 }
