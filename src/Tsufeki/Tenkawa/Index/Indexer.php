@@ -18,6 +18,7 @@ use Tsufeki\Tenkawa\Index\Storage\WritableIndexStorage;
 use Tsufeki\Tenkawa\Io\FileReader;
 use Tsufeki\Tenkawa\Io\FileSearch;
 use Tsufeki\Tenkawa\Uri;
+use Webmozart\Glob\Glob;
 
 class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnProjectClose
 {
@@ -52,6 +53,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
     private $globalIndex;
 
     /**
+     * @var array<string,string> Glob => language id, e.g. "**\/*.php" => "php".
+     */
+    private $globs = [];
+
+    /**
      * @param IndexDataProvider[] $indexDataProviders
      */
     public function __construct(
@@ -66,6 +72,8 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         $this->documentStore = $documentStore;
         $this->fileReader = $fileReader;
         $this->fileSearch = $fileSearch;
+
+        $this->globs = ['**/*.php' => 'php'];
     }
 
     private function indexDocument(Document $document, WritableIndexStorage $indexStorage, int $timestamp = null): \Generator
@@ -78,30 +86,48 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         yield $indexStorage->replaceFile($document->getUri(), $entries, $timestamp);
     }
 
-    private function clearDocument(Document $document, WritableIndexStorage $indexStorage): \Generator
+    private function clearDocument(Uri $uri, WritableIndexStorage $indexStorage): \Generator
     {
-        yield $indexStorage->replaceFile($document->getUri(), []);
+        yield $indexStorage->replaceFile($uri, []);
     }
 
-    private function indexProject(Project $project, WritableIndexStorage $indexStorage, array $globs = ['**/*.php' => 'php']): \Generator
+    private function getLanguageForFile(Project $project, string $uri): string
     {
-        if (empty($this->indexDataProviders)) {
+        $rootUri = (string)$project->getRootUri();
+        foreach ($this->globs as $glob => $language) {
+            if (Glob::match($uri, $rootUri . '/' . $glob)) {
+                return $language;
+            }
+        }
+    }
+
+    private function indexProject(Project $project, WritableIndexStorage $indexStorage): \Generator
+    {
+        if (empty($this->indexDataProviders) || empty($this->globs)) {
             return;
         }
 
         $rootUri = $project->getRootUri();
 
-        foreach ($globs as $glob => $language) {
+        $glob = count($this->globs) === 1 ? array_keys($this->globs)[0] : '{' . implode(',', array_keys($this->globs)) . '}';
+        $currentFiles = yield $this->fileSearch->searchWithTimestamps($rootUri, $glob);
+        yield;
+        $indexedFiles = yield $indexStorage->getFileTimestamps();
+
+        foreach (array_diff_assoc($currentFiles, $indexedFiles) as $uriString => $timestamp) {
             yield;
-            foreach (yield $this->fileSearch->searchWithTimestamps($rootUri, $glob) as $uriString => $timestamp) {
-                yield;
 
-                $uri = Uri::fromString($uriString);
-                $text = yield $this->fileReader->read($uri);
-                $document = yield $this->documentStore->load($uri, $language, $text);
+            $uri = Uri::fromString($uriString);
+            $language = $this->getLanguageForFile($project, $uriString);
+            $text = yield $this->fileReader->read($uri);
+            $document = yield $this->documentStore->load($uri, $language, $text);
 
-                yield $this->indexDocument($document, $indexStorage, $timestamp);
-            }
+            yield $this->indexDocument($document, $indexStorage, $timestamp);
+        }
+
+        foreach (array_diff_key($indexedFiles, $currentFiles) as $uriString => $timestamp) {
+            $uri = Uri::fromString($uriString);
+            yield $this->clearDocument($uri, $indexStorage);
         }
     }
 
@@ -151,6 +177,6 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
     public function onClose(Document $document): \Generator
     {
         $openFilesIndex = $document->getProject()->get('index.open_files');
-        yield $this->clearDocument($document, $openFilesIndex);
+        yield $this->clearDocument($document->getUri(), $openFilesIndex);
     }
 }
