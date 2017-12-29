@@ -12,6 +12,6 @@ class SqliteStorageTest extends WritableIndexStorageTest
 {
     protected function getStorage(): WritableIndexStorage
     {
-        return new SqliteStorage(':memory:');
+        return new SqliteStorage(SqliteStorage::MEMORY);
     }
 }

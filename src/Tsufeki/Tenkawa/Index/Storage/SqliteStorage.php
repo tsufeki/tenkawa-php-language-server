@@ -5,13 +5,16 @@ namespace Tsufeki\Tenkawa\Index\Storage;
 use Tsufeki\BlancheJsonRpc\Json;
 use Tsufeki\Tenkawa\Index\IndexEntry;
 use Tsufeki\Tenkawa\Uri;
+use Webmozart\PathUtil\Path;
 
 class SqliteStorage implements WritableIndexStorage
 {
+    const MEMORY = ':memory:';
+
     /**
      * @var string
      */
-    private $dsn;
+    private $path;
 
     /**
      * @var \PDO|null
@@ -20,13 +23,16 @@ class SqliteStorage implements WritableIndexStorage
 
     public function __construct(string $path)
     {
-        $this->dsn = 'sqlite:' . $path;
+        $this->path = $path;
     }
 
     private function getPdo(): \PDO
     {
         if ($this->pdo === null) {
-            $this->pdo = new \PDO($this->dsn);
+            if ($this->path !== self::MEMORY) {
+                @mkdir(Path::getDirectory($this->path), 0777, true);
+            }
+            $this->pdo = new \PDO('sqlite:' . $this->path);
             $this->initialize();
         }
 
