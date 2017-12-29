@@ -75,6 +75,8 @@ class StreamTransport implements RunnableTransport
 
     /**
      * Receive one message and pass it to the observers.
+     *
+     * @resolve bool
      */
     public function receive(): \Generator
     {
@@ -100,7 +102,12 @@ class StreamTransport implements RunnableTransport
 
             $data = yield Recoil::read($this->readStream, 1, $toRead);
             if ($data === '') {
-                throw new TransportException('Input stream closed');
+                if ($this->buffer !== '') {
+                    // Partial message
+                    throw new TransportException('Input stream closed');
+                }
+
+                return false;
             }
 
             $this->buffer .= $data;
@@ -124,12 +131,13 @@ class StreamTransport implements RunnableTransport
         yield Recoil::execute(array_map(function (TransportMessageObserver $observer) use ($message) {
             yield $observer->receive($message);
         }, $this->observers));
+
+        return true;
     }
 
     public function run(): \Generator
     {
-        while (true) {
-            yield $this->receive();
+        while (yield $this->receive()) {
         }
         // @codeCoverageIgnoreStart
     }
