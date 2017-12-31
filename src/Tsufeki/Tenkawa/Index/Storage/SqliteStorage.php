@@ -111,33 +111,39 @@ class SqliteStorage implements WritableIndexStorage
     {
         $this->getPdo()->beginTransaction();
 
-        $uriString = (string)$uri;
+        try {
+            $uriString = (string)$uri;
 
-        $stmt = $this->getPdo()->prepare('
-            delete
-                from tenkawa_index
-                where source_uri = :sourceUri
-        ');
+            $stmt = $this->getPdo()->prepare('
+                delete
+                    from tenkawa_index
+                    where source_uri = :sourceUri
+            ');
 
-        $stmt->execute(['sourceUri' => $uriString]);
+            $stmt->execute(['sourceUri' => $uriString]);
 
-        $stmt = $this->getPdo()->prepare('
-            insert
-                into tenkawa_index (source_uri, category, key, data, timestamp)
-                values (:sourceUri, :category, :key, :data, :timestamp)
-        ');
+            $stmt = $this->getPdo()->prepare('
+                insert
+                    into tenkawa_index (source_uri, category, key, data, timestamp)
+                    values (:sourceUri, :category, :key, :data, :timestamp)
+            ');
 
-        foreach ($entries as $entry) {
-            $stmt->execute([
-                'sourceUri' => $uriString,
-                'category' => $entry->category,
-                'key' => $entry->key,
-                'data' => Json::encode($entry->data),
-                'timestamp' => $timestamp,
-            ]);
+            foreach ($entries as $entry) {
+                $stmt->execute([
+                    'sourceUri' => $uriString,
+                    'category' => $entry->category,
+                    'key' => $entry->key,
+                    'data' => Json::encode($entry->data),
+                    'timestamp' => $timestamp,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            $this->getPdo()->rollBack();
+
+            throw $e;
+        } finally {
+            $this->getPdo()->commit();
         }
-
-        $this->getPdo()->commit();
 
         return;
         yield;

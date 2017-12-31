@@ -123,16 +123,22 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         $currentFiles = yield $this->fileSearch->searchWithTimestamps($rootUri, $glob);
         yield;
         $indexedFiles = yield $indexStorage->getFileTimestamps();
+        $indexedFilesCount = 0;
 
         foreach (array_diff_assoc($currentFiles, $indexedFiles) as $uriString => $timestamp) {
             yield;
 
-            $uri = Uri::fromString($uriString);
-            $language = $this->getLanguageForFile($project, $uriString);
-            $text = yield $this->fileReader->read($uri);
-            $document = yield $this->documentStore->load($uri, $language, $text);
+            try {
+                $uri = Uri::fromString($uriString);
+                $language = $this->getLanguageForFile($project, $uriString);
+                $text = yield $this->fileReader->read($uri);
+                $document = yield $this->documentStore->load($uri, $language, $text);
+                $indexedFilesCount++;
 
-            yield $this->indexDocument($document, $indexStorage, $timestamp);
+                yield $this->indexDocument($document, $indexStorage, $timestamp);
+            } catch (\Throwable $e) {
+                $this->logger->warning("Can't index $uriString", ['exception' => $e]);
+            }
         }
 
         foreach (array_diff_key($indexedFiles, $currentFiles) as $uriString => $timestamp) {
@@ -140,7 +146,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
             yield $this->clearDocument($uri, $indexStorage);
         }
 
-        $this->logger->info("Project indexing finished. [$stopwatch]");
+        $this->logger->info("Project indexing finished. [$indexedFilesCount files, $stopwatch]");
     }
 
     public function onStart(): \Generator
