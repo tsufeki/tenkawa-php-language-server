@@ -7,6 +7,8 @@ use PhpLenientParser\LenientParserFactory;
 use PhpParser\ErrorHandler;
 use PhpParser\Lexer;
 use PhpParser\Node;
+use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor\NameResolver;
 use React\Promise\Deferred;
 use Tsufeki\Tenkawa\Document\Document;
 
@@ -54,8 +56,12 @@ class PhpParserAdapter implements Parser
         $ast = new Ast();
         $errorHandler = new ErrorHandler\Collecting();
         $ast->nodes = $this->parser->parse($document->getText(), $errorHandler) ?? [];
-        $ast->errors = $errorHandler->getErrors();
 
+        $nodeTraverser = new NodeTraverser();
+        $nodeTraverser->addVisitor(new NameResolver($errorHandler));
+        $nodeTraverser->traverse($ast->nodes);
+
+        $ast->errors = $errorHandler->getErrors();
         $deferred->resolve($ast);
 
         return $ast;

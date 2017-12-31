@@ -24,6 +24,7 @@ use Tsufeki\Tenkawa\Event\Document\OnProjectClose;
 use Tsufeki\Tenkawa\Event\Document\OnProjectOpen;
 use Tsufeki\Tenkawa\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Event\OnStart;
+use Tsufeki\Tenkawa\Index\IndexDataProvider;
 use Tsufeki\Tenkawa\Index\Indexer;
 use Tsufeki\Tenkawa\Index\IndexStorageFactory;
 use Tsufeki\Tenkawa\Index\LocalCacheIndexStorageFactory;
@@ -41,6 +42,7 @@ use Tsufeki\Tenkawa\ProcessRunner\ProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ThrottledProcessRunner;
 use Tsufeki\Tenkawa\Protocol\LanguageClient;
+use Tsufeki\Tenkawa\Reflection\ReflectionIndexDataProvider;
 use Tsufeki\Tenkawa\Utils\Throttler;
 
 class CorePlugin extends Plugin
@@ -86,6 +88,8 @@ class CorePlugin extends Plugin
         $container->setAlias(OnClose::class, Indexer::class, true);
         $container->setAlias(OnProjectOpen::class, Indexer::class, true);
         $container->setAlias(OnProjectClose::class, Indexer::class, true);
+
+        $container->setClass(IndexDataProvider::class, ReflectionIndexDataProvider::class, true);
     }
 
     /**

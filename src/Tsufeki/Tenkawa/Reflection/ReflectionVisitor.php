@@ -1,0 +1,303 @@
+<?php declare(strict_types=1);
+
+namespace Tsufeki\Tenkawa\Reflection;
+
+use PhpParser\Node;
+use PhpParser\Node\Const_ as ConstNode;
+use PhpParser\Node\Name;
+use PhpParser\Node\Name\FullyQualified;
+use PhpParser\Node\Name\Relative;
+use PhpParser\Node\NullableType;
+use PhpParser\Node\Stmt;
+use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitorAbstract;
+use Tsufeki\Tenkawa\Document\Document;
+use Tsufeki\Tenkawa\Protocol\Common\Location;
+use Tsufeki\Tenkawa\Reflection\Element\ClassConst;
+use Tsufeki\Tenkawa\Reflection\Element\ClassLike;
+use Tsufeki\Tenkawa\Reflection\Element\Const_;
+use Tsufeki\Tenkawa\Reflection\Element\Element;
+use Tsufeki\Tenkawa\Reflection\Element\Function_;
+use Tsufeki\Tenkawa\Reflection\Element\Method;
+use Tsufeki\Tenkawa\Reflection\Element\Param;
+use Tsufeki\Tenkawa\Reflection\Element\Property;
+use Tsufeki\Tenkawa\Reflection\Element\TraitAlias;
+use Tsufeki\Tenkawa\Reflection\Element\TraitInsteadOf;
+use Tsufeki\Tenkawa\Reflection\Element\Type;
+use Tsufeki\Tenkawa\Utils\PositionUtils;
+
+class ReflectionVisitor extends NodeVisitorAbstract
+{
+    /**
+     * @var Document
+     */
+    private $document;
+
+    /**
+     * @var ClassLike[]
+     */
+    private $classes = [];
+
+    /**
+     * @var Function_[]
+     */
+    private $functions = [];
+
+    /**
+     * @var Const_[]
+     */
+    private $consts = [];
+
+    public function __construct(Document $document)
+    {
+        $this->document = $document;
+    }
+
+    private function nameToString(Name $name): string
+    {
+        if ($name instanceof FullyQualified) {
+            return '\\' . $name->toString();
+        }
+        if ($name instanceof Relative) {
+            return 'namespace\\' . $name->toString();
+        }
+
+        return $name->toString();
+    }
+
+    /**
+     * @param Name|NullableType|string|null $type
+     *
+     * @return Type|null
+     */
+    private function getType($type)
+    {
+        if (empty($type)) {
+            return null;
+        }
+
+        $typeObj = new Type();
+
+        if (is_string($type)) {
+            $typeObj->type = $type;
+        } elseif ($type instanceof NullableType) {
+            $typeObj->type = '?' . $this->getType($type->type);
+        } else {
+            $typeObj->type = $this->nameToString($type);
+        }
+
+        return $typeObj;
+    }
+
+    /**
+     * @param Element                                                                        $element
+     * @param Stmt\ClassLike|Stmt\Function_|Stmt\ClassMethod|ConstNode|Stmt\PropertyProperty $node
+     */
+    private function init(Element $element, Node $node)
+    {
+        $element->name = isset($node->namespacedName) ? $this->nameToString($node->namespacedName) : $node->name;
+
+        $element->location = new Location();
+        $element->location->uri = $this->document->getUri();
+        $element->location->range = PositionUtils::rangeFromNodeAttrs($node->getAttributes(), $this->document);
+
+        $phpDoc = $node->getDocComment();
+        if ($phpDoc !== null) {
+            $element->docComment = $phpDoc->getText();
+        }
+    }
+
+    /**
+     * @param Stmt\Function_|Stmt\ClassMethod $node
+     */
+    private function processFunction(Function_ $function, $node)
+    {
+        $this->init($function, $node);
+        $function->returnByRef = $node->byRef;
+        $function->returnType = $this->getType($node->returnType);
+
+        foreach ($node->params as $paramNode) {
+            $param = new Param();
+            $param->name = $paramNode->name;
+            $param->byRef = $paramNode->byRef;
+            $param->optional = $paramNode->default !== null;
+            $param->variadic = $paramNode->variadic;
+            $param->type = $this->getType($paramNode->type);
+
+            $function->params[] = $param;
+        }
+    }
+
+    /**
+     * @param Method|Property|ClassConst                     $member
+     * @param Stmt\ClassMethod|Stmt\Property|Stmt\ClassConst $node
+     */
+    private function processMember($member, Node $node)
+    {
+        $member->accessibility =
+            $node->isPrivate() ? ClassLike::M_PRIVATE : (
+            $node->isProtected() ? ClassLike::M_PROTECTED :
+            ClassLike::M_PUBLIC);
+
+        $member->static = $node->isStatic();
+    }
+
+    private function processClassLike(ClassLike $class, Stmt\ClassLike $node)
+    {
+        $this->init($class, $node);
+
+        foreach ($node->stmts as $child) {
+            if ($child instanceof Stmt\ClassConst) {
+                foreach ($child->consts as $constNode) {
+                    $const = new ClassConst();
+                    $this->init($const, $constNode);
+                    $this->processMember($const, $child);
+                    $class->consts[] = $const;
+                }
+            } elseif ($child instanceof Stmt\Property) {
+                foreach ($child->props as $propertyNode) {
+                    $property = new Property();
+                    $this->init($property, $propertyNode);
+                    $this->processMember($property, $child);
+                    $class->properties[] = $property;
+                }
+            } elseif ($child instanceof Stmt\ClassMethod) {
+                $method = new Method();
+                $this->processFunction($method, $child);
+                $this->processMember($method, $child);
+                $method->abstract = $child->isAbstract();
+                $method->final = $child->isFinal();
+                $class->methods[] = $method;
+            }
+        }
+    }
+
+    private function processUsedTraits(ClassLike $class, Stmt\ClassLike $node)
+    {
+        foreach ($node->stmts as $child) {
+            if ($child instanceof Stmt\TraitUse) {
+                foreach ($child->traits as $trait) {
+                    $class->traits[] = $this->nameToString($trait);
+                }
+
+                foreach ($child->adaptations as $adaptation) {
+                    if ($adaptation instanceof Stmt\TraitUseAdaptation\Precedence) {
+                        $insteadOf = new TraitInsteadOf();
+                        $insteadOf->trait = $this->nameToString($adaptation->trait);
+                        $insteadOf->method = $adaptation->method;
+                        foreach ($adaptation->insteadof as $insteadOfNode) {
+                            $insteadOf->insteadOfs[] = $this->nameToString($insteadOfNode);
+                        }
+                        $class->traitInsteadOfs[] = $insteadOf;
+                    } elseif ($adaptation instanceof Stmt\TraitUseAdaptation\Alias) {
+                        $alias = new TraitAlias();
+                        $alias->trait = $this->nameToString($adaptation->trait);
+                        $alias->method = $adaptation->method;
+                        $alias->newName = $adaptation->newName;
+                        $alias->newAccessibility =
+                            $adaptation->newModifier === Stmt\Class_::MODIFIER_PRIVATE ? ClassLike::M_PRIVATE : (
+                            $adaptation->newModifier === Stmt\Class_::MODIFIER_PROTECTED ? ClassLike::M_PROTECTED : (
+                            $adaptation->newModifier === Stmt\Class_::MODIFIER_PUBLIC ? ClassLike::M_PUBLIC :
+                            null));
+                        $class->traitAliases[] = $alias;
+                    }
+                }
+            }
+        }
+    }
+
+    private function processClass(ClassLike $class, Stmt\Class_ $node)
+    {
+        $this->processClassLike($class, $node);
+        $class->abstract = $node->isAbstract();
+        $class->final = $node->isFinal();
+        $class->parentClass = $node->extends ? $this->nameToString($node->extends) : null;
+        foreach ($node->implements as $implements) {
+            $class->interfaces[] = $this->nameToString($implements);
+        }
+        $this->processUsedTraits($class, $node);
+    }
+
+    private function processInterface(ClassLike $interface, Stmt\Interface_ $node)
+    {
+        $this->processClassLike($interface, $node);
+        foreach ($node->extends as $extends) {
+            $interface->interfaces[] = $this->nameToString($extends);
+        }
+    }
+
+    private function processTrait(ClassLike $trait, Stmt\Trait_ $node)
+    {
+        $this->processClassLike($trait, $node);
+        $this->processUsedTraits($trait, $node);
+    }
+
+    public function enterNode(Node $node)
+    {
+        if ($node instanceof Stmt\Function_) {
+            $function = new Function_();
+            $this->processFunction($function, $node);
+            $this->functions[] = $function;
+
+            return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+        }
+
+        if ($node instanceof Stmt\Class_) {
+            $class = new ClassLike();
+            $this->processClass($class, $node);
+            $this->classes[] = $class;
+
+            return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+        }
+
+        if ($node instanceof Stmt\Interface_) {
+            $interface = new ClassLike();
+            $this->processInterface($interface, $node);
+            $this->classes[] = $interface;
+
+            return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+        }
+
+        if ($node instanceof Stmt\Trait_) {
+            $trait = new ClassLike();
+            $this->processTrait($trait, $node);
+            $this->classes[] = $trait;
+
+            return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+        }
+
+        if ($node instanceof Stmt\Const_) {
+            foreach ($node->consts as $constNode) {
+                $const = new Const_();
+                $this->init($const, $constNode);
+                $this->consts[] = $const;
+            }
+
+            return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+        }
+    }
+
+    /**
+     * @return ClassLike[]
+     */
+    public function getClasses(): array
+    {
+        return $this->classes;
+    }
+
+    /**
+     * @return Function_[]
+     */
+    public function getFunctions(): array
+    {
+        return $this->functions;
+    }
+
+    /**
+     * @return Const_[]
+     */
+    public function getConsts(): array
+    {
+        return $this->consts;
+    }
+}
