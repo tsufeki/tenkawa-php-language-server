@@ -1,11 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Diagnostics;
+namespace Tsufeki\Tenkawa\Parser;
 
 use PhpParser\Error;
+use Tsufeki\Tenkawa\Diagnostics\DiagnosticsProvider;
 use Tsufeki\Tenkawa\Document\Document;
-use Tsufeki\Tenkawa\Parser\Ast;
-use Tsufeki\Tenkawa\Parser\Parser;
 use Tsufeki\Tenkawa\Protocol\Common\Diagnostic;
 use Tsufeki\Tenkawa\Protocol\Common\DiagnosticSeverity;
 use Tsufeki\Tenkawa\Utils\PositionUtils;
