@@ -34,27 +34,38 @@ class PositionUtilsTest extends TestCase
     {
         return [
             [0, 0, '', 0],
-            [0, 0, '', 1],
-            [0, 0, '', 2],
 
             [0, 0, 'qaz', 0],
             [0, 1, 'qaz', 1],
             [0, 2, 'qaz', 2],
-            [0, 1, "qaz\n", 1],
-            [0, 2, "qaz\n", 2],
-            [0, 3, "qaz\n", 3],
+            [0, 3, 'qaz', 3],
 
-            [0, 1, "qaz\nwsx", 1],
-            [0, 3, "qaz\nwsx", 3],
+            [0, 3, "qaz\n", 3],
+            [1, 0, "qaz\n", 4],
+
+            [1, 0, "qaz\nwsx", 4],
             [1, 1, "qaz\nwsx", 5],
-            [1, 2, "qaz\nwsx", 6],
-            [1, 3, "qaz\na𐐀b", 9],
+            [1, 3, "qaz\nwsx", 7],
 
             [0, 0, "\nqaz\n\nwsx\n", 0],
-            [1, 1, "\nqaz\n\nwsx\n", 2],
-            [3, 2, "\nqaz\n\nwsx\n", 8],
+            [1, 0, "\nqaz\n\nwsx\n", 1],
+            [1, 3, "\nqaz\n\nwsx\n", 4],
+            [2, 0, "\nqaz\n\nwsx\n", 5],
+            [3, 0, "\nqaz\n\nwsx\n", 6],
             [3, 3, "\nqaz\n\nwsx\n", 9],
-            [3, 3, "\nqaz\n\nwsx\n", 20],
+            [4, 0, "\nqaz\n\nwsx\n", 10],
+
+            [0, 3, "qaz\xE2\x82\xACwsx", 3],
+            [0, 4, "qaz\xE2\x82\xACwsx", 6],
+            [0, 5, "qaz\xE2\x82\xACwsx", 7],
+
+            [1, 0, "\na\xF0\x90\x90\x80b", 1],
+            [1, 1, "\na\xF0\x90\x90\x80b", 2],
+            [1, 3, "\na\xF0\x90\x90\x80b", 6],
+            [1, 4, "\na\xF0\x90\x90\x80b", 7],
+
+            [0, 0, '', 1],
+            [1, 3, "qaz\nwsx", 20],
         ];
     }
 
@@ -80,22 +91,31 @@ class PositionUtilsTest extends TestCase
             [0, 0, 'qaz', 0],
             [0, 1, 'qaz', 1],
             [0, 2, 'qaz', 2],
-            [0, 1, "qaz\n", 1],
-            [0, 2, "qaz\n", 2],
-            [0, 3, "qaz\n", 3],
+            [0, 3, 'qaz', 3],
 
-            [0, 1, "qaz\nwsx", 1],
-            [0, 3, "qaz\nwsx", 3],
+            [0, 3, "qaz\n", 3],
+            [1, 0, "qaz\n", 4],
+
+            [1, 0, "qaz\nwsx", 4],
             [1, 1, "qaz\nwsx", 5],
-            [1, 2, "qaz\nwsx", 6],
-            [1, 3, "qaz\na𐐀b", 9],
+            [1, 3, "qaz\nwsx", 7],
 
             [0, 0, "\nqaz\n\nwsx\n", 0],
-            [1, 1, "\nqaz\n\nwsx\n", 2],
-            [3, 2, "\nqaz\n\nwsx\n", 8],
+            [1, 0, "\nqaz\n\nwsx\n", 1],
+            [1, 3, "\nqaz\n\nwsx\n", 4],
+            [2, 0, "\nqaz\n\nwsx\n", 5],
+            [3, 0, "\nqaz\n\nwsx\n", 6],
             [3, 3, "\nqaz\n\nwsx\n", 9],
-            [3, 9, "\nqaz\n\nwsx\n", 10],
-            [9, 3, "\nqaz\n\nwsx\n", 10],
+            [4, 0, "\nqaz\n\nwsx\n", 10],
+
+            [0, 3, "qaz\xE2\x82\xACwsx", 3],
+            [0, 4, "qaz\xE2\x82\xACwsx", 6],
+            [0, 5, "qaz\xE2\x82\xACwsx", 7],
+
+            [1, 0, "\na\xF0\x90\x90\x80b", 1],
+            [1, 1, "\na\xF0\x90\x90\x80b", 2],
+            [1, 3, "\na\xF0\x90\x90\x80b", 6],
+            [1, 4, "\na\xF0\x90\x90\x80b", 7],
         ];
     }
 

@@ -41,12 +41,12 @@ class PositionUtils
     public static function positionFromOffset(int $offset, Document $document): Position
     {
         $text = $document->getText();
-        $offset = max(0, min($offset, strlen($text) - 1));
+        $offset = max(0, min($offset, strlen($text)));
 
         $lineOffsets = self::getLineOffsets($document);
-        $line = 0;
-        while ($lineOffsets[$line + 1] < $offset) {
-            $line++;
+        $line = count($lineOffsets) - 2;
+        while ($lineOffsets[$line] > $offset) {
+            $line--;
         }
 
         $column = max(0, $offset - $lineOffsets[$line]);
