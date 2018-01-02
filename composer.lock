@@ -262,12 +262,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpDocumentor/TypeResolver.git",
-                "reference": "7159da1ff4ab5de0c033bab91c9d3f52dd9a7a02"
+                "reference": "0b589f993765b70f33391fbfcce70d0dfb67b92a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpDocumentor/TypeResolver/zipball/7159da1ff4ab5de0c033bab91c9d3f52dd9a7a02",
-                "reference": "7159da1ff4ab5de0c033bab91c9d3f52dd9a7a02",
+                "url": "https://api.github.com/repos/phpDocumentor/TypeResolver/zipball/0b589f993765b70f33391fbfcce70d0dfb67b92a",
+                "reference": "0b589f993765b70f33391fbfcce70d0dfb67b92a",
                 "shasum": ""
             },
             "require": {
@@ -299,7 +299,7 @@
                     "email": "me@mikevanriel.com"
                 }
             ],
-            "time": "2017-11-15T21:30:06+00:00"
+            "time": "2018-01-02T07:31:33+00:00"
         },
         {
             "name": "psr/container",
