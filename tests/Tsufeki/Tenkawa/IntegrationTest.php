@@ -54,6 +54,7 @@ class IntegrationTest extends TestCase
                             'willSaveWaitUntil' => false,
                             'save' => null,
                         ],
+                        'definitionProvider' => true,
                     ],
                 ],
             ]), $resp);

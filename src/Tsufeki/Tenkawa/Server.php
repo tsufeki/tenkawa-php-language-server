@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa;
 
 use Tsufeki\Tenkawa\Document\DocumentStore;
+use Tsufeki\Tenkawa\Protocol\Common\Position;
 use Tsufeki\Tenkawa\Protocol\Common\TextDocumentIdentifier;
 use Tsufeki\Tenkawa\Protocol\Common\TextDocumentItem;
 use Tsufeki\Tenkawa\Protocol\Common\VersionedTextDocumentIdentifier;
@@ -12,6 +13,7 @@ use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\InitializeResult;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\ServerCapabilities;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\TextDocumentSyncKind;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\TextDocumentSyncOptions;
+use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
 
 class Server extends LanguageServer
 {
@@ -21,11 +23,16 @@ class Server extends LanguageServer
     private $documentStore;
 
     /**
-     * @param DocumentStore $documentStore
+     * @var GoToDefinitionAggregator
      */
-    public function __construct(DocumentStore $documentStore)
-    {
+    private $goToDefinitionAggregator;
+
+    public function __construct(
+        DocumentStore $documentStore,
+        GoToDefinitionAggregator $goToDefinitionAggregator
+    ) {
         $this->documentStore = $documentStore;
+        $this->goToDefinitionAggregator = $goToDefinitionAggregator;
     }
 
     /**
@@ -49,6 +56,7 @@ class Server extends LanguageServer
         $serverCapabilities->textDocumentSync = new TextDocumentSyncOptions();
         $serverCapabilities->textDocumentSync->openClose = true;
         $serverCapabilities->textDocumentSync->change = TextDocumentSyncKind::FULL;
+        $serverCapabilities->definitionProvider = $this->goToDefinitionAggregator->hasProviders();
 
         $result = new InitializeResult();
         $result->capabilities = $serverCapabilities;
@@ -87,5 +95,21 @@ class Server extends LanguageServer
     {
         $document = $this->documentStore->get($textDocument->uri);
         yield $this->documentStore->close($document);
+    }
+
+    public function definition(TextDocumentIdentifier $textDocument, Position $position): \Generator
+    {
+        $document = $this->documentStore->get($textDocument->uri);
+        $locations = yield $this->goToDefinitionAggregator->getLocations($document, $position);
+
+        if (count($locations) === 0) {
+            return null;
+        }
+
+        if (count($locations) === 1) {
+            return $locations[0];
+        }
+
+        return $locations;
     }
 }

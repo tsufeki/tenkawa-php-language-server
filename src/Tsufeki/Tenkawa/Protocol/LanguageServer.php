@@ -3,6 +3,8 @@
 namespace Tsufeki\Tenkawa\Protocol;
 
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
+use Tsufeki\Tenkawa\Protocol\Common\Location;
+use Tsufeki\Tenkawa\Protocol\Common\Position;
 use Tsufeki\Tenkawa\Protocol\Common\TextDocumentIdentifier;
 use Tsufeki\Tenkawa\Protocol\Common\TextDocumentItem;
 use Tsufeki\Tenkawa\Protocol\Common\VersionedTextDocumentIdentifier;
@@ -18,6 +20,7 @@ abstract class LanguageServer implements MethodProvider
         return [
             'initialize' => 'initialize',
             'shutdown' => 'shutdown',
+            'textDocument/definition' => 'definition',
         ];
     }
 
@@ -100,4 +103,16 @@ abstract class LanguageServer implements MethodProvider
      * @param TextDocumentIdentifier $textDocument The document that was closed.
      */
     abstract public function didCloseTextDocument(TextDocumentIdentifier $textDocument): \Generator;
+
+    /**
+     * The goto definition request is sent from the client to the server to
+     * resolve the definition location of a symbol at a given text document
+     * position.
+     *
+     * @param TextDocumentIdentifier $textDocument The text document.
+     * @param Position               $position     The position inside the text document.
+     *
+     * @resolve Location|Location[]|null
+     */
+    abstract public function definition(TextDocumentIdentifier $textDocument, Position $position): \Generator;
 }

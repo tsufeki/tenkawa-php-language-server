@@ -10,4 +10,11 @@ class ServerCapabilities
      * @var TextDocumentSyncOptions
      */
     public $textDocumentSync;
+
+    /**
+     * The server provides goto definition support.
+     *
+     * @var bool
+     */
+    public $definitionProvider = false;
 }

@@ -23,6 +23,7 @@ use Tsufeki\Tenkawa\Event\Document\OnProjectClose;
 use Tsufeki\Tenkawa\Event\Document\OnProjectOpen;
 use Tsufeki\Tenkawa\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Event\OnStart;
+use Tsufeki\Tenkawa\Index\Index;
 use Tsufeki\Tenkawa\Index\IndexDataProvider;
 use Tsufeki\Tenkawa\Index\Indexer;
 use Tsufeki\Tenkawa\Index\IndexStorageFactory;
@@ -42,7 +43,13 @@ use Tsufeki\Tenkawa\ProcessRunner\ProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ThrottledProcessRunner;
 use Tsufeki\Tenkawa\Protocol\LanguageClient;
+use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
+use Tsufeki\Tenkawa\References\GoToDefinitionProvider;
+use Tsufeki\Tenkawa\References\NodeGoToGlobalsProvider;
+use Tsufeki\Tenkawa\References\NodeHelper;
+use Tsufeki\Tenkawa\Reflection\IndexReflectionProvider;
 use Tsufeki\Tenkawa\Reflection\ReflectionIndexDataProvider;
+use Tsufeki\Tenkawa\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Utils\Throttler;
 
 class CorePlugin extends Plugin
@@ -88,8 +95,14 @@ class CorePlugin extends Plugin
         $container->setAlias(OnClose::class, Indexer::class, true);
         $container->setAlias(OnProjectOpen::class, Indexer::class, true);
         $container->setAlias(OnProjectClose::class, Indexer::class, true);
+        $container->setClass(Index::class);
 
         $container->setClass(IndexDataProvider::class, ReflectionIndexDataProvider::class, true);
+        $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
+
+        $container->setClass(GoToDefinitionAggregator::class);
+        $container->setClass(GoToDefinitionProvider::class, NodeGoToGlobalsProvider::class, true);
+        $container->setClass(NodeHelper::class);
     }
 
     /**
