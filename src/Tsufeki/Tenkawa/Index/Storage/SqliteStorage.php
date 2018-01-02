@@ -49,6 +49,8 @@ class SqliteStorage implements WritableIndexStorage
 
     private function initialize()
     {
+        $this->getPdo()->prepare('pragma journal_mode=WAL')->execute();
+
         $this->getPdo()->prepare('create table if not exists tenkawa_index (
             id integer primary key,
             source_uri text not null,
