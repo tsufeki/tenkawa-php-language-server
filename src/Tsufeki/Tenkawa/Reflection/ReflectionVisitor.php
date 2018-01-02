@@ -95,7 +95,7 @@ class ReflectionVisitor extends NodeVisitorAbstract
      */
     private function init(Element $element, Node $node)
     {
-        $element->name = isset($node->namespacedName) ? $this->nameToString($node->namespacedName) : $node->name;
+        $element->name = isset($node->namespacedName) ? $this->nameToString(new FullyQualified($node->namespacedName)) : $node->name;
 
         $element->location = new Location();
         $element->location->uri = $this->document->getUri();
@@ -243,9 +243,11 @@ class ReflectionVisitor extends NodeVisitorAbstract
         }
 
         if ($node instanceof Stmt\Class_) {
-            $class = new ClassLike();
-            $this->processClass($class, $node);
-            $this->classes[] = $class;
+            if ($node->name !== null) {
+                $class = new ClassLike();
+                $this->processClass($class, $node);
+                $this->classes[] = $class;
+            }
 
             return NodeTraverser::DONT_TRAVERSE_CHILDREN;
         }

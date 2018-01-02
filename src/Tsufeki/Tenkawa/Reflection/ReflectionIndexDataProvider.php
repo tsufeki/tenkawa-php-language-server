@@ -46,7 +46,7 @@ class ReflectionIndexDataProvider implements IndexDataProvider
         $entries = array_merge(
             $this->makeEntries($visitor->getClasses(), self::CATEGORY_CLASS, $document),
             $this->makeEntries($visitor->getFunctions(), self::CATEGORY_FUNCTION, $document),
-            $this->makeEntries($visitor->getConsts(), self::CATEGORY_CONST, $document)
+            $this->makeEntries($visitor->getConsts(), self::CATEGORY_CONST, $document, true)
         );
 
         return $entries;
@@ -57,13 +57,13 @@ class ReflectionIndexDataProvider implements IndexDataProvider
      *
      * @return IndexEntry[]
      */
-    private function makeEntries(array $elements, string $category, Document $document): array
+    private function makeEntries(array $elements, string $category, Document $document, bool $caseSensitive = false): array
     {
-        return array_map(function ($elem) use ($category, $document) {
+        return array_map(function ($elem) use ($category, $document, $caseSensitive) {
             $entry = new IndexEntry();
             $entry->sourceUri = $document->getUri();
             $entry->category = $category;
-            $entry->key = $elem->name;
+            $entry->key = $caseSensitive ? $elem->name : strtolower($elem->name);
             $entry->data = $this->mapper->dump($elem);
 
             return $entry;
