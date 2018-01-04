@@ -121,7 +121,9 @@ class ReflectionVisitor extends NodeVisitorAbstract
 
         $phpDoc = $node->getDocComment();
         if ($phpDoc !== null) {
-            $element->docComment = $phpDoc->getText();
+            // We don't know the actual encoding, so here we replace invalid
+            // UTF-8 bytes with '?'.
+            $element->docComment = mb_convert_encoding($phpDoc->getText(), 'UTF-8', 'UTF-8');
         }
 
         $element->nameContext = clone $this->nameContext;
