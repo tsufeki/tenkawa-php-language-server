@@ -18,4 +18,9 @@ class Function_ extends Element
      * @var bool
      */
     public $returnByRef = false;
+
+    /**
+     * @var bool
+     */
+    public $callsFuncGetArgs = false;
 }

@@ -4,12 +4,13 @@ namespace Tsufeki\Tenkawa\Reflection;
 
 use PhpParser\Node;
 use PhpParser\Node\Const_ as ConstNode;
+use PhpParser\Node\Expr;
+use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Name\Relative;
 use PhpParser\Node\NullableType;
 use PhpParser\Node\Stmt;
-use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitorAbstract;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Protocol\Common\Location;
@@ -52,6 +53,17 @@ class ReflectionVisitor extends NodeVisitorAbstract
      * @var NameContext
      */
     private $nameContext;
+
+    /**
+     * @var (Function_|null)[]
+     */
+    private $functionStack = [];
+
+    const VARARG_FUNCTIONS = [
+        'func_get_args',
+        'func_get_arg',
+        'func_num_args',
+    ];
 
     public function __construct(Document $document)
     {
@@ -134,6 +146,8 @@ class ReflectionVisitor extends NodeVisitorAbstract
 
             $function->params[] = $param;
         }
+
+        $this->functionStack[] = $function;
     }
 
     /**
@@ -274,12 +288,16 @@ class ReflectionVisitor extends NodeVisitorAbstract
             foreach ($node->uses as $use) {
                 $this->addUse($use, $node->type, null);
             }
+
+            return null;
         }
 
         if ($node instanceof Stmt\GroupUse) {
             foreach ($node->uses as $use) {
                 $this->addUse($use, $node->type, $node->prefix);
             }
+
+            return null;
         }
 
         if ($node instanceof Stmt\Function_) {
@@ -287,7 +305,7 @@ class ReflectionVisitor extends NodeVisitorAbstract
             $this->processFunction($function, $node);
             $this->functions[] = $function;
 
-            return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+            return null;
         }
 
         if ($node instanceof Stmt\Class_) {
@@ -297,7 +315,7 @@ class ReflectionVisitor extends NodeVisitorAbstract
                 $this->classes[] = $class;
             }
 
-            return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+            return null;
         }
 
         if ($node instanceof Stmt\Interface_) {
@@ -305,7 +323,7 @@ class ReflectionVisitor extends NodeVisitorAbstract
             $this->processInterface($interface, $node);
             $this->classes[] = $interface;
 
-            return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+            return null;
         }
 
         if ($node instanceof Stmt\Trait_) {
@@ -313,7 +331,7 @@ class ReflectionVisitor extends NodeVisitorAbstract
             $this->processTrait($trait, $node);
             $this->classes[] = $trait;
 
-            return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+            return null;
         }
 
         if ($node instanceof Stmt\Const_) {
@@ -323,7 +341,30 @@ class ReflectionVisitor extends NodeVisitorAbstract
                 $this->consts[] = $const;
             }
 
-            return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+            return null;
+        }
+
+        if ($node instanceof Expr\Closure) {
+            $this->functionStack[] = null;
+
+            return null;
+        }
+
+        if ($node instanceof Expr\FuncCall
+            && $node->name instanceof Name
+            && in_array(strtolower((string)$node->name), self::VARARG_FUNCTIONS, true)
+        ) {
+            $function = $this->functionStack[count($this->functionStack) - 1] ?? null;
+            if ($function !== null) {
+                $function->callsFuncGetArgs = true;
+            }
+        }
+    }
+
+    public function leaveNode(Node $node)
+    {
+        if ($node instanceof FunctionLike) {
+            array_pop($this->functionStack);
         }
     }
 
