@@ -9,6 +9,7 @@ use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
 use Tsufeki\Tenkawa\Event\OnStart;
 use Tsufeki\Tenkawa\Logger\ClientLogger;
 use Tsufeki\Tenkawa\Logger\CompositeLogger;
+use Tsufeki\Tenkawa\Logger\StreamLogger;
 
 class CorePluginInit implements OnStart
 {
@@ -33,18 +34,25 @@ class CorePluginInit implements OnStart
     private $clientLogger;
 
     /**
+     * @var StreamLogger
+     */
+    private $streamLogger;
+
+    /**
      * @param MethodProvider[] $methodProviders
      */
     public function __construct(
         MethodRegistry $methodRegistry,
         array $methodProviders,
         LoggerInterface $logger,
-        ClientLogger $clientLogger
+        ClientLogger $clientLogger,
+        StreamLogger $streamLogger
     ) {
         $this->methodRegistry = $methodRegistry;
         $this->methodProviders = $methodProviders;
         $this->logger = $logger;
         $this->clientLogger = $clientLogger;
+        $this->streamLogger = $streamLogger;
     }
 
     public function onStart(): \Generator
@@ -56,7 +64,8 @@ class CorePluginInit implements OnStart
         }
 
         if ($this->logger instanceof CompositeLogger) {
-            $this->logger->add($this->clientLogger);
+            $this->logger->add($this->streamLogger);
+            // $this->logger->add($this->clientLogger);
         }
 
         return;

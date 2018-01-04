@@ -35,6 +35,7 @@ use Tsufeki\Tenkawa\Io\LocalFileReader;
 use Tsufeki\Tenkawa\Io\LocalFileSearch;
 use Tsufeki\Tenkawa\Logger\ClientLogger;
 use Tsufeki\Tenkawa\Logger\CompositeLogger;
+use Tsufeki\Tenkawa\Logger\StreamLogger;
 use Tsufeki\Tenkawa\Mapper\UriMapper;
 use Tsufeki\Tenkawa\Parser\Parser;
 use Tsufeki\Tenkawa\Parser\ParserDiagnosticsProvider;
@@ -59,6 +60,7 @@ class CorePlugin extends Plugin
         $container->setValue(EventDispatcher::class, new EventDispatcher($container));
         $container->setClass(LoggerInterface::class, CompositeLogger::class);
         $container->setClass(ClientLogger::class);
+        $container->setClass(StreamLogger::class, null, false, [new Value(STDERR)]);
 
         $container->setClass(OnStart::class, CorePluginInit::class, true);
         $container->setCallable(Mapper::class, [$this, 'createMapper']);
