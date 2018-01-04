@@ -48,9 +48,15 @@ class ReflectionVisitor extends NodeVisitorAbstract
      */
     private $consts = [];
 
+    /**
+     * @var NameContext
+     */
+    private $nameContext;
+
     public function __construct(Document $document)
     {
         $this->document = $document;
+        $this->nameContext = new NameContext();
     }
 
     private function nameToString(Name $name): string
@@ -105,6 +111,8 @@ class ReflectionVisitor extends NodeVisitorAbstract
         if ($phpDoc !== null) {
             $element->docComment = $phpDoc->getText();
         }
+
+        $element->nameContext = clone $this->nameContext;
     }
 
     /**
@@ -144,8 +152,6 @@ class ReflectionVisitor extends NodeVisitorAbstract
 
     private function processClassLike(ClassLike $class, Stmt\ClassLike $node)
     {
-        $this->init($class, $node);
-
         foreach ($node->stmts as $child) {
             if ($child instanceof Stmt\ClassConst) {
                 foreach ($child->consts as $constNode) {
@@ -208,6 +214,8 @@ class ReflectionVisitor extends NodeVisitorAbstract
 
     private function processClass(ClassLike $class, Stmt\Class_ $node)
     {
+        $this->init($class, $node);
+        $this->nameContext->class = $class->nameContext->class = $class->name;
         $this->processClassLike($class, $node);
         $class->abstract = $node->isAbstract();
         $class->final = $node->isFinal();
@@ -220,6 +228,8 @@ class ReflectionVisitor extends NodeVisitorAbstract
 
     private function processInterface(ClassLike $interface, Stmt\Interface_ $node)
     {
+        $this->init($interface, $node);
+        $this->nameContext->class = $interface->nameContext->class = $interface->name;
         $this->processClassLike($interface, $node);
         foreach ($node->extends as $extends) {
             $interface->interfaces[] = $this->nameToString($extends);
@@ -228,12 +238,50 @@ class ReflectionVisitor extends NodeVisitorAbstract
 
     private function processTrait(ClassLike $trait, Stmt\Trait_ $node)
     {
+        $this->init($trait, $node);
         $this->processClassLike($trait, $node);
         $this->processUsedTraits($trait, $node);
     }
 
+    private function addUse(Stmt\UseUse $use, int $type, Name $prefix = null)
+    {
+        $type |= $use->type;
+        $name = '\\' . ($prefix ? $prefix->toString() . '\\' : '') . $use->name->toString();
+        $alias = $use->alias;
+
+        if ($type === Stmt\Use_::TYPE_FUNCTION) {
+            $this->nameContext->functionUses[$alias] = $name;
+        } elseif ($type === Stmt\Use_::TYPE_CONSTANT) {
+            $this->nameContext->constUses[$alias] = $name;
+        } else {
+            $this->nameContext->uses[$alias] = $name;
+        }
+    }
+
     public function enterNode(Node $node)
     {
+        if ($node instanceof Stmt\Namespace_) {
+            $this->nameContext->namespace = isset($node->name) ? '\\' . $node->name->toString() : '\\';
+            $this->nameContext->uses = [];
+            $this->nameContext->functionUses = [];
+            $this->nameContext->constUses = [];
+            $this->nameContext->class = null;
+
+            return null;
+        }
+
+        if ($node instanceof Stmt\Use_) {
+            foreach ($node->uses as $use) {
+                $this->addUse($use, $node->type, null);
+            }
+        }
+
+        if ($node instanceof Stmt\GroupUse) {
+            foreach ($node->uses as $use) {
+                $this->addUse($use, $node->type, $node->prefix);
+            }
+        }
+
         if ($node instanceof Stmt\Function_) {
             $function = new Function_();
             $this->processFunction($function, $node);

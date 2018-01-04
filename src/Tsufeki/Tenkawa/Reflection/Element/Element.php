@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Reflection\Element;
 
 use Tsufeki\Tenkawa\Protocol\Common\Location;
+use Tsufeki\Tenkawa\Reflection\NameContext;
 
 abstract class Element
 {
@@ -20,4 +21,9 @@ abstract class Element
      * @var string|null
      */
     public $docComment;
+
+    /**
+     * @var NameContext
+     */
+    public $nameContext;
 }
