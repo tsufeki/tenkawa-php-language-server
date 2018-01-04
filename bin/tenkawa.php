@@ -6,6 +6,7 @@ use Recoil\React\ReactKernel;
 use Tsufeki\Tenkawa\PluginFinder;
 use Tsufeki\Tenkawa\Tenkawa;
 use Tsufeki\Tenkawa\Transport\StreamTransport;
+use Tsufeki\Tenkawa\Utils\SyncAsync;
 
 foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
     if (file_exists($file)) {
@@ -41,11 +42,8 @@ $kernel->setExceptionHandler(function (\Throwable $e) {
     fwrite(STDERR, (string)$e->getPrevious());
 });
 
-$kernel->execute(function () use ($kernel, $plugins): \Generator {
-    $transport = new StreamTransport(STDIN, STDOUT);
-    $server = new Tenkawa();
+$syncAsync = new SyncAsync($kernel);
+$transport = new StreamTransport(STDIN, STDOUT);
+$server = new Tenkawa();
 
-    yield $server->run($transport, $kernel, $plugins);
-});
-
-$kernel->run();
+$syncAsync->start($server->run($transport, $kernel, $syncAsync, $plugins));

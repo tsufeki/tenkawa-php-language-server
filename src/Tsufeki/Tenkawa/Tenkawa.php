@@ -9,17 +9,19 @@ use Tsufeki\HmContainer\Container;
 use Tsufeki\Tenkawa\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Event\OnStart;
 use Tsufeki\Tenkawa\Transport\RunnableTransport;
+use Tsufeki\Tenkawa\Utils\SyncAsync;
 
 class Tenkawa
 {
     /**
      * @param Plugin[] $plugins
      */
-    public function run(RunnableTransport $transport, Kernel $kernel, array $plugins): \Generator
+    public function run(RunnableTransport $transport, Kernel $kernel, SyncAsync $syncAsync, array $plugins): \Generator
     {
         $container = new Container();
         $container->setValue(Transport::class, $transport);
         $container->setValue(Kernel::class, $kernel);
+        $container->setValue(SyncAsync::class, $syncAsync);
 
         foreach ($plugins as $plugin) {
             $plugin->configureContainer($container);

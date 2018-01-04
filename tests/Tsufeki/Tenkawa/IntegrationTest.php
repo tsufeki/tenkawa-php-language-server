@@ -9,6 +9,7 @@ use Tests\Tsufeki\Tenkawa\Fixtures\DummyTransport;
 use Tsufeki\BlancheJsonRpc\Json;
 use Tsufeki\Tenkawa\CorePlugin;
 use Tsufeki\Tenkawa\Tenkawa;
+use Tsufeki\Tenkawa\Utils\SyncAsync;
 
 /**
  * @covers \Tsufeki\Tenkawa\Client
@@ -24,9 +25,10 @@ class IntegrationTest extends TestCase
         $kernel = ReactKernel::create();
         $kernel->execute(function () use ($kernel) {
             $transport = new DummyTransport();
+            $syncAsync = new SyncAsync($kernel);
             $tenkawa = new Tenkawa();
 
-            yield Recoil::execute($tenkawa->run($transport, $kernel, [new CorePlugin()]));
+            yield Recoil::execute($tenkawa->run($transport, $kernel, $syncAsync, [new CorePlugin()]));
             yield;
             yield;
 
