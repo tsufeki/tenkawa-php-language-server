@@ -233,6 +233,7 @@ class ReflectionVisitor extends NodeVisitorAbstract
         $this->init($class, $node);
         $this->nameContext->class = $class->nameContext->class = $class->name;
         $this->processClassLike($class, $node);
+        $class->isClass = true;
         $class->abstract = $node->isAbstract();
         $class->final = $node->isFinal();
         $class->parentClass = $node->extends ? $this->nameToString($node->extends) : null;
@@ -247,6 +248,7 @@ class ReflectionVisitor extends NodeVisitorAbstract
         $this->init($interface, $node);
         $this->nameContext->class = $interface->nameContext->class = $interface->name;
         $this->processClassLike($interface, $node);
+        $interface->isInterface = true;
         foreach ($node->extends as $extends) {
             $interface->interfaces[] = $this->nameToString($extends);
         }
@@ -256,6 +258,7 @@ class ReflectionVisitor extends NodeVisitorAbstract
     {
         $this->init($trait, $node);
         $this->processClassLike($trait, $node);
+        $trait->isTrait = true;
         $this->processUsedTraits($trait, $node);
     }
 

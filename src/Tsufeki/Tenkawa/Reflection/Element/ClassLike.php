@@ -12,6 +12,21 @@ class ClassLike extends Element
     const M_PUBLIC = 3;
 
     /**
+     * @var bool
+     */
+    public $isClass = false;
+
+    /**
+     * @var bool
+     */
+    public $isInterface = false;
+
+    /**
+     * @var bool
+     */
+    public $isTrait = false;
+
+    /**
      * @var ClassConst[]
      */
     public $consts = [];
