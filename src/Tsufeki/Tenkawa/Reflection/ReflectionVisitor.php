@@ -156,7 +156,7 @@ class ReflectionVisitor extends NodeVisitorAbstract
      * @param Method|Property|ClassConst                     $member
      * @param Stmt\ClassMethod|Stmt\Property|Stmt\ClassConst $node
      */
-    private function processMember($member, Node $node)
+    private function processMember($member, Node $node, ClassLike $class)
     {
         $member->accessibility =
             $node->isPrivate() ? ClassLike::M_PRIVATE : (
@@ -164,6 +164,7 @@ class ReflectionVisitor extends NodeVisitorAbstract
             ClassLike::M_PUBLIC);
 
         $member->static = $node->isStatic();
+        $member->class = $class->name;
     }
 
     private function processClassLike(ClassLike $class, Stmt\ClassLike $node)
@@ -173,20 +174,20 @@ class ReflectionVisitor extends NodeVisitorAbstract
                 foreach ($child->consts as $constNode) {
                     $const = new ClassConst();
                     $this->init($const, $constNode);
-                    $this->processMember($const, $child);
+                    $this->processMember($const, $child, $class);
                     $class->consts[] = $const;
                 }
             } elseif ($child instanceof Stmt\Property) {
                 foreach ($child->props as $propertyNode) {
                     $property = new Property();
                     $this->init($property, $propertyNode);
-                    $this->processMember($property, $child);
+                    $this->processMember($property, $child, $class);
                     $class->properties[] = $property;
                 }
             } elseif ($child instanceof Stmt\ClassMethod) {
                 $method = new Method();
                 $this->processFunction($method, $child);
-                $this->processMember($method, $child);
+                $this->processMember($method, $child, $class);
                 $method->abstract = $child->isAbstract();
                 $method->final = $child->isFinal();
                 $class->methods[] = $method;

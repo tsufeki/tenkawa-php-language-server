@@ -48,6 +48,7 @@ use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
 use Tsufeki\Tenkawa\References\GoToDefinitionProvider;
 use Tsufeki\Tenkawa\References\NodeGoToGlobalsProvider;
 use Tsufeki\Tenkawa\References\NodeHelper;
+use Tsufeki\Tenkawa\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Reflection\IndexReflectionProvider;
 use Tsufeki\Tenkawa\Reflection\ReflectionIndexDataProvider;
 use Tsufeki\Tenkawa\Reflection\ReflectionProvider;
@@ -101,6 +102,7 @@ class CorePlugin extends Plugin
 
         $container->setClass(IndexDataProvider::class, ReflectionIndexDataProvider::class, true);
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
+        $container->setClass(ClassResolver::class);
 
         $container->setClass(GoToDefinitionAggregator::class);
         $container->setClass(GoToDefinitionProvider::class, NodeGoToGlobalsProvider::class, true);

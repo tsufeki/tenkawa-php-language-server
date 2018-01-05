@@ -70,17 +70,17 @@ class ResolvedClassLike
     public $final = false;
 
     /**
-     * @var string|null
+     * @var self|null
      */
     public $parentClass;
 
     /**
-     * @var string[]
+     * @var self[]
      */
     public $interfaces = [];
 
     /**
-     * @var string[]
+     * @var self[]
      */
     public $traits = [];
 }
