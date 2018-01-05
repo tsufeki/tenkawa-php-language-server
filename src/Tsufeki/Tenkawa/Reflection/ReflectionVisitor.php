@@ -99,7 +99,11 @@ class ReflectionVisitor extends NodeVisitorAbstract
         if (is_string($type)) {
             $typeObj->type = $type;
         } elseif ($type instanceof NullableType) {
-            $typeObj->type = '?' . $this->getType($type->type);
+            $innerType = $this->getType($type->type);
+            if ($innerType === null) {
+                return null;
+            }
+            $typeObj->type = '?' . $innerType->type;
         } else {
             $typeObj->type = $this->nameToString($type);
         }
