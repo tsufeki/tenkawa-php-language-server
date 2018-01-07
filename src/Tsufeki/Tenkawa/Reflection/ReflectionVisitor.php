@@ -149,7 +149,7 @@ class ReflectionVisitor extends NodeVisitorAbstract
             $param->optional = $paramNode->default !== null;
             $param->variadic = $paramNode->variadic;
             $param->type = $this->getType($paramNode->type);
-            $param->defaltNull = $paramNode->default instanceof Expr\ConstFetch
+            $param->defaultNull = $paramNode->default instanceof Expr\ConstFetch
                 && $paramNode->default->name instanceof FullyQualified
                 && strtolower((string)$paramNode->default->name) === 'null';
 

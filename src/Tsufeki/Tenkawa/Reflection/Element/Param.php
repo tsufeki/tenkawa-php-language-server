@@ -32,5 +32,5 @@ class Param
     /**
      * @var bool
      */
-    public $defaltNull = false;
+    public $defaultNull = false;
 }
