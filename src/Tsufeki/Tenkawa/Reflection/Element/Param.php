@@ -28,4 +28,9 @@ class Param
      * @var bool
      */
     public $optional = false;
+
+    /**
+     * @var bool
+     */
+    public $defaltNull = false;
 }
