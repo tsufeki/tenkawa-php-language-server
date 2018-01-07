@@ -115,7 +115,7 @@ class ReflectionVisitor extends NodeVisitorAbstract
      * @param Element                                                                        $element
      * @param Stmt\ClassLike|Stmt\Function_|Stmt\ClassMethod|ConstNode|Stmt\PropertyProperty $node
      */
-    private function init(Element $element, Node $node)
+    private function init(Element $element, Node $node, Node $docCommentFallback = null)
     {
         $element->name = isset($node->namespacedName) ? $this->nameToString(new FullyQualified($node->namespacedName)) : $node->name;
 
@@ -124,6 +124,9 @@ class ReflectionVisitor extends NodeVisitorAbstract
         $element->location->range = PositionUtils::rangeFromNodeAttrs($node->getAttributes(), $this->document);
 
         $phpDoc = $node->getDocComment();
+        if ($phpDoc === null && $docCommentFallback !== null) {
+            $phpDoc = $docCommentFallback->getDocComment();
+        }
         if ($phpDoc !== null) {
             // We don't know the actual encoding, so here we replace invalid
             // UTF-8 bytes with '?'.
@@ -179,14 +182,14 @@ class ReflectionVisitor extends NodeVisitorAbstract
             if ($child instanceof Stmt\ClassConst) {
                 foreach ($child->consts as $constNode) {
                     $const = new ClassConst();
-                    $this->init($const, $constNode);
+                    $this->init($const, $constNode, $child);
                     $this->processMember($const, $child);
                     $class->consts[] = $const;
                 }
             } elseif ($child instanceof Stmt\Property) {
                 foreach ($child->props as $propertyNode) {
                     $property = new Property();
-                    $this->init($property, $propertyNode);
+                    $this->init($property, $propertyNode, $child);
                     $this->processMember($property, $child);
                     $class->properties[] = $property;
                 }
