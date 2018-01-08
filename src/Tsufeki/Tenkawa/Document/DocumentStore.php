@@ -69,9 +69,9 @@ class DocumentStore
      *
      * @resolve Document
      */
-    public function load(Uri $uri, string $language, string $text): \Generator
+    public function load(Uri $uri, string $language, string $text, Project $project = null): \Generator
     {
-        $project = yield $this->getProjectForUri($uri);
+        $project = $project ?? yield $this->getProjectForUri($uri);
         $document = new Document($uri, $language, $project);
         $document->update($text);
 

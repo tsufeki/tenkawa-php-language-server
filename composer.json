@@ -16,7 +16,8 @@
         "react/promise-stream": "^1.1",
         "tsufeki/hmcontainer": "^0.3.2",
         "tsufeki/php-lenient-parser": "dev-master",
-        "webmozart/glob": "^4.1"
+        "webmozart/glob": "^4.1",
+        "jetbrains/phpstorm-stubs": "dev-master"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.5",

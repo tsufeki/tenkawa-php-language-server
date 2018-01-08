@@ -30,6 +30,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
     private $indexDataProviders;
 
     /**
+     * @var GlobalIndexer[]
+     */
+    private $globalIndexers;
+
+    /**
      * @var IndexStorageFactory
      */
     private $indexStorageFactory;
@@ -71,9 +76,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
 
     /**
      * @param IndexDataProvider[] $indexDataProviders
+     * @param GlobalIndexer[]     $globalIndexers
      */
     public function __construct(
         array $indexDataProviders,
+        array $globalIndexers,
         IndexStorageFactory $indexStorageFactory,
         DocumentStore $documentStore,
         FileReader $fileReader,
@@ -81,6 +88,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         LoggerInterface $logger
     ) {
         $this->indexDataProviders = $indexDataProviders;
+        $this->globalIndexers = $globalIndexers;
         $this->indexStorageFactory = $indexStorageFactory;
         $this->documentStore = $documentStore;
         $this->fileReader = $fileReader;
@@ -127,11 +135,13 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         }
     }
 
-    private function indexProject(Project $project, WritableIndexStorage $indexStorage): \Generator
+    public function indexProject(Project $project, WritableIndexStorage $indexStorage): \Generator
     {
         if (empty($this->indexDataProviders) || empty($this->globs)) {
             return;
         }
+
+        $this->logger->info('Project indexing started: ' . $project->getRootUri());
 
         $stopwatch = new Stopwatch();
         $rootUri = $project->getRootUri();
@@ -149,7 +159,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
                 $uri = Uri::fromString($uriString);
                 $language = $this->getLanguageForFile($project, $uriString);
                 $text = yield $this->fileReader->read($uri);
-                $document = yield $this->documentStore->load($uri, $language, $text);
+                $document = yield $this->documentStore->load($uri, $language, $text, $project);
                 $indexedFilesCount++;
 
                 yield $this->indexDocument($document, $indexStorage, $timestamp);
@@ -169,8 +179,10 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
     public function onStart(): \Generator
     {
         $this->globalIndex = $this->indexStorageFactory->createGlobalIndex($this->indexDataVersion);
-        // TODO
-        yield;
+
+        yield Recoil::execute(array_map(function (GlobalIndexer $globalIndexer) {
+            return $globalIndexer->index($this->globalIndex, $this);
+        }, $this->globalIndexers));
     }
 
     public function onProjectOpen(Project $project): \Generator
