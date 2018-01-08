@@ -20,20 +20,20 @@ class LocalCacheIndexStorageFactory implements IndexStorageFactory
         $this->cacheDir = $dirs->getCacheDir() . '/index';
     }
 
-    public function createGlobalIndex(): WritableIndexStorage
+    public function createGlobalIndex(string $indexDataVersion): WritableIndexStorage
     {
-        return new SqliteStorage($this->cacheDir . '/global.sqlite');
+        return new SqliteStorage($this->cacheDir . '/global.sqlite', $indexDataVersion);
     }
 
-    public function createOpenedFilesIndex(Project $project): WritableIndexStorage
+    public function createOpenedFilesIndex(Project $project, string $indexDataVersion): WritableIndexStorage
     {
         return new MemoryStorage();
     }
 
-    public function createProjectFilesIndex(Project $project): WritableIndexStorage
+    public function createProjectFilesIndex(Project $project, string $indexDataVersion): WritableIndexStorage
     {
         $hash = sha1((string)$project->getRootUri());
 
-        return new SqliteStorage($this->cacheDir . "/project-$hash.sqlite");
+        return new SqliteStorage($this->cacheDir . "/project-$hash.sqlite", $indexDataVersion);
     }
 }

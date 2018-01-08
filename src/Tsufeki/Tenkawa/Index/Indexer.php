@@ -65,6 +65,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
     private $logger;
 
     /**
+     * @var string
+     */
+    private $indexDataVersion;
+
+    /**
      * @param IndexDataProvider[] $indexDataProviders
      */
     public function __construct(
@@ -83,6 +88,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         $this->logger = $logger;
 
         $this->globs = ['**/*.php' => 'php'];
+        $versions = array_map(function (IndexDataProvider $provider) {
+            return get_class($provider) . '=' . $provider->getVersion();
+        }, $this->indexDataProviders);
+        sort($versions);
+        $this->indexDataVersion = implode(';', $versions);
     }
 
     private function indexDocument(Document $document, WritableIndexStorage $indexStorage, int $timestamp = null): \Generator
@@ -151,15 +161,15 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
 
     public function onStart(): \Generator
     {
-        $this->globalIndex = $this->indexStorageFactory->createGlobalIndex();
+        $this->globalIndex = $this->indexStorageFactory->createGlobalIndex($this->indexDataVersion);
         // TODO
         yield;
     }
 
     public function onProjectOpen(Project $project): \Generator
     {
-        $openFilesIndex = $this->indexStorageFactory->createOpenedFilesIndex($project);
-        $projectFilesIndex = $this->indexStorageFactory->createProjectFilesIndex($project);
+        $openFilesIndex = $this->indexStorageFactory->createOpenedFilesIndex($project, $this->indexDataVersion);
+        $projectFilesIndex = $this->indexStorageFactory->createProjectFilesIndex($project, $this->indexDataVersion);
 
         $index = new ChainedStorage(
             $openFilesIndex,

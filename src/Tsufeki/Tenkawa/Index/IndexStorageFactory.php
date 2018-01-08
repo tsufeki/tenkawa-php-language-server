@@ -7,9 +7,9 @@ use Tsufeki\Tenkawa\Index\Storage\WritableIndexStorage;
 
 interface IndexStorageFactory
 {
-    public function createGlobalIndex(): WritableIndexStorage;
+    public function createGlobalIndex(string $indexDataVersion): WritableIndexStorage;
 
-    public function createOpenedFilesIndex(Project $project): WritableIndexStorage;
+    public function createOpenedFilesIndex(Project $project, string $indexDataVersion): WritableIndexStorage;
 
-    public function createProjectFilesIndex(Project $project): WritableIndexStorage;
+    public function createProjectFilesIndex(Project $project, string $indexDataVersion): WritableIndexStorage;
 }

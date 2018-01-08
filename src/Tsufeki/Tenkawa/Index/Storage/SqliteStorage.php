@@ -10,6 +10,7 @@ use Webmozart\PathUtil\Path;
 class SqliteStorage implements WritableIndexStorage
 {
     const MEMORY = ':memory:';
+    const SCHEMA_VERSION = 1;
 
     /**
      * @var string
@@ -17,13 +18,19 @@ class SqliteStorage implements WritableIndexStorage
     private $path;
 
     /**
+     * @var string
+     */
+    private $indexDataVersion;
+
+    /**
      * @var \PDO|null
      */
     private $pdo;
 
-    public function __construct(string $path)
+    public function __construct(string $path, string $indexDataVersion)
     {
         $this->path = $path;
+        $this->indexDataVersion = $indexDataVersion;
     }
 
     private function getPdo(): \PDO
@@ -39,17 +46,30 @@ class SqliteStorage implements WritableIndexStorage
         return $this->pdo;
     }
 
-    // @codeCoverageIgnoreStart
     public function close()
     {
         $this->pdo = null;
     }
 
-    // @codeCoverageIgnoreEnd
-
     private function initialize()
     {
+        $version = self::SCHEMA_VERSION . ';' . $this->indexDataVersion;
         $this->getPdo()->prepare('pragma journal_mode=WAL')->execute();
+
+        $this->getPdo()->prepare('create table if not exists tenkawa_version (
+            version text not null
+        )')->execute();
+
+        $stmt = $this->getPdo()->prepare('select version from tenkawa_version');
+        $stmt->execute();
+        $dbVersion = $stmt->fetchColumn();
+
+        if ($dbVersion !== $version) {
+            $this->getPdo()->prepare('drop table if exists tenkawa_index')->execute();
+            $this->getPdo()->prepare('delete from tenkawa_version')->execute();
+            $this->getPdo()->prepare('insert into tenkawa_version (version) values (:version)')
+                ->execute(['version' => $version]);
+        }
 
         $this->getPdo()->prepare('create table if not exists tenkawa_index (
             id integer primary key,

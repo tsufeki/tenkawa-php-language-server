@@ -31,6 +31,11 @@ class ReflectionIndexDataProvider implements IndexDataProvider
         $this->mapper = $mapper;
     }
 
+    public function getVersion(): int
+    {
+        return 1;
+    }
+
     /**
      * @resolve IndexEntry[]
      */
