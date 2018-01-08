@@ -98,6 +98,13 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
     private function indexDocument(Document $document, WritableIndexStorage $indexStorage, int $timestamp = null): \Generator
     {
         $entries = [];
+
+        $fileEntry = new IndexEntry();
+        $fileEntry->sourceUri = $document->getUri();
+        $fileEntry->category = 'file';
+        $fileEntry->key = '';
+        $entries[] = $fileEntry;
+
         foreach ($this->indexDataProviders as $provider) {
             $entries = array_merge($entries, yield $provider->getEntries($document));
         }
