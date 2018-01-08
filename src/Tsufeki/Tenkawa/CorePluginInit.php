@@ -55,7 +55,7 @@ class CorePluginInit implements OnStart
         $this->streamLogger = $streamLogger;
     }
 
-    public function onStart(): \Generator
+    public function onStart(array $options): \Generator
     {
         if ($this->methodRegistry instanceof SimpleMethodRegistry) {
             foreach ($this->methodProviders as $provider) {
@@ -64,8 +64,12 @@ class CorePluginInit implements OnStart
         }
 
         if ($this->logger instanceof CompositeLogger) {
-            $this->logger->add($this->streamLogger);
-            // $this->logger->add($this->clientLogger);
+            if ($options['log.stderr'] ?? true) {
+                $this->logger->add($this->streamLogger);
+            }
+            if ($options['log.client'] ?? false) {
+                $this->logger->add($this->clientLogger);
+            }
         }
 
         return;

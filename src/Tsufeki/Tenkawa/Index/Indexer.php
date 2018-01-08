@@ -176,7 +176,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         $this->logger->info("Project indexing finished. [$indexedFilesCount files, $stopwatch]");
     }
 
-    public function onStart(): \Generator
+    public function onStart(array $options): \Generator
     {
         $this->globalIndex = $this->indexStorageFactory->createGlobalIndex($this->indexDataVersion);
 

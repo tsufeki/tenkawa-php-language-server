@@ -4,5 +4,5 @@ namespace Tsufeki\Tenkawa\Event;
 
 interface OnStart
 {
-    public function onStart(): \Generator;
+    public function onStart(array $options): \Generator;
 }

@@ -16,20 +16,25 @@ class Tenkawa
     /**
      * @param Plugin[] $plugins
      */
-    public function run(RunnableTransport $transport, Kernel $kernel, SyncAsync $syncAsync, array $plugins): \Generator
-    {
+    public function run(
+        RunnableTransport $transport,
+        Kernel $kernel,
+        SyncAsync $syncAsync,
+        array $plugins,
+        array $options = []
+    ): \Generator {
         $container = new Container();
         $container->setValue(Transport::class, $transport);
         $container->setValue(Kernel::class, $kernel);
         $container->setValue(SyncAsync::class, $syncAsync);
 
         foreach ($plugins as $plugin) {
-            $plugin->configureContainer($container);
+            $plugin->configureContainer($container, $options);
         }
 
         /** @var EventDispatcher $eventDispatcher */
         $eventDispatcher = $container->get(EventDispatcher::class);
-        yield $eventDispatcher->dispatchAndWait(OnStart::class);
+        yield $eventDispatcher->dispatchAndWait(OnStart::class, $options);
 
         // Materialize the RPC server
         $rpc = $container->get(MappedJsonRpc::class);

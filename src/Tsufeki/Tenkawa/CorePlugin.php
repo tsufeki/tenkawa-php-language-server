@@ -23,11 +23,14 @@ use Tsufeki\Tenkawa\Event\Document\OnProjectClose;
 use Tsufeki\Tenkawa\Event\Document\OnProjectOpen;
 use Tsufeki\Tenkawa\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Event\OnStart;
+use Tsufeki\Tenkawa\Index\GlobalIndexer;
 use Tsufeki\Tenkawa\Index\Index;
 use Tsufeki\Tenkawa\Index\IndexDataProvider;
 use Tsufeki\Tenkawa\Index\Indexer;
 use Tsufeki\Tenkawa\Index\IndexStorageFactory;
 use Tsufeki\Tenkawa\Index\LocalCacheIndexStorageFactory;
+use Tsufeki\Tenkawa\Index\MemoryIndexStorageFactory;
+use Tsufeki\Tenkawa\Index\StubsIndexer;
 use Tsufeki\Tenkawa\Io\Directories;
 use Tsufeki\Tenkawa\Io\FileReader;
 use Tsufeki\Tenkawa\Io\FileSearch;
@@ -56,7 +59,7 @@ use Tsufeki\Tenkawa\Utils\Throttler;
 
 class CorePlugin extends Plugin
 {
-    public function configureContainer(Container $container)
+    public function configureContainer(Container $container, array $options)
     {
         $container->setValue(EventDispatcher::class, new EventDispatcher($container));
         $container->setClass(LoggerInterface::class, CompositeLogger::class);
@@ -90,7 +93,12 @@ class CorePlugin extends Plugin
         $container->setClass(Parser::class, PhpParserAdapter::class);
         $container->setClass(DiagnosticsProvider::class, ParserDiagnosticsProvider::class, true);
 
-        $container->setClass(IndexStorageFactory::class, LocalCacheIndexStorageFactory::class);
+        if ($options['index.memory_only'] ?? false) {
+            $container->setClass(IndexStorageFactory::class, MemoryIndexStorageFactory::class);
+        } else {
+            $container->setClass(IndexStorageFactory::class, LocalCacheIndexStorageFactory::class);
+        }
+
         $container->setClass(Indexer::class);
         $container->setAlias(OnStart::class, Indexer::class, true);
         $container->setAlias(OnOpen::class, Indexer::class, true);
@@ -99,6 +107,10 @@ class CorePlugin extends Plugin
         $container->setAlias(OnProjectOpen::class, Indexer::class, true);
         $container->setAlias(OnProjectClose::class, Indexer::class, true);
         $container->setClass(Index::class);
+
+        if ($options['index.stubs'] ?? true) {
+            $container->setClass(GlobalIndexer::class, StubsIndexer::class, true);
+        }
 
         $container->setClass(IndexDataProvider::class, ReflectionIndexDataProvider::class, true);
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);

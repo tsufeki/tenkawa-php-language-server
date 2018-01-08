@@ -28,7 +28,14 @@ class IntegrationTest extends TestCase
             $syncAsync = new SyncAsync($kernel);
             $tenkawa = new Tenkawa();
 
-            yield Recoil::execute($tenkawa->run($transport, $kernel, $syncAsync, [new CorePlugin()]));
+            $options = [
+                'index.memory_only' => true,
+                'index.stubs' => false,
+                'log.stderr' => false,
+                'log.client' => false,
+            ];
+
+            yield Recoil::execute($tenkawa->run($transport, $kernel, $syncAsync, [new CorePlugin()], $options));
             yield;
             yield;
 

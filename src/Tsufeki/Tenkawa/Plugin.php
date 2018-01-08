@@ -11,10 +11,8 @@ abstract class Plugin
      *
      * This method must not call `$container->get()` or otherwize freeze the
      * container.
-     *
-     * @param Container $container
      */
-    public function configureContainer(Container $container)
+    public function configureContainer(Container $container, array $options)
     {
     }
 }
