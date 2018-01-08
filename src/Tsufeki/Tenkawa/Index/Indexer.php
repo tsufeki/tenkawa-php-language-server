@@ -65,6 +65,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
     private $globs = [];
 
     /**
+     * @var string[]
+     */
+    private $blacklistGlobs = [];
+
+    /**
      * @var LoggerInterface
      */
     private $logger;
@@ -96,6 +101,8 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         $this->logger = $logger;
 
         $this->globs = ['**/*.php' => 'php'];
+        $this->blacklistGlobs = ['var/**/*', 'app/cache/**/*', 'cache/**/*'];
+
         $versions = array_map(function (IndexDataProvider $provider) {
             return get_class($provider) . '=' . $provider->getVersion();
         }, $this->indexDataProviders);
@@ -135,6 +142,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         }
     }
 
+    private function joinGlobs(array $globs): string
+    {
+        return count($globs) === 1 ? $globs[0] : '{' . implode(',', $globs) . '}';
+    }
+
     public function indexProject(Project $project, WritableIndexStorage $indexStorage): \Generator
     {
         if (empty($this->indexDataProviders) || empty($this->globs)) {
@@ -146,8 +158,10 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         $stopwatch = new Stopwatch();
         $rootUri = $project->getRootUri();
 
-        $glob = count($this->globs) === 1 ? array_keys($this->globs)[0] : '{' . implode(',', array_keys($this->globs)) . '}';
-        $currentFiles = yield $this->fileSearch->searchWithTimestamps($rootUri, $glob);
+        $glob = $this->joinGlobs(array_keys($this->globs));
+        $blacklistGlob = $this->joinGlobs($this->blacklistGlobs);
+
+        $currentFiles = yield $this->fileSearch->searchWithTimestamps($rootUri, $glob, $blacklistGlob);
         yield;
         $indexedFiles = yield $indexStorage->getFileTimestamps();
         $indexedFilesCount = 0;

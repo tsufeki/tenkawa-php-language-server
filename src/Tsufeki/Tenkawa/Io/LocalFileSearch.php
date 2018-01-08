@@ -9,13 +9,14 @@ use Webmozart\Glob\Iterator\RecursiveDirectoryIterator;
 
 class LocalFileSearch implements FileSearch
 {
-    public function searchWithTimestamps(Uri $baseDir, string $pattern): \Generator
+    public function searchWithTimestamps(Uri $baseDir, string $pattern, string $blacklistPattern = null): \Generator
     {
         $glob = $baseDir->getFilesystemPath() . '/' . $pattern;
+        $blacklistGlob = $baseDir->getFilesystemPath() . '/' . $blacklistPattern;
         $basePath = Glob::getBasePath($glob);
 
         try {
-            /** @var iterable<string,\SplFileInfo> $iterator */
+            /** @var \Iterator&iterable<string,\SplFileInfo> $iterator */
             $iterator = new GlobFilterIterator(
                 $glob,
                 new \RecursiveIteratorIterator(
@@ -33,6 +34,15 @@ class LocalFileSearch implements FileSearch
             );
         } catch (\Exception $e) {
             return [];
+        }
+
+        if ($blacklistPattern) {
+            $iterator = new \CallbackFilterIterator(
+                $iterator,
+                function ($fileInfo, $path) use ($blacklistGlob): bool {
+                    return !Glob::match($path, $blacklistGlob);
+                }
+            );
         }
 
         $result = [];

@@ -11,5 +11,5 @@ interface FileSearch
      *
      * @resolve array<string,int|null> URI string => last modified timestamp
      */
-    public function searchWithTimestamps(Uri $baseDir, string $pattern): \Generator;
+    public function searchWithTimestamps(Uri $baseDir, string $pattern, string $blacklistPattern = null): \Generator;
 }
