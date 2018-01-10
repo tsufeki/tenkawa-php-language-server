@@ -134,6 +134,7 @@ class CorePlugin extends Plugin
             ->throwOnInfiniteRecursion(true)
             ->throwOnMissingProperty(false)
             ->throwOnUnknownProperty(false)
+            ->acceptStdClassAsArray(true)
             ->addLoader($uriMapper)
             ->addDumper($uriMapper)
             ->getMapper();
