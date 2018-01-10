@@ -14,7 +14,7 @@ use Tsufeki\Tenkawa\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Reflection\Element\Param;
 
-class IndexPhpMethodReflection extends PhpMethodReflection
+class IndexMethodReflection extends PhpMethodReflection
 {
     /**
      * @var ClassReflection
@@ -62,13 +62,13 @@ class IndexPhpMethodReflection extends PhpMethodReflection
         $phpDocParameterTags = [];
         $phpDocReturnTag = null;
         if ($method->docComment) {
-            $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDoc($method);
+            $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($method);
             $phpDocParameterTags = $resolvedPhpDoc->getParamTags();
             $phpDocReturnTag = $resolvedPhpDoc->getReturnTag();
         }
 
         $this->parameters = array_map(function (Param $param) use ($phpDocParameterTags) {
-            return new IndexPhpParameterReflection(
+            return new IndexParameterReflection(
                 $param,
                 isset($phpDocParameterTags[$param->name]) ? $phpDocParameterTags[$param->name]->getType() : null
             );
@@ -118,7 +118,7 @@ class IndexPhpMethodReflection extends PhpMethodReflection
 
     public function getPrototype(): MethodReflection
     {
-        //!!!
+        //TODO
         return $this;
     }
 

@@ -9,7 +9,7 @@ use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\TypehintHelper;
 use Tsufeki\Tenkawa\Reflection\Element\Param;
 
-class IndexPhpParameterReflection extends PhpParameterReflection
+class IndexParameterReflection extends PhpParameterReflection
 {
     /**
      * @var Param

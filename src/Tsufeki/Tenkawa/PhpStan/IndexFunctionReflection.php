@@ -51,13 +51,13 @@ class IndexFunctionReflection extends FunctionReflection
         $phpDocParameterTags = [];
         $phpDocReturnTag = null;
         if ($function->docComment) {
-            $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDoc($function);
+            $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($function);
             $phpDocParameterTags = $resolvedPhpDoc->getParamTags();
             $phpDocReturnTag = $resolvedPhpDoc->getReturnTag();
         }
 
         $this->parameters = array_map(function (Param $param) use ($phpDocParameterTags) {
-            return new IndexPhpParameterReflection(
+            return new IndexParameterReflection(
                 $param,
                 isset($phpDocParameterTags[$param->name]) ? $phpDocParameterTags[$param->name]->getType() : null
             );

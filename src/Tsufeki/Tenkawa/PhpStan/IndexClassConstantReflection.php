@@ -37,7 +37,7 @@ class IndexClassConstantReflection implements ClassConstantReflection
      */
     public function getValue()
     {
-        //!!!
+        //TODO
         return null;
     }
 

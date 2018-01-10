@@ -11,7 +11,6 @@ use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Name\Relative;
 use PhpParser\Node\NullableType;
 use PhpParser\Node\Stmt;
-use PhpParser\NodeVisitorAbstract;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Protocol\Common\Location;
 use Tsufeki\Tenkawa\Reflection\Element\ClassConst;
@@ -27,7 +26,7 @@ use Tsufeki\Tenkawa\Reflection\Element\TraitInsteadOf;
 use Tsufeki\Tenkawa\Reflection\Element\Type;
 use Tsufeki\Tenkawa\Utils\PositionUtils;
 
-class ReflectionVisitor extends NodeVisitorAbstract
+class ReflectionVisitor extends NameContextVisitor
 {
     /**
      * @var Document
@@ -50,11 +49,6 @@ class ReflectionVisitor extends NodeVisitorAbstract
     private $consts = [];
 
     /**
-     * @var NameContext
-     */
-    private $nameContext;
-
-    /**
      * @var (Function_|null)[]
      */
     private $functionStack = [];
@@ -67,8 +61,8 @@ class ReflectionVisitor extends NodeVisitorAbstract
 
     public function __construct(Document $document)
     {
+        parent::__construct();
         $this->document = $document;
-        $this->nameContext = new NameContext();
     }
 
     private function nameToString(Name $name): string
@@ -241,7 +235,6 @@ class ReflectionVisitor extends NodeVisitorAbstract
     private function processClass(ClassLike $class, Stmt\Class_ $node)
     {
         $this->init($class, $node);
-        $this->nameContext->class = $class->nameContext->class = $class->name;
         $this->processClassLike($class, $node);
         $class->isClass = true;
         $class->abstract = $node->isAbstract();
@@ -256,7 +249,6 @@ class ReflectionVisitor extends NodeVisitorAbstract
     private function processInterface(ClassLike $interface, Stmt\Interface_ $node)
     {
         $this->init($interface, $node);
-        $this->nameContext->class = $interface->nameContext->class = $interface->name;
         $this->processClassLike($interface, $node);
         $interface->isInterface = true;
         foreach ($node->extends as $extends) {
@@ -272,48 +264,9 @@ class ReflectionVisitor extends NodeVisitorAbstract
         $this->processUsedTraits($trait, $node);
     }
 
-    private function addUse(Stmt\UseUse $use, int $type, Name $prefix = null)
-    {
-        $type |= $use->type;
-        $name = '\\' . ($prefix ? $prefix->toString() . '\\' : '') . $use->name->toString();
-        $alias = $use->alias;
-
-        if ($type === Stmt\Use_::TYPE_FUNCTION) {
-            $this->nameContext->functionUses[$alias] = $name;
-        } elseif ($type === Stmt\Use_::TYPE_CONSTANT) {
-            $this->nameContext->constUses[$alias] = $name;
-        } else {
-            $this->nameContext->uses[$alias] = $name;
-        }
-    }
-
     public function enterNode(Node $node)
     {
-        if ($node instanceof Stmt\Namespace_) {
-            $this->nameContext->namespace = isset($node->name) ? '\\' . $node->name->toString() : '\\';
-            $this->nameContext->uses = [];
-            $this->nameContext->functionUses = [];
-            $this->nameContext->constUses = [];
-            $this->nameContext->class = null;
-
-            return null;
-        }
-
-        if ($node instanceof Stmt\Use_) {
-            foreach ($node->uses as $use) {
-                $this->addUse($use, $node->type, null);
-            }
-
-            return null;
-        }
-
-        if ($node instanceof Stmt\GroupUse) {
-            foreach ($node->uses as $use) {
-                $this->addUse($use, $node->type, $node->prefix);
-            }
-
-            return null;
-        }
+        parent::enterNode($node);
 
         if ($node instanceof Stmt\Function_) {
             $function = new Function_();
@@ -378,6 +331,8 @@ class ReflectionVisitor extends NodeVisitorAbstract
 
     public function leaveNode(Node $node)
     {
+        parent::leaveNode($node);
+
         if ($node instanceof FunctionLike) {
             array_pop($this->functionStack);
         }

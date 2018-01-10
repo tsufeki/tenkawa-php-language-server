@@ -3,12 +3,13 @@
 namespace Tsufeki\Tenkawa\PhpStan;
 
 use PHPStan\Reflection\ClassReflection;
-use PHPStan\Reflection\PropertyReflection;
+use PHPStan\Reflection\Php\PhpPropertyReflection;
+use PHPStan\Type\MixedType;
 use PHPStan\Type\Type;
 use Tsufeki\Tenkawa\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Reflection\Element\Property;
 
-class IndexPhpPropertyReflection implements PropertyReflection
+class IndexPropertyReflection extends PhpPropertyReflection
 {
     /**
      * @var ClassReflection
@@ -28,11 +29,21 @@ class IndexPhpPropertyReflection implements PropertyReflection
     public function __construct(
         ClassReflection $declaringClass,
         Property $property,
-        Type $type
+        PhpDocResolver $phpDocResolver
     ) {
         $this->declaringClass = $declaringClass;
         $this->property = $property;
-        $this->type = $type;
+
+        $this->type = new MixedType();
+        if ($property->docComment) {
+            $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($property);
+            $phpDocVarTags = $resolvedPhpDoc->getVarTags();
+            if (isset($phpDocVarTags[0]) && count($phpDocVarTags) === 1) {
+                $this->type = $phpDocVarTags[0]->getType();
+            } elseif (isset($phpDocVarTags[$property->name])) {
+                $this->type = $phpDocVarTags[$property->name]->getType();
+            }
+        }
     }
 
     public function getDeclaringClass(): ClassReflection

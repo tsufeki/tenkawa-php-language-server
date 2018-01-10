@@ -23,6 +23,16 @@ use Tsufeki\Tenkawa\Utils\SyncAsync;
 class IndexBroker extends Broker
 {
     /**
+     * @var PropertiesClassReflectionExtension[]
+     */
+    private $propertiesReflectionExtensions;
+
+    /**
+     * @var MethodsClassReflectionExtension[]
+     */
+    private $methodsReflectionExtensions;
+
+    /**
      * @var ReflectionProvider
      */
     private $reflectionProvider;
@@ -46,6 +56,11 @@ class IndexBroker extends Broker
      * @var Document
      */
     private $document;
+
+    /**
+     * @var array<string,ClassReflection>
+     */
+    private $classes = [];
 
     /**
      * @param PropertiesClassReflectionExtension[]     $propertiesClassReflectionExtensions
@@ -73,9 +88,11 @@ class IndexBroker extends Broker
             $dynamicStaticMethodReturnTypeExtensions,
             $dynamicFunctionReturnTypeExtensions,
             new DummyFunctionReflectionFactory(),
-            new DummyFileTypeMapper()
+            $phpDocResolver
         );
 
+        $this->propertiesReflectionExtensions = $propertiesClassReflectionExtensions;
+        $this->methodsReflectionExtensions = $methodsClassReflectionExtensions;
         $this->reflectionProvider = $reflectionProvider;
         $this->classResolver = $classResolver;
         $this->syncAsync = $syncAsync;
@@ -86,12 +103,22 @@ class IndexBroker extends Broker
     public function getClass(string $className): ClassReflection
     {
         $className = '\\' . ltrim($className, '\\');
+        if (isset($this->classes[$className])) {
+            return $this->classes[$className];
+        }
+
         $class = $this->syncAsync->callAsync($this->classResolver->resolve($className, $this->document));
         if ($class === null) {
             throw new ClassNotFoundException($className);
         }
 
-        return new IndexClassReflection($class, $this->phpDocResolver);
+        return $this->classes[$className] = new IndexClassReflection(
+            $class,
+            $this,
+            $this->phpDocResolver,
+            $this->propertiesReflectionExtensions,
+            $this->methodsReflectionExtensions
+        );
     }
 
     public function getClassFromReflection(\ReflectionClass $reflectionClass, string $displayName, bool $anonymous): ClassReflection
@@ -146,7 +173,9 @@ class IndexBroker extends Broker
 
     public function hasConstant(\PhpParser\Node\Name $nameNode, Scope $scope = null): bool
     {
-        return $this->resolveConstantName($nameNode, $scope) !== null;
+        //TODO
+        return false;
+        // return $this->resolveConstantName($nameNode, $scope) !== null;
     }
 
     /**
