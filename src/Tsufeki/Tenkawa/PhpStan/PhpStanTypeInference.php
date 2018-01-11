@@ -7,6 +7,7 @@ use PhpParser\PrettyPrinter\Standard;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\Scope;
 use PHPStan\Analyser\TypeSpecifier;
+use React\Promise\Deferred;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\Utils\SyncAsync;
@@ -61,6 +62,17 @@ class PhpStanTypeInference implements TypeInference
 
     public function infer(Document $document): \Generator
     {
+        if ($document->getLanguage() !== 'php') {
+            return;
+        }
+
+        $promise = $document->get('type_inference');
+        if ($promise !== null) {
+            return yield $promise;
+        }
+
+        $deferred = new Deferred();
+        $document->set('type_inference', $deferred->promise());
         $path = $document->getUri()->getFilesystemPath();
 
         yield $this->syncAsync->callSync(
@@ -69,6 +81,10 @@ class PhpStanTypeInference implements TypeInference
                     $this->parser->parseFile($path),
                     new Scope($this->broker, $this->printer, $this->typeSpecifier, $path),
                     function (Node $node, Scope $scope) {
+                        if ($node instanceof Node\Expr && !($node instanceof Node\Expr\Error)) {
+                            $type = $scope->getType($node);
+                            $node->setAttribute('type', new PhpStanType($type));
+                        }
                     }
                 );
             },
@@ -84,5 +100,7 @@ class PhpStanTypeInference implements TypeInference
                 $this->nodeScopeResolver->setAnalysedFiles([]);
             }
         );
+
+        $deferred->resolve();
     }
 }
