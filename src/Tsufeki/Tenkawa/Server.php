@@ -14,6 +14,7 @@ use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\ServerCapabilities;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\TextDocumentSyncKind;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\TextDocumentSyncOptions;
 use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
+use Tsufeki\Tenkawa\References\HoverAggregator;
 
 class Server extends LanguageServer
 {
@@ -27,12 +28,19 @@ class Server extends LanguageServer
      */
     private $goToDefinitionAggregator;
 
+    /**
+     * @var HoverAggregator
+     */
+    private $hoverAggregator;
+
     public function __construct(
         DocumentStore $documentStore,
-        GoToDefinitionAggregator $goToDefinitionAggregator
+        GoToDefinitionAggregator $goToDefinitionAggregator,
+        HoverAggregator $hoverAggregator
     ) {
         $this->documentStore = $documentStore;
         $this->goToDefinitionAggregator = $goToDefinitionAggregator;
+        $this->hoverAggregator = $hoverAggregator;
     }
 
     /**
@@ -56,6 +64,7 @@ class Server extends LanguageServer
         $serverCapabilities->textDocumentSync = new TextDocumentSyncOptions();
         $serverCapabilities->textDocumentSync->openClose = true;
         $serverCapabilities->textDocumentSync->change = TextDocumentSyncKind::FULL;
+        $serverCapabilities->hoverProvider = $this->hoverAggregator->hasProviders();
         $serverCapabilities->definitionProvider = $this->goToDefinitionAggregator->hasProviders();
 
         $result = new InitializeResult();
@@ -111,5 +120,12 @@ class Server extends LanguageServer
         }
 
         return $locations;
+    }
+
+    public function hover(TextDocumentIdentifier $textDocument, Position $position): \Generator
+    {
+        $document = $this->documentStore->get($textDocument->uri);
+
+        return yield $this->hoverAggregator->getHover($document, $position);
     }
 }

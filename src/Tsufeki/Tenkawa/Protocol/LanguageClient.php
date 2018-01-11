@@ -8,7 +8,8 @@ use Tsufeki\Tenkawa\Uri;
 abstract class LanguageClient
 {
     /**
-     * Diagnostics notification are sent from the server to the client to signal results of validation runs.
+     * Diagnostics notification are sent from the server to the client to
+     * signal results of validation runs.
      *
      * Diagnostics are "owned" by the server so it is the server’s
      * responsibility to clear them if necessary. The following rule is used
@@ -34,7 +35,8 @@ abstract class LanguageClient
     abstract public function publishDiagnostics(Uri $uri, array $diagnostics): \Generator;
 
     /**
-     * The log message notification is sent from the server to the client to ask the client to log a particular message.
+     * The log message notification is sent from the server to the client to
+     * ask the client to log a particular message.
      *
      * method: window/logMessage
      *

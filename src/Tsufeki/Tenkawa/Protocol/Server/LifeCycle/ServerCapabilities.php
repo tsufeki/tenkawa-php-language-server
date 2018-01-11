@@ -12,6 +12,13 @@ class ServerCapabilities
     public $textDocumentSync;
 
     /**
+     * The server provides hover support.
+     *
+     * @var bool
+     */
+    public $hoverProvider = false;
+
+    /**
      * The server provides goto definition support.
      *
      * @var bool

@@ -10,6 +10,7 @@ use Tsufeki\Tenkawa\Protocol\Common\TextDocumentItem;
 use Tsufeki\Tenkawa\Protocol\Common\VersionedTextDocumentIdentifier;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\ClientCapabilities;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\InitializeResult;
+use Tsufeki\Tenkawa\Protocol\Server\TextDocument\Hover;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\TextDocumentContentChangeEvent;
 use Tsufeki\Tenkawa\Uri;
 
@@ -21,6 +22,7 @@ abstract class LanguageServer implements MethodProvider
             'initialize' => 'initialize',
             'shutdown' => 'shutdown',
             'textDocument/definition' => 'definition',
+            'textDocument/hover' => 'hover',
         ];
     }
 
@@ -63,7 +65,8 @@ abstract class LanguageServer implements MethodProvider
     abstract public function exit(): \Generator;
 
     /**
-     * The document open notification is sent from the client to the server to signal newly opened text documents.
+     * The document open notification is sent from the client to the server to
+     * signal newly opened text documents.
      *
      * The document’s truth is now managed by the client and the server must
      * not try to read the document’s truth using the document’s uri. Open in
@@ -78,7 +81,8 @@ abstract class LanguageServer implements MethodProvider
     abstract public function didOpenTextDocument(TextDocumentItem $textDocument): \Generator;
 
     /**
-     * The document change notification is sent from the client to the server to signal changes to a text document.
+     * The document change notification is sent from the client to the server
+     * to signal changes to a text document.
      *
      * @param VersionedTextDocumentIdentifier  $textDocument   The document that did change. The version number
      *                                                         points to the version after all provided content changes
@@ -91,7 +95,8 @@ abstract class LanguageServer implements MethodProvider
     abstract public function didChangeTextDocument(VersionedTextDocumentIdentifier $textDocument, array $contentChanges): \Generator;
 
     /**
-     * The document close notification is sent from the client to the server when the document got closed in the client.
+     * The document close notification is sent from the client to the server
+     * when the document got closed in the client.
      *
      * The document’s truth now exists where the document’s uri points to (e.g.
      * if the document’s uri is a file uri the truth now exists on disk). As
@@ -115,4 +120,15 @@ abstract class LanguageServer implements MethodProvider
      * @resolve Location|Location[]|null
      */
     abstract public function definition(TextDocumentIdentifier $textDocument, Position $position): \Generator;
+
+    /**
+     * The hover request is sent from the client to the server to request hover
+     * information at a given text document position.
+     *
+     * @param TextDocumentIdentifier $textDocument The text document.
+     * @param Position               $position     The position inside the text document.
+     *
+     * @resolve Hover|null
+     */
+    abstract public function hover(TextDocumentIdentifier $textDocument, Position $position): \Generator;
 }

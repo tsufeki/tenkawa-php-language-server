@@ -67,6 +67,7 @@ use Tsufeki\Tenkawa\ProcessRunner\ThrottledProcessRunner;
 use Tsufeki\Tenkawa\Protocol\LanguageClient;
 use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
 use Tsufeki\Tenkawa\References\GoToDefinitionProvider;
+use Tsufeki\Tenkawa\References\HoverAggregator;
 use Tsufeki\Tenkawa\References\NodeGoToGlobalsProvider;
 use Tsufeki\Tenkawa\References\NodeHelper;
 use Tsufeki\Tenkawa\Reflection\ClassResolver;
@@ -157,6 +158,8 @@ class CorePlugin extends Plugin
         $container->setClass(TypeParser::class);
         $container->setClass(ConstExprParser::class);
         $container->setClass(FileHelper::class, null, false, [new Value(getcwd())]);
+
+        $container->setClass(HoverAggregator::class);
     }
 
     /**
