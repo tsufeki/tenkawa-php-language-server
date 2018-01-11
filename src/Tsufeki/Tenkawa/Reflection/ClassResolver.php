@@ -66,7 +66,7 @@ class ClassResolver
         }
 
         foreach ($resolved->traits as $trait) {
-            $resolved->properties = array_replace($resolved->properties, $class->trait);
+            $resolved->properties = array_replace($resolved->properties, $trait->properties);
             $resolved->methods = $this->mergeTraitMethods($resolved->methods, $trait, $class);
         }
 
@@ -83,9 +83,9 @@ class ClassResolver
 
     private function mergeMembers(array $members, array $superMembers): array
     {
-        $superMembers = array_filter(function ($member) {
+        $superMembers = array_filter($superMembers, function ($member) {
             return $member->accessibility !== ClassLike::M_PRIVATE;
-        }, $superMembers);
+        });
 
         return array_replace($members, $superMembers);
     }

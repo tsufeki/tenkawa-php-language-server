@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa;
 
+use PHPStan\Type\TypeCombinator;
 use Psr\Log\LoggerInterface;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodRegistry;
@@ -71,6 +72,8 @@ class CorePluginInit implements OnStart
                 $this->logger->add($this->clientLogger);
             }
         }
+
+        TypeCombinator::setUnionTypesEnabled(true);
 
         return;
         yield;

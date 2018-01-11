@@ -38,7 +38,8 @@ class IndexParameterReflection extends PhpParameterReflection
 
     public function __construct(Param $param, Type $phpDocType = null, string $declaringClass = null)
     {
-        $declaringClass = ltrim($declaringClass, '\\');
+        $this->param = $param;
+        $declaringClass = $declaringClass ? ltrim($declaringClass, '\\') : null;
         if ($phpDocType !== null && $param->defaultNull) {
             $phpDocType = TypeCombinator::addNull($phpDocType);
         }
@@ -62,7 +63,6 @@ class IndexParameterReflection extends PhpParameterReflection
             $this->isVariadic()
         );
 
-        $this->param = $param;
         $this->phpDocType = $phpDocType ?? new MixedType();
         $this->declaringClass = $declaringClass;
     }

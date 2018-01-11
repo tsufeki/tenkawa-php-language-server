@@ -152,7 +152,7 @@ class IndexBroker extends Broker
 
         $function = null;
         foreach ($this->getNameCandidates($nameNode, $scope) as $name) {
-            $function = $this->syncAsync->callAsync($this->reflectionProvider->getFunction($this->document, $name));
+            $function = $this->syncAsync->callAsync($this->reflectionProvider->getFunction($this->document, $name))[0] ?? null;
             if ($function !== null) {
                 break;
             }
@@ -200,7 +200,7 @@ class IndexBroker extends Broker
 
         $const = null;
         foreach ($this->getNameCandidates($nameNode, $scope) as $name) {
-            $const = $this->syncAsync->callAsync($this->reflectionProvider->getConst($this->document, $name));
+            $const = $this->syncAsync->callAsync($this->reflectionProvider->getConst($this->document, $name))[0] ?? null;
             if ($const !== null) {
                 return ltrim($const->name, '\\');
             }

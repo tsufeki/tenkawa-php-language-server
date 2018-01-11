@@ -33,6 +33,7 @@ class PhpDocResolver extends FileTypeMapper
 
     public function getResolvedPhpDoc(string $filename, string $className = null, string $docComment): ResolvedPhpDocBlock
     {
+        //TODO infinite recursion guard
         $nodes = $this->phpParser->parseFile($filename);
         $visitor = new PhpDocResolverVisitor($docComment);
         $nodeTraverser = new NodeTraverser();
@@ -56,7 +57,7 @@ class PhpDocResolver extends FileTypeMapper
             array_map(function (string $name) {
                 return ltrim($name, '\\');
             }, $context->uses),
-            ltrim($context->class, '\\') ?: null
+            ltrim((string)$context->class, '\\') ?: null
         );
 
         return $this->phpDocStringResolver->resolve($docComment, $nameScope);

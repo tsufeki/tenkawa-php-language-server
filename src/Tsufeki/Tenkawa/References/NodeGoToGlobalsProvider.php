@@ -20,6 +20,10 @@ class NodeGoToGlobalsProvider implements GoToDefinitionProvider
 
     public function getLocations(Document $document, Position $position, array $nodes): \Generator
     {
+        if ($document->getLanguage() !== 'php') {
+            return [];
+        }
+
         $elements = yield $this->nodeHelper->getReflectionFromNodePath($nodes, $document);
 
         return array_filter(array_map(function (Element $element) {

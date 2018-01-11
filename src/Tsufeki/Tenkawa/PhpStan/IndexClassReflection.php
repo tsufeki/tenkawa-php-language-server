@@ -17,6 +17,7 @@ use PHPStan\Reflection\PropertyReflection;
 use PHPStan\ShouldNotHappenException;
 use Tsufeki\Tenkawa\Reflection\ResolvedClassLike;
 
+//TODO annotation property/method and universal crate extension
 class IndexClassReflection extends ClassReflection
 {
     /**
