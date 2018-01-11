@@ -2,6 +2,20 @@
 
 namespace Tsufeki\Tenkawa;
 
+use PhpParser\PrettyPrinter\Standard;
+use PHPStan\Analyser\NodeScopeResolver;
+use PHPStan\Analyser\TypeSpecifier;
+use PHPStan\Broker\Broker;
+use PHPStan\File\FileHelper;
+use PHPStan\Parser\Parser as PhpStanParser;
+use PHPStan\PhpDoc\PhpDocNodeResolver;
+use PHPStan\PhpDoc\PhpDocStringResolver;
+use PHPStan\PhpDoc\TypeNodeResolver;
+use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\PhpDocParser\Parser\ConstExprParser;
+use PHPStan\PhpDocParser\Parser\PhpDocParser;
+use PHPStan\PhpDocParser\Parser\TypeParser;
+use PHPStan\Type\FileTypeMapper;
 use Psr\Log\LoggerInterface;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodRegistry;
@@ -43,6 +57,10 @@ use Tsufeki\Tenkawa\Mapper\UriMapper;
 use Tsufeki\Tenkawa\Parser\Parser;
 use Tsufeki\Tenkawa\Parser\ParserDiagnosticsProvider;
 use Tsufeki\Tenkawa\Parser\PhpParserAdapter;
+use Tsufeki\Tenkawa\PhpStan\DocumentParser;
+use Tsufeki\Tenkawa\PhpStan\IndexBroker;
+use Tsufeki\Tenkawa\PhpStan\PhpDocResolver;
+use Tsufeki\Tenkawa\PhpStan\PhpStanTypeInference;
 use Tsufeki\Tenkawa\ProcessRunner\ProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ThrottledProcessRunner;
@@ -55,6 +73,7 @@ use Tsufeki\Tenkawa\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Reflection\IndexReflectionProvider;
 use Tsufeki\Tenkawa\Reflection\ReflectionIndexDataProvider;
 use Tsufeki\Tenkawa\Reflection\ReflectionProvider;
+use Tsufeki\Tenkawa\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\Utils\Throttler;
 
 class CorePlugin extends Plugin
@@ -119,6 +138,25 @@ class CorePlugin extends Plugin
         $container->setClass(GoToDefinitionAggregator::class);
         $container->setClass(GoToDefinitionProvider::class, NodeGoToGlobalsProvider::class, true);
         $container->setClass(NodeHelper::class);
+
+        $container->setClass(TypeInference::class, PhpStanTypeInference::class);
+        $container->setClass(NodeScopeResolver::class, null, false, [null, null, null, null, null, new Value(true), new Value(false), new Value([])]);
+        $container->setClass(DocumentParser::class);
+        $container->setAlias(PhpStanParser::class, DocumentParser::class);
+        $container->setClass(IndexBroker::class);
+        $container->setAlias(Broker::class, IndexBroker::class);
+        $container->setClass(Standard::class, null, false, [new Value([])]);
+        $container->setClass(TypeSpecifier::class);
+        $container->setClass(PhpDocResolver::class);
+        $container->setAlias(FileTypeMapper::class, PhpDocResolver::class);
+        $container->setClass(PhpDocStringResolver::class);
+        $container->setClass(Lexer::class);
+        $container->setClass(PhpDocParser::class);
+        $container->setClass(PhpDocNodeResolver::class);
+        $container->setClass(TypeNodeResolver::class);
+        $container->setClass(TypeParser::class);
+        $container->setClass(ConstExprParser::class);
+        $container->setClass(FileHelper::class, null, false, [new Value(getcwd())]);
     }
 
     /**

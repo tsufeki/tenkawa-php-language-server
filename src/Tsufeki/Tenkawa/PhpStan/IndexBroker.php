@@ -53,7 +53,7 @@ class IndexBroker extends Broker
     private $phpDocResolver;
 
     /**
-     * @var Document
+     * @var Document|null
      */
     private $document;
 
@@ -78,8 +78,7 @@ class IndexBroker extends Broker
         ReflectionProvider $reflectionProvider,
         ClassResolver $classResolver,
         SyncAsync $syncAsync,
-        PhpDocResolver $phpDocResolver,
-        Document $document
+        PhpDocResolver $phpDocResolver
     ) {
         parent::__construct(
             $propertiesClassReflectionExtensions,
@@ -97,11 +96,19 @@ class IndexBroker extends Broker
         $this->classResolver = $classResolver;
         $this->syncAsync = $syncAsync;
         $this->phpDocResolver = $phpDocResolver;
+    }
+
+    public function setDocument(Document $document = null)
+    {
         $this->document = $document;
     }
 
     public function getClass(string $className): ClassReflection
     {
+        if ($this->document === null) {
+            throw new ShouldNotHappenException();
+        }
+
         $className = '\\' . ltrim($className, '\\');
         if (isset($this->classes[$className])) {
             return $this->classes[$className];
@@ -139,6 +146,10 @@ class IndexBroker extends Broker
 
     public function getFunction(Name $nameNode, Scope $scope = null): FunctionReflection
     {
+        if ($this->document === null) {
+            throw new ShouldNotHappenException();
+        }
+
         $function = null;
         foreach ($this->getNameCandidates($nameNode, $scope) as $name) {
             $function = $this->syncAsync->callAsync($this->reflectionProvider->getFunction($this->document, $name));
@@ -183,6 +194,10 @@ class IndexBroker extends Broker
      */
     public function resolveConstantName(Name $nameNode, Scope $scope = null)
     {
+        if ($this->document === null) {
+            throw new ShouldNotHappenException();
+        }
+
         $const = null;
         foreach ($this->getNameCandidates($nameNode, $scope) as $name) {
             $const = $this->syncAsync->callAsync($this->reflectionProvider->getConst($this->document, $name));

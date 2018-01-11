@@ -22,19 +22,27 @@ class DocumentParser implements Parser
     private $syncAsync;
 
     /**
-     * @var Document
+     * @var Document|null
      */
     private $document;
 
-    public function __construct(TenkawaParser $parser, SyncAsync $syncAsync, Document $document)
+    public function __construct(TenkawaParser $parser, SyncAsync $syncAsync)
     {
         $this->parser = $parser;
         $this->syncAsync = $syncAsync;
+    }
+
+    public function setDocument(Document $document = null)
+    {
         $this->document = $document;
     }
 
     public function parseFile(string $file): array
     {
+        if ($this->document === null) {
+            throw new ShouldNotHappenException();
+        }
+
         if ($file !== $this->document->getUri()->getFilesystemPath()) {
             throw new ShouldNotHappenException();
         }

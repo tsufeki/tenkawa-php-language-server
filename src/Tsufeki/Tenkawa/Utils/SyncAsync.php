@@ -18,24 +18,37 @@ class SyncAsync
     private $sync = true;
 
     /**
-     * @var callable|null
+     * @var SyncCallContext[]
      */
-    private $syncCallable;
+    private $syncNext = [];
+
+    /**
+     * @var SyncCallContext[]
+     */
+    private $syncStack = [];
 
     public function __construct(Kernel $kernel)
     {
         $this->kernel = $kernel;
     }
 
-    public function callSync(callable $syncCallable, ...$args): \Generator
-    {
+    public function callSync(
+        callable $syncCallable,
+        array $args = [],
+        callable $resumeCallback = null,
+        callable $pauseCallback = null
+    ): \Generator {
         assert(!$this->sync);
 
         $done = false;
         $result = null;
         $exception = null;
 
-        $this->syncCallable = function () use ($syncCallable, $args, &$done, &$result, &$exception) {
+        $context = new SyncCallContext();
+        $context->resumeCallback = $resumeCallback;
+        $context->pauseCallback = $pauseCallback;
+
+        $context->callable = function () use ($syncCallable, $args, &$done, &$result, &$exception) {
             try {
                 $result = $syncCallable(...$args);
             } catch (\Throwable $e) {
@@ -45,6 +58,7 @@ class SyncAsync
             }
         };
 
+        $this->syncNext[] = $context;
         yield Recoil::execute(Recoil::stop());
 
         while (!$done) {
@@ -94,6 +108,11 @@ class SyncAsync
     private function run()
     {
         assert($this->sync);
+        $callerContext = null;
+        if (!empty($this->syncStack)) {
+            $callerContext = $this->syncStack[count($this->syncStack) - 1];
+            $callerContext->pause();
+        }
 
         while (true) {
             $this->sync = false;
@@ -104,13 +123,20 @@ class SyncAsync
                 $this->sync = true;
             }
 
-            if ($this->syncCallable !== null) {
-                $syncCallable = $this->syncCallable;
-                $this->syncCallable = null;
-                $syncCallable();
+            if (!empty($this->syncNext)) {
+                $context = array_shift($this->syncNext);
+                $this->syncStack[] = $context;
+                $context->resume();
+                ($context->callable)();
+                $context->pause();
+                array_pop($this->syncStack);
             } else {
                 break;
             }
+        }
+
+        if ($callerContext !== null) {
+            $callerContext->resume();
         }
     }
 
