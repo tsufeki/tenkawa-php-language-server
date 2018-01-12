@@ -58,11 +58,6 @@ class IndexBroker extends Broker
     private $document;
 
     /**
-     * @var array<string,ClassReflection>
-     */
-    private $classes = [];
-
-    /**
      * @param PropertiesClassReflectionExtension[]     $propertiesClassReflectionExtensions
      * @param MethodsClassReflectionExtension[]        $methodsClassReflectionExtensions
      * @param DynamicMethodReturnTypeExtension[]       $dynamicMethodReturnTypeExtensions
@@ -110,8 +105,9 @@ class IndexBroker extends Broker
         }
 
         $className = '\\' . ltrim($className, '\\');
-        if (isset($this->classes[$className])) {
-            return $this->classes[$className];
+        $classReflection = $this->document->get("phpstan.broker.class.$className");
+        if ($classReflection !== null) {
+            return $classReflection;
         }
 
         $class = $this->syncAsync->callAsync($this->classResolver->resolve($className, $this->document));
@@ -119,13 +115,16 @@ class IndexBroker extends Broker
             throw new ClassNotFoundException($className);
         }
 
-        return $this->classes[$className] = new IndexClassReflection(
+        $classReflection = new IndexClassReflection(
             $class,
             $this,
             $this->phpDocResolver,
             $this->propertiesReflectionExtensions,
             $this->methodsReflectionExtensions
         );
+        $this->document->set("phpstan.broker.class.$className", $classReflection);
+
+        return $classReflection;
     }
 
     public function getClassFromReflection(\ReflectionClass $reflectionClass, string $displayName, bool $anonymous): ClassReflection
