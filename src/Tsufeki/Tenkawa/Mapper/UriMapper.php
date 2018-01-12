@@ -15,6 +15,11 @@ use Tsufeki\Tenkawa\Uri;
 
 class UriMapper implements Loader, Dumper
 {
+    public function getSupportedTypes(): array
+    {
+        return ['\\' . Uri::class];
+    }
+
     public function dump($value, Context $context)
     {
         if (!is_object($value) || !($value instanceof Uri)) {
