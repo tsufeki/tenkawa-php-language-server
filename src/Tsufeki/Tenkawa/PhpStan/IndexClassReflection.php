@@ -88,8 +88,11 @@ class IndexClassReflection extends ClassReflection
      */
     public function getFileName()
     {
-        //TODO
-        return false;
+        if ($this->class->location === null) {
+            return false;
+        }
+
+        return $this->class->location->uri->getFilesystemPath();
     }
 
     /**

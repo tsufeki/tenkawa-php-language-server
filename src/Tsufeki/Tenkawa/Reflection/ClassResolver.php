@@ -23,6 +23,7 @@ class ClassResolver
      */
     public function resolve(string $className, Document $document): \Generator
     {
+        /** @var ClassLike[] $classes */
         $classes = yield $this->reflectionProvider->getClass($document, $className);
         if (empty($classes)) {
             return null;

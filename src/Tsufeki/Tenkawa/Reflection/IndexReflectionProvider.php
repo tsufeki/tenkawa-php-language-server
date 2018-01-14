@@ -28,7 +28,7 @@ class IndexReflectionProvider implements ReflectionProvider
         $this->mapper = $mapper;
     }
 
-    public function getFromIndex(
+    private function getFromIndex(
         Document $document,
         string $category,
         string $fullyQualifiedName,

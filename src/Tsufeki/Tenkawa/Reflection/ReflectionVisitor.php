@@ -139,20 +139,23 @@ class ReflectionVisitor extends NameContextVisitor
         $function->returnByRef = $node->byRef;
         $function->returnType = $this->getType($node->returnType);
 
-        foreach ($node->params as $paramNode) {
+        $params = [];
+        $optional = true;
+        foreach (array_reverse($node->params) as $paramNode) {
             $param = new Param();
             $param->name = $paramNode->name;
             $param->byRef = $paramNode->byRef;
-            $param->optional = $paramNode->default !== null;
+            $param->optional = $optional = $optional && $paramNode->default !== null;
             $param->variadic = $paramNode->variadic;
             $param->type = $this->getType($paramNode->type);
             $param->defaultNull = $paramNode->default instanceof Expr\ConstFetch
                 && $paramNode->default->name instanceof FullyQualified
                 && strtolower((string)$paramNode->default->name) === 'null';
 
-            $function->params[] = $param;
+            $params[] = $param;
         }
 
+        $function->params = array_reverse($params);
         $this->functionStack[] = $function;
     }
 
@@ -167,7 +170,7 @@ class ReflectionVisitor extends NameContextVisitor
             $node->isProtected() ? ClassLike::M_PROTECTED :
             ClassLike::M_PUBLIC);
 
-        $member->static = $node->isStatic();
+        $member->static = $node instanceof Stmt\ClassConst || $node->isStatic();
     }
 
     private function processClassLike(ClassLike $class, Stmt\ClassLike $node)
@@ -305,7 +308,7 @@ class ReflectionVisitor extends NameContextVisitor
         if ($node instanceof Stmt\Const_) {
             foreach ($node->consts as $constNode) {
                 $const = new Const_();
-                $this->init($const, $constNode);
+                $this->init($const, $constNode, $node);
                 $this->consts[] = $const;
             }
 
