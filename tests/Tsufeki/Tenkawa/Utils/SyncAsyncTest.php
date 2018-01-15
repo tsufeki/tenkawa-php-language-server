@@ -8,6 +8,7 @@ use Tsufeki\Tenkawa\Utils\SyncAsync;
 
 /**
  * @covers \Tsufeki\Tenkawa\Utils\SyncAsync
+ * @covers \Tsufeki\Tenkawa\Utils\SyncCallContext
  */
 class SyncAsyncTest extends TestCase
 {

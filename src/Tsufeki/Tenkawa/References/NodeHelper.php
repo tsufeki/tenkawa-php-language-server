@@ -69,8 +69,6 @@ class NodeHelper
     }
 
     /**
-     * Does not work for names in 'use' nodes.
-     *
      * @return string|null
      */
     public function getReferencedConst(Name $name, Node $parentNode = null, Node $grandparentNode = null)

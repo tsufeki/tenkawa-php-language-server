@@ -10,6 +10,7 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Name\Relative;
 use PhpParser\Node\NullableType;
+use PhpParser\Node\Scalar;
 use PhpParser\Node\Stmt;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Protocol\Common\Location;
@@ -106,13 +107,28 @@ class ReflectionVisitor extends NameContextVisitor
     }
 
     /**
-     * @param Element                                                                        $element
      * @param Stmt\ClassLike|Stmt\Function_|Stmt\ClassMethod|ConstNode|Stmt\PropertyProperty $node
      */
     private function init(Element $element, Node $node, Node $docCommentFallback = null)
     {
-        $element->name = isset($node->namespacedName) ? $this->nameToString(new FullyQualified($node->namespacedName)) : $node->name;
+        $this->setName($element, $node);
+        $this->setCommonInfo($element, $node, $docCommentFallback);
+    }
 
+    /**
+     * @param Stmt\ClassLike|Stmt\Function_|Stmt\ClassMethod|ConstNode|Stmt\PropertyProperty $node
+     */
+    private function setName(Element $element, Node $node)
+    {
+        if (isset($node->namespacedName)) {
+            $element->name = $this->nameToString(new FullyQualified($node->namespacedName));
+        } else {
+            $element->name = $node->name;
+        }
+    }
+
+    private function setCommonInfo(Element $element, Node $node, Node $docCommentFallback = null)
+    {
         $element->location = new Location();
         $element->location->uri = $this->document->getUri();
         $element->location->range = PositionUtils::rangeFromNodeAttrs($node->getAttributes(), $this->document);
@@ -267,6 +283,14 @@ class ReflectionVisitor extends NameContextVisitor
         $this->processUsedTraits($trait, $node);
     }
 
+    private function processDefineConst(Const_ $const, Expr\FuncCall $defineNode)
+    {
+        $nameNode = $defineNode->args[0]->value;
+        assert($nameNode instanceof Scalar\String_);
+        $const->name = '\\' . ltrim($nameNode->value, '\\');
+        $this->setCommonInfo($const, $defineNode);
+    }
+
     public function enterNode(Node $node)
     {
         parent::enterNode($node);
@@ -323,11 +347,26 @@ class ReflectionVisitor extends NameContextVisitor
 
         if ($node instanceof Expr\FuncCall
             && $node->name instanceof Name
-            && in_array(strtolower((string)$node->name), self::VARARG_FUNCTIONS, true)
         ) {
-            $function = $this->functionStack[count($this->functionStack) - 1] ?? null;
-            if ($function !== null) {
-                $function->callsFuncGetArgs = true;
+            if (in_array(strtolower((string)$node->name), self::VARARG_FUNCTIONS, true)) {
+                $function = $this->functionStack[count($this->functionStack) - 1] ?? null;
+                if ($function !== null) {
+                    $function->callsFuncGetArgs = true;
+                }
+
+                return null;
+            }
+
+            if (strtolower((string)$node->name) === 'define'
+                && isset($node->args[0])
+                && !$node->args[0]->unpack
+                && $node->args[0]->value instanceof Scalar\String_
+            ) {
+                $const = new Const_();
+                $this->processDefineConst($const, $node);
+                $this->consts[] = $const;
+
+                return null;
             }
         }
     }

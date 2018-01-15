@@ -75,6 +75,10 @@ class ReflectionVisitorTest extends TestCase
                 'name' => '\\FOO',
             ]]]],
 
+            ['<?php define("FOO", 1);', ['consts' => [[
+                'name' => '\\FOO',
+            ]]]],
+
             [
                 '<?php
                 /** doc comment */
