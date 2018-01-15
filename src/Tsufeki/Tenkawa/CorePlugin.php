@@ -70,6 +70,8 @@ use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
 use Tsufeki\Tenkawa\References\GoToDefinitionProvider;
 use Tsufeki\Tenkawa\References\GoToGlobalsProvider;
 use Tsufeki\Tenkawa\References\HoverAggregator;
+use Tsufeki\Tenkawa\References\HoverFormatter;
+use Tsufeki\Tenkawa\References\HoverGlobalsProvider;
 use Tsufeki\Tenkawa\References\HoverProvider;
 use Tsufeki\Tenkawa\References\NodeHelper;
 use Tsufeki\Tenkawa\Reflection\ClassResolver;
@@ -138,9 +140,11 @@ class CorePlugin extends Plugin
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
         $container->setClass(ClassResolver::class);
 
+        $container->setClass(NodeHelper::class);
+        $container->setClass(HoverFormatter::class);
         $container->setClass(GoToDefinitionAggregator::class);
         $container->setClass(GoToDefinitionProvider::class, GoToGlobalsProvider::class, true);
-        $container->setClass(NodeHelper::class);
+        $container->setClass(HoverProvider::class, HoverGlobalsProvider::class, true);
 
         $container->setClass(TypeInference::class, PhpStanTypeInference::class);
         $container->setClass(NodeScopeResolver::class, null, false, [null, null, null, null, null, new Value(true), new Value(false), new Value([])]);
