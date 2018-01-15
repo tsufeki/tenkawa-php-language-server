@@ -75,6 +75,12 @@ class NameContextVisitor extends NodeVisitorAbstract
             return null;
         }
 
+        if ($node instanceof Stmt\Function_) {
+            $this->nameContext->class = null;
+
+            return null;
+        }
+
         return null;
     }
 
@@ -82,6 +88,12 @@ class NameContextVisitor extends NodeVisitorAbstract
     {
         if ($node instanceof Stmt\ClassLike) {
             array_pop($this->classStack);
+            $this->nameContext->class = $this->classStack[count($this->classStack) - 1] ?? null;
+
+            return null;
+        }
+
+        if ($node instanceof Stmt\Function_) {
             $this->nameContext->class = $this->classStack[count($this->classStack) - 1] ?? null;
 
             return null;

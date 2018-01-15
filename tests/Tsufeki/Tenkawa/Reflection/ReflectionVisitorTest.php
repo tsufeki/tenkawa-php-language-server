@@ -338,6 +338,26 @@ class ReflectionVisitorTest extends TestCase
                     ]],
                 ]]],
             ],
+
+            [
+                '<?php
+                class C
+                {
+                    public function f() {
+                        function nested() {
+                        }
+                    }
+                }',
+                [
+                    'classes' => [['name' => '\C']],
+                    'functions' => [[
+                        'name' => '\nested',
+                        'nameContext' => [
+                            'class' => null,
+                        ],
+                    ]],
+                ],
+            ],
         ];
     }
 }
