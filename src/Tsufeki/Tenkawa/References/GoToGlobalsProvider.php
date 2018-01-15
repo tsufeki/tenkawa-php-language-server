@@ -6,7 +6,7 @@ use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Protocol\Common\Position;
 use Tsufeki\Tenkawa\Reflection\Element\Element;
 
-class NodeGoToGlobalsProvider implements GoToDefinitionProvider
+class GoToGlobalsProvider implements GoToDefinitionProvider
 {
     /**
      * @var NodeHelper

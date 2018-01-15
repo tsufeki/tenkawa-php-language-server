@@ -68,9 +68,9 @@ use Tsufeki\Tenkawa\Protocol\LanguageClient;
 use Tsufeki\Tenkawa\References\ExpressionTypeHoverProvider;
 use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
 use Tsufeki\Tenkawa\References\GoToDefinitionProvider;
+use Tsufeki\Tenkawa\References\GoToGlobalsProvider;
 use Tsufeki\Tenkawa\References\HoverAggregator;
 use Tsufeki\Tenkawa\References\HoverProvider;
-use Tsufeki\Tenkawa\References\NodeGoToGlobalsProvider;
 use Tsufeki\Tenkawa\References\NodeHelper;
 use Tsufeki\Tenkawa\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Reflection\IndexReflectionProvider;
@@ -139,7 +139,7 @@ class CorePlugin extends Plugin
         $container->setClass(ClassResolver::class);
 
         $container->setClass(GoToDefinitionAggregator::class);
-        $container->setClass(GoToDefinitionProvider::class, NodeGoToGlobalsProvider::class, true);
+        $container->setClass(GoToDefinitionProvider::class, GoToGlobalsProvider::class, true);
         $container->setClass(NodeHelper::class);
 
         $container->setClass(TypeInference::class, PhpStanTypeInference::class);
