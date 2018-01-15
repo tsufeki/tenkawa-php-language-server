@@ -12,7 +12,7 @@ use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Reflection\ReflectionProvider;
 
-class NodeHelper
+class GlobalsHelper
 {
     const CLASS_REFERENCING_NODES = [
         Expr\ClassConstFetch::class => true,

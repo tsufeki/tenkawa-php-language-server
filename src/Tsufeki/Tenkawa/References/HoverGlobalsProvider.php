@@ -13,18 +13,18 @@ use Tsufeki\Tenkawa\Utils\PositionUtils;
 class HoverGlobalsProvider implements HoverProvider
 {
     /**
-     * @var NodeHelper
+     * @var GlobalsHelper
      */
-    private $nodeHelper;
+    private $globalsHelper;
 
     /**
      * @var HoverFormatter
      */
     private $formatter;
 
-    public function __construct(NodeHelper $nodeHelper, HoverFormatter $formatter)
+    public function __construct(GlobalsHelper $globalsHelper, HoverFormatter $formatter)
     {
-        $this->nodeHelper = $nodeHelper;
+        $this->globalsHelper = $globalsHelper;
         $this->formatter = $formatter;
     }
 
@@ -35,7 +35,7 @@ class HoverGlobalsProvider implements HoverProvider
         }
 
         /** @var Element[] $elements */
-        $elements = yield $this->nodeHelper->getReflectionFromNodePath($nodes, $document);
+        $elements = yield $this->globalsHelper->getReflectionFromNodePath($nodes, $document);
 
         if (empty($elements)) {
             return null;

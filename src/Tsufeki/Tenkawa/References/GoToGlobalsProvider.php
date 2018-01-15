@@ -9,13 +9,13 @@ use Tsufeki\Tenkawa\Reflection\Element\Element;
 class GoToGlobalsProvider implements GoToDefinitionProvider
 {
     /**
-     * @var NodeHelper
+     * @var GlobalsHelper
      */
-    private $nodeHelper;
+    private $globalsHelper;
 
-    public function __construct(NodeHelper $nodeHelper)
+    public function __construct(GlobalsHelper $globalsHelper)
     {
-        $this->nodeHelper = $nodeHelper;
+        $this->globalsHelper = $globalsHelper;
     }
 
     public function getLocations(Document $document, Position $position, array $nodes): \Generator
@@ -24,7 +24,7 @@ class GoToGlobalsProvider implements GoToDefinitionProvider
             return [];
         }
 
-        $elements = yield $this->nodeHelper->getReflectionFromNodePath($nodes, $document);
+        $elements = yield $this->globalsHelper->getReflectionFromNodePath($nodes, $document);
 
         return array_filter(array_map(function (Element $element) {
             return $element->location;

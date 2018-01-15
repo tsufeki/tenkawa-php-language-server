@@ -66,6 +66,7 @@ use Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ThrottledProcessRunner;
 use Tsufeki\Tenkawa\Protocol\LanguageClient;
 use Tsufeki\Tenkawa\References\ExpressionTypeHoverProvider;
+use Tsufeki\Tenkawa\References\GlobalsHelper;
 use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
 use Tsufeki\Tenkawa\References\GoToDefinitionProvider;
 use Tsufeki\Tenkawa\References\GoToGlobalsProvider;
@@ -73,7 +74,6 @@ use Tsufeki\Tenkawa\References\HoverAggregator;
 use Tsufeki\Tenkawa\References\HoverFormatter;
 use Tsufeki\Tenkawa\References\HoverGlobalsProvider;
 use Tsufeki\Tenkawa\References\HoverProvider;
-use Tsufeki\Tenkawa\References\NodeHelper;
 use Tsufeki\Tenkawa\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Reflection\IndexReflectionProvider;
 use Tsufeki\Tenkawa\Reflection\ReflectionIndexDataProvider;
@@ -140,7 +140,7 @@ class CorePlugin extends Plugin
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
         $container->setClass(ClassResolver::class);
 
-        $container->setClass(NodeHelper::class);
+        $container->setClass(GlobalsHelper::class);
         $container->setClass(HoverFormatter::class);
         $container->setClass(GoToDefinitionAggregator::class);
         $container->setClass(GoToDefinitionProvider::class, GoToGlobalsProvider::class, true);
