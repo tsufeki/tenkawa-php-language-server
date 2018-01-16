@@ -6,16 +6,16 @@ use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Protocol\Common\Position;
 use Tsufeki\Tenkawa\Reflection\Element\Element;
 
-class GoToGlobalsProvider implements GoToDefinitionProvider
+class GoToDocCommentProvider implements GoToDefinitionProvider
 {
     /**
-     * @var GlobalsHelper
+     * @var DocCommentHelper
      */
-    private $globalsHelper;
+    private $docCommentHelper;
 
-    public function __construct(GlobalsHelper $globalsHelper)
+    public function __construct(DocCommentHelper $docCommentHelper)
     {
-        $this->globalsHelper = $globalsHelper;
+        $this->docCommentHelper = $docCommentHelper;
     }
 
     public function getLocations(Document $document, Position $position, array $nodes): \Generator
@@ -24,7 +24,7 @@ class GoToGlobalsProvider implements GoToDefinitionProvider
             return [];
         }
 
-        $elements = yield $this->globalsHelper->getReflectionFromNodePath($nodes, $document);
+        $elements = yield $this->docCommentHelper->getReflectionFromNodePath($nodes, $document, $position);
 
         return array_values(array_filter(array_map(function (Element $element) {
             return $element->location;

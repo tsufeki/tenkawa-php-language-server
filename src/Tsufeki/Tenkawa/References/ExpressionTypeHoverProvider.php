@@ -30,7 +30,7 @@ class ExpressionTypeHoverProvider implements HoverProvider
         }
 
         $type = null;
-        if (!empty($nodes)) {
+        if (!empty($nodes) && $nodes[0] instanceof Node) {
             $type = $nodes[0]->getAttribute('type', null);
         }
 

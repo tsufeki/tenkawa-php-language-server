@@ -12,17 +12,17 @@ class NameContext
     public $namespace = '\\';
 
     /**
-     * @var array<string|string> alias => fully qualified name
+     * @var array<string,string> alias => fully qualified name
      */
     public $uses = [];
 
     /**
-     * @var array<string|string> alias => fully qualified name
+     * @var array<string,string> alias => fully qualified name
      */
     public $functionUses = [];
 
     /**
-     * @var array<string|string> alias => fully qualified name
+     * @var array<string,string> alias => fully qualified name
      */
     public $constUses = [];
 
@@ -30,4 +30,21 @@ class NameContext
      * @var string|null
      */
     public $class = null;
+
+    public function resolveClass(string $name): string
+    {
+        if (($name[0] ?? '') === '\\') {
+            return $name;
+        }
+
+        $parts = explode('\\', $name);
+        $first = $parts[0];
+        if (isset($this->uses[$first])) {
+            $parts[0] = $this->uses[$first];
+
+            return implode('\\', $parts);
+        }
+
+        return $this->namespace . '\\' . $name;
+    }
 }

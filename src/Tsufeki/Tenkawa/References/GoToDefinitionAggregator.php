@@ -35,11 +35,17 @@ class GoToDefinitionAggregator
     public function getLocations(Document $document, Position $position): \Generator
     {
         $ast = yield $this->parser->parse($document);
+
         $visitor = new FindNodeVisitor($document, $position);
         $nodeTraverser = new NodeTraverser();
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($ast->nodes);
         $nodes = $visitor->getNodes();
+
+        $visitor = new NameContextTaggingVisitor($nodes);
+        $nodeTraverser = new NodeTraverser();
+        $nodeTraverser->addVisitor($visitor);
+        $nodeTraverser->traverse($ast->nodes);
 
         return array_merge(
             ...yield array_map(function (GoToDefinitionProvider $provider) use ($document, $position, $nodes) {

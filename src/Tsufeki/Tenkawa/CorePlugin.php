@@ -65,12 +65,15 @@ use Tsufeki\Tenkawa\ProcessRunner\ProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ThrottledProcessRunner;
 use Tsufeki\Tenkawa\Protocol\LanguageClient;
+use Tsufeki\Tenkawa\References\DocCommentHelper;
 use Tsufeki\Tenkawa\References\ExpressionTypeHoverProvider;
 use Tsufeki\Tenkawa\References\GlobalsHelper;
 use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
 use Tsufeki\Tenkawa\References\GoToDefinitionProvider;
+use Tsufeki\Tenkawa\References\GoToDocCommentProvider;
 use Tsufeki\Tenkawa\References\GoToGlobalsProvider;
 use Tsufeki\Tenkawa\References\HoverAggregator;
+use Tsufeki\Tenkawa\References\HoverDocCommentProvider;
 use Tsufeki\Tenkawa\References\HoverFormatter;
 use Tsufeki\Tenkawa\References\HoverGlobalsProvider;
 use Tsufeki\Tenkawa\References\HoverProvider;
@@ -140,11 +143,17 @@ class CorePlugin extends Plugin
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
         $container->setClass(ClassResolver::class);
 
-        $container->setClass(GlobalsHelper::class);
+        $container->setClass(HoverAggregator::class);
         $container->setClass(HoverFormatter::class);
         $container->setClass(GoToDefinitionAggregator::class);
+
+        $container->setClass(GlobalsHelper::class);
         $container->setClass(GoToDefinitionProvider::class, GoToGlobalsProvider::class, true);
         $container->setClass(HoverProvider::class, HoverGlobalsProvider::class, true);
+
+        $container->setClass(DocCommentHelper::class);
+        $container->setClass(GoToDefinitionProvider::class, GoToDocCommentProvider::class, true);
+        $container->setClass(HoverProvider::class, HoverDocCommentProvider::class, true);
 
         $container->setClass(TypeInference::class, PhpStanTypeInference::class);
         $container->setClass(NodeScopeResolver::class, null, false, [null, null, null, null, null, new Value(true), new Value(false), new Value([])]);
@@ -165,7 +174,6 @@ class CorePlugin extends Plugin
         $container->setClass(ConstExprParser::class);
         $container->setClass(FileHelper::class, null, false, [new Value(getcwd())]);
 
-        $container->setClass(HoverAggregator::class);
         $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
     }
 

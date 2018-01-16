@@ -36,11 +36,17 @@ class HoverAggregator
     public function getHover(Document $document, Position $position): \Generator
     {
         $ast = yield $this->parser->parse($document);
+
         $visitor = new FindNodeVisitor($document, $position);
         $nodeTraverser = new NodeTraverser();
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($ast->nodes);
         $nodes = $visitor->getNodes();
+
+        $visitor = new NameContextTaggingVisitor($nodes);
+        $nodeTraverser = new NodeTraverser();
+        $nodeTraverser->addVisitor($visitor);
+        $nodeTraverser->traverse($ast->nodes);
 
         foreach ($this->hoverProviders as $provider) {
             $hover = yield $provider->getHover($document, $position, $nodes);
