@@ -32,6 +32,7 @@ class FindNodeVisitor extends NodeVisitorAbstract
         /** @var Comment $comment */
         foreach ($node->getAttribute('comments') ?? [] as $comment) {
             if ($comment->getFilePos() <= $this->offset && $this->offset < $comment->getFilePos() + strlen($comment->getText())) {
+                $this->nodes[] = $node;
                 $this->nodes[] = $comment;
 
                 return NodeTraverser::DONT_TRAVERSE_CHILDREN;
