@@ -2,7 +2,12 @@
 
 namespace Tsufeki\Tenkawa\TypeInference;
 
-interface Type
+class Type
 {
-    public function __toString(): string;
+    public $description = 'mixed';
+
+    public function __toString(): string
+    {
+        return $this->description;
+    }
 }

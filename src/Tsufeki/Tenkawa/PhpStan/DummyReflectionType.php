@@ -21,7 +21,7 @@ class DummyReflectionType extends \ReflectionType
 
     public function __construct(string $string, bool $allowsNull = false, bool $isBuiltin = false)
     {
-        if ($string[0] ?? '' === '?') {
+        if (($string[0] ?? '') === '?') {
             $string = substr($string, 1);
             $allowsNull = true;
         }

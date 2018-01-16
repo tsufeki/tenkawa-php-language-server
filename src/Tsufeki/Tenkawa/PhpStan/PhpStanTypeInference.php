@@ -7,8 +7,10 @@ use PhpParser\PrettyPrinter\Standard;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\Scope;
 use PHPStan\Analyser\TypeSpecifier;
+use PHPStan\Type\Type as PhpStanType;
 use React\Promise\Deferred;
 use Tsufeki\Tenkawa\Document\Document;
+use Tsufeki\Tenkawa\TypeInference\Type;
 use Tsufeki\Tenkawa\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\Utils\SyncAsync;
 
@@ -83,7 +85,7 @@ class PhpStanTypeInference implements TypeInference
                     function (Node $node, Scope $scope) {
                         if ($node instanceof Node\Expr && !($node instanceof Node\Expr\Error)) {
                             $type = $scope->getType($node);
-                            $node->setAttribute('type', new PhpStanType($type));
+                            $node->setAttribute('type', $this->processType($type));
                         }
                     }
                 );
@@ -102,5 +104,13 @@ class PhpStanTypeInference implements TypeInference
         );
 
         $deferred->resolve();
+    }
+
+    private function processType(PhpStanType $phpStanType): Type
+    {
+        $type = new Type();
+        $type->description = $phpStanType->describe();
+
+        return $type;
     }
 }
