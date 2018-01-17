@@ -7,11 +7,18 @@ use PhpParser\PrettyPrinter\Standard;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\Scope;
 use PHPStan\Analyser\TypeSpecifier;
+use PHPStan\Type\IntersectionType as PhpStanIntersectionType;
 use PHPStan\Type\Type as PhpStanType;
+use PHPStan\Type\TypeWithClassName;
+use PHPStan\Type\UnionType as PhpStanUnionType;
 use React\Promise\Deferred;
 use Tsufeki\Tenkawa\Document\Document;
+use Tsufeki\Tenkawa\TypeInference\BasicType;
+use Tsufeki\Tenkawa\TypeInference\IntersectionType;
+use Tsufeki\Tenkawa\TypeInference\ObjectType;
 use Tsufeki\Tenkawa\TypeInference\Type;
 use Tsufeki\Tenkawa\TypeInference\TypeInference;
+use Tsufeki\Tenkawa\TypeInference\UnionType;
 use Tsufeki\Tenkawa\Utils\SyncAsync;
 
 class PhpStanTypeInference implements TypeInference
@@ -108,7 +115,32 @@ class PhpStanTypeInference implements TypeInference
 
     private function processType(PhpStanType $phpStanType): Type
     {
-        $type = new Type();
+        if ($phpStanType instanceof TypeWithClassName) {
+            $type = new ObjectType();
+            $type->class = '\\' . ltrim($phpStanType->getClassName(), '\\');
+
+            return $type;
+        }
+
+        if ($phpStanType instanceof PhpStanUnionType) {
+            $type = new UnionType();
+            $type->types = array_map(function (PhpStanType $subtype) {
+                return $this->processType($subtype);
+            }, $phpStanType->getTypes());
+
+            return $type;
+        }
+
+        if ($phpStanType instanceof PhpStanIntersectionType) {
+            $type = new IntersectionType();
+            $type->types = array_map(function (PhpStanType $subtype) {
+                return $this->processType($subtype);
+            }, $phpStanType->getTypes());
+
+            return $type;
+        }
+
+        $type = new BasicType();
         $type->description = $phpStanType->describe();
 
         return $type;

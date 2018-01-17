@@ -25,8 +25,9 @@ class StreamLogger extends AbstractLogger
     {
         $context['date'] = date(\DateTime::ATOM);
         $context['level'] = strtoupper($level);
-        $context['exception'] = isset($context['exception']) ? strtr((string)$context['exception'], "\n", "\n    ") : '';
+        $context['exception'] = isset($context['exception']) ? strtr((string)$context['exception'], ["\n" => "\n    "]) : '';
 
-        fwrite($this->stream, trim($this->interpolate("{date} {level} $message\n{exception}", $context)) . "\n");
+        fwrite($this->stream, trim($this->interpolate("{date} {level} $message\n    {exception}", $context)) . "\n");
+        fflush($this->stream);
     }
 }

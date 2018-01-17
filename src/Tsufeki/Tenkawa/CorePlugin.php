@@ -72,11 +72,14 @@ use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
 use Tsufeki\Tenkawa\References\GoToDefinitionProvider;
 use Tsufeki\Tenkawa\References\GoToDocCommentProvider;
 use Tsufeki\Tenkawa\References\GoToGlobalsProvider;
+use Tsufeki\Tenkawa\References\GoToMembersProvider;
 use Tsufeki\Tenkawa\References\HoverAggregator;
 use Tsufeki\Tenkawa\References\HoverDocCommentProvider;
 use Tsufeki\Tenkawa\References\HoverFormatter;
 use Tsufeki\Tenkawa\References\HoverGlobalsProvider;
+use Tsufeki\Tenkawa\References\HoverMembersProvider;
 use Tsufeki\Tenkawa\References\HoverProvider;
+use Tsufeki\Tenkawa\References\MembersHelper;
 use Tsufeki\Tenkawa\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Reflection\IndexReflectionProvider;
 use Tsufeki\Tenkawa\Reflection\ReflectionIndexDataProvider;
@@ -173,6 +176,10 @@ class CorePlugin extends Plugin
         $container->setClass(TypeParser::class);
         $container->setClass(ConstExprParser::class);
         $container->setClass(FileHelper::class, null, false, [new Value(getcwd())]);
+
+        $container->setClass(MembersHelper::class);
+        $container->setClass(GoToDefinitionProvider::class, GoToMembersProvider::class, true);
+        $container->setClass(HoverProvider::class, HoverMembersProvider::class, true);
 
         $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
     }

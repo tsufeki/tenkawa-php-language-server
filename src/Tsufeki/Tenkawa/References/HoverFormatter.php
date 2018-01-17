@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\References;
 
+use PhpParser\Comment;
 use Tsufeki\Tenkawa\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Reflection\Element\Const_;
@@ -17,22 +18,22 @@ class HoverFormatter
 {
     public function format(Element $element): string
     {
-        $s = "```php\n";
+        $s = "```php\n<?php\n";
 
         if ($element instanceof ClassLike) {
             $s .= $this->formatClass($element);
-        } elseif ($element instanceof Function_) {
-            $s .= $this->formatFunction($element);
-        } elseif ($element instanceof Variable) {
-            $s .= $this->formatVariable($element);
-        } elseif ($element instanceof Const_) {
-            $s .= $this->formatConst($element);
         } elseif ($element instanceof Method) {
             $s .= $this->formatMethod($element);
         } elseif ($element instanceof Property) {
             $s .= $this->formatProperty($element);
         } elseif ($element instanceof ClassConst) {
             $s .= $this->formatClassConst($element);
+        } elseif ($element instanceof Function_) {
+            $s .= $this->formatFunction($element);
+        } elseif ($element instanceof Variable) {
+            $s .= $this->formatVariable($element);
+        } elseif ($element instanceof Const_) {
+            $s .= $this->formatConst($element);
         }
 
         $s .= "\n```";
@@ -46,8 +47,9 @@ class HoverFormatter
 
     private function formatDocComment(string $doc): string
     {
+        $doc = (new Comment\Doc($doc))->getReformattedText();
         $doc = preg_replace('~\A/\*\*|\*/\z~', '', $doc);
-        $doc = preg_replace('~^ \* ~m', '', $doc);
+        $doc = preg_replace('~^ \*( |$)~m', '', $doc);
 
         return "\n" . trim($doc);
     }
