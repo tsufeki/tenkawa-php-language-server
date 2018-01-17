@@ -5,6 +5,7 @@ namespace Tests\Tsufeki\Tenkawa\Index\Storage;
 use PHPUnit\Framework\TestCase;
 use Recoil\React\ReactKernel;
 use Tsufeki\Tenkawa\Index\IndexEntry;
+use Tsufeki\Tenkawa\Index\Query;
 use Tsufeki\Tenkawa\Index\Storage\ChainedStorage;
 use Tsufeki\Tenkawa\Index\Storage\IndexStorage;
 use Tsufeki\Tenkawa\Uri;
@@ -17,9 +18,10 @@ class ChainedStorageTest extends TestCase
     public function test()
     {
         ReactKernel::start(function () {
-            $category = 'cat';
-            $key = 'key';
-            $match = IndexStorage::PREFIX;
+            $query = new Query();
+            $query->category = 'cat';
+            $query->key = 'key';
+            $query->match = Query::PREFIX;
 
             $entries1 = [new IndexEntry(), new IndexEntry()];
             $entries1[0]->sourceUri = Uri::fromString('file:///foo');
@@ -39,7 +41,7 @@ class ChainedStorageTest extends TestCase
             $storage1
                 ->expects($this->once())
                 ->method('search')
-                ->with($this->identicalTo($category), $this->identicalTo($key), $this->identicalTo($match))
+                ->with($this->identicalTo($query))
                 ->willReturn((function () use ($entries1) {
                     return $entries1;
                     yield;
@@ -63,7 +65,7 @@ class ChainedStorageTest extends TestCase
             $storage2
                 ->expects($this->once())
                 ->method('search')
-                ->with($this->identicalTo($category), $this->identicalTo($key), $this->identicalTo($match))
+                ->with($this->identicalTo($query))
                 ->willReturn((function () use ($entries2) {
                     return $entries2;
                     yield;
@@ -77,7 +79,7 @@ class ChainedStorageTest extends TestCase
                 'file:///baz' => 151515,
             ], yield $storage->getFileTimestamps());
 
-            $this->assertSame([$entries2[0], $entries2[1], $entries1[0]], yield $storage->search($category, $key, $match));
+            $this->assertSame([$entries2[0], $entries2[1], $entries1[0]], yield $storage->search($query));
         });
     }
 }

@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Index\Storage;
 
 use Tsufeki\Tenkawa\Index\IndexEntry;
+use Tsufeki\Tenkawa\Index\Query;
 use Tsufeki\Tenkawa\Uri;
 use Tsufeki\Tenkawa\Utils\StringUtils;
 
@@ -18,26 +19,29 @@ class MemoryStorage implements WritableIndexStorage
      */
     private $timestamps = [];
 
-    public function search(string $category = null, string $key, int $match = self::FULL): \Generator
+    public function search(Query $query): \Generator
     {
         $result = [];
+        $entries = $query->uri === null ? $this->entries : [$this->entries[(string)$query->uri] ?? []];
 
-        foreach ($this->entries as $fileEntries) {
+        foreach ($entries as $fileEntries) {
             foreach ($fileEntries as $entry) {
-                if ($category !== null && $entry->category !== $category) {
+                if ($query->category !== null && $entry->category !== $query->category) {
                     continue;
                 }
 
-                if ($match === self::FULL && $entry->key !== $key) {
-                    continue;
-                }
+                if ($query->key !== null) {
+                    if ($query->match === Query::FULL && $entry->key !== $query->key) {
+                        continue;
+                    }
 
-                if ($match === self::PREFIX && !StringUtils::startsWith($entry->key, $key)) {
-                    continue;
-                }
+                    if ($query->match === Query::PREFIX && !StringUtils::startsWith($entry->key, $query->key)) {
+                        continue;
+                    }
 
-                if ($match === self::SUFFIX && !StringUtils::endsWith($entry->key, $key)) {
-                    continue;
+                    if ($query->match === Query::SUFFIX && !StringUtils::endsWith($entry->key, $query->key)) {
+                        continue;
+                    }
                 }
 
                 $result[] = $entry;

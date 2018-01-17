@@ -2,6 +2,8 @@
 
 namespace Tsufeki\Tenkawa\Index\Storage;
 
+use Tsufeki\Tenkawa\Index\Query;
+
 /**
  * Index data merged from other storage objects.
  */
@@ -20,12 +22,12 @@ class MergedStorage implements IndexStorage
         $this->innerStorage = $innerStorage;
     }
 
-    public function search(string $category = null, string $key, int $match = self::FULL): \Generator
+    public function search(Query $query): \Generator
     {
         $result = [];
 
         foreach ($this->innerStorage as $storage) {
-            $result = array_merge($result, yield $storage->search($category, $key, $match));
+            $result = array_merge($result, yield $storage->search($query));
         }
 
         return $result;

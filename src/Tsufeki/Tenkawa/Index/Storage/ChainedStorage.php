@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Index\Storage;
 
 use Tsufeki\Tenkawa\Index\IndexEntry;
+use Tsufeki\Tenkawa\Index\Query;
 
 /**
  * Index data from primary storage plus data from secondary, but only that missing in primary.
@@ -27,13 +28,13 @@ class ChainedStorage implements IndexStorage
         $this->secondaryStorage = $secondaryStorage;
     }
 
-    public function search(string $category = null, string $key, int $match = self::FULL): \Generator
+    public function search(Query $query): \Generator
     {
-        $result = yield $this->primaryStorage->search($category, $key, $match);
+        $result = yield $this->primaryStorage->search($query);
         $primaryFiles = yield $this->primaryStorage->getFileTimestamps();
 
         /** @var IndexEntry $entry */
-        foreach (yield $this->secondaryStorage->search($category, $key, $match) as $entry) {
+        foreach (yield $this->secondaryStorage->search($query) as $entry) {
             if (!array_key_exists((string)$entry->sourceUri, $primaryFiles)) {
                 $result[] = $entry;
             }

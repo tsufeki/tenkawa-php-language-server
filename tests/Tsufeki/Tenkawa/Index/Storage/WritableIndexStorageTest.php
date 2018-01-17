@@ -5,7 +5,7 @@ namespace Tests\Tsufeki\Tenkawa\Index\Storage;
 use PHPUnit\Framework\TestCase;
 use Recoil\React\ReactKernel;
 use Tsufeki\Tenkawa\Index\IndexEntry;
-use Tsufeki\Tenkawa\Index\Storage\IndexStorage;
+use Tsufeki\Tenkawa\Index\Query;
 use Tsufeki\Tenkawa\Index\Storage\WritableIndexStorage;
 use Tsufeki\Tenkawa\Uri;
 
@@ -38,13 +38,19 @@ abstract class WritableIndexStorageTest extends TestCase
     /**
      * @dataProvider data_finds
      */
-    public function test_finds($category, $key, $match)
+    public function test_finds($category, $key, $match, $uri)
     {
-        ReactKernel::start(function () use ($category, $key, $match): \Generator {
+        ReactKernel::start(function () use ($category, $key, $match, $uri): \Generator {
+            $query = new Query();
+            $query->category = $category;
+            $query->key = $key;
+            $query->match = $match;
+            $query->uri = $uri;
+
             /** @var WritableIndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
-            $result = yield $storage->search($category, $key, $match);
+            $result = yield $storage->search($query);
 
             $this->assertEquals($this->getEntries(), $result);
         });
@@ -53,22 +59,29 @@ abstract class WritableIndexStorageTest extends TestCase
     public function data_finds(): array
     {
         return [
-            ['cat1', 'foobar', IndexStorage::FULL],
-            [null, 'foo', IndexStorage::PREFIX],
-            [null, 'bar', IndexStorage::SUFFIX],
+            ['cat1', 'foobar', Query::FULL, null],
+            [null, 'foo', Query::PREFIX, null],
+            [null, 'bar', Query::SUFFIX, null],
+            [null, null, Query::FULL, Uri::fromString('file:///foo')],
         ];
     }
 
     /**
      * @dataProvider data_doesnt_find
      */
-    public function test_doesnt_find($category, $key, $match)
+    public function test_doesnt_find($category, $key, $match, $uri)
     {
-        ReactKernel::start(function () use ($category, $key, $match): \Generator {
+        ReactKernel::start(function () use ($category, $key, $match, $uri): \Generator {
+            $query = new Query();
+            $query->category = $category;
+            $query->key = $key;
+            $query->match = $match;
+            $query->uri = $uri;
+
             /** @var WritableIndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
-            $result = yield $storage->search($category, $key, $match);
+            $result = yield $storage->search($query);
 
             $this->assertSame([], $result);
         });
@@ -77,10 +90,11 @@ abstract class WritableIndexStorageTest extends TestCase
     public function data_doesnt_find(): array
     {
         return [
-            ['cat2', 'foobar', IndexStorage::FULL],
-            [null, 'foobaz', IndexStorage::FULL],
-            [null, 'fox', IndexStorage::PREFIX],
-            [null, 'baz', IndexStorage::SUFFIX],
+            ['cat2', 'foobar', Query::FULL, null],
+            [null, 'foobaz', Query::FULL, null],
+            [null, 'fox', Query::PREFIX, null],
+            [null, 'baz', Query::SUFFIX, null],
+            [null, null, Query::FULL, Uri::fromString('file:///bar')],
         ];
     }
 
@@ -91,7 +105,11 @@ abstract class WritableIndexStorageTest extends TestCase
             $storage = yield $this->getStorageWithEntries();
 
             yield $storage->replaceFile(Uri::fromString('file:///foo'), []);
-            $result = yield $storage->search('cat1', 'foobar');
+
+            $query = new Query();
+            $query->category = 'cat1';
+            $query->key = 'foobar';
+            $result = yield $storage->search($query);
 
             $this->assertSame([], $result);
         });
@@ -104,7 +122,11 @@ abstract class WritableIndexStorageTest extends TestCase
             $storage = yield $this->getStorageWithEntries();
 
             yield $storage->replaceFile(Uri::fromString('file:///bar'), []);
-            $result = yield $storage->search('cat1', 'foobar');
+
+            $query = new Query();
+            $query->category = 'cat1';
+            $query->key = 'foobar';
+            $result = yield $storage->search($query);
 
             $this->assertCount(1, $result);
         });

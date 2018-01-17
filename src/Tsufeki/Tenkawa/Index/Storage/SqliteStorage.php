@@ -4,6 +4,7 @@ namespace Tsufeki\Tenkawa\Index\Storage;
 
 use Tsufeki\BlancheJsonRpc\Json;
 use Tsufeki\Tenkawa\Index\IndexEntry;
+use Tsufeki\Tenkawa\Index\Query;
 use Tsufeki\Tenkawa\Uri;
 use Webmozart\PathUtil\Path;
 
@@ -90,22 +91,30 @@ class SqliteStorage implements WritableIndexStorage
             on tenkawa_index (key)')->execute();
     }
 
-    public function search(string $category = null, string $key, int $match = self::FULL): \Generator
+    public function search(Query $query): \Generator
     {
         $conditions = [];
-        $params = ['key' => $key];
+        $params = [];
 
-        if ($category !== null) {
-            $conditions[] = 'category = :category';
-            $params['category'] = $category;
+        if ($query->key !== null) {
+            if ($query->match === Query::FULL) {
+                $conditions[] = 'key = :key';
+            } elseif ($query->match === Query::PREFIX) {
+                $conditions[] = "key glob :key||'*'";
+            } elseif ($query->match === Query::SUFFIX) {
+                $conditions[] = "key glob '*'||:key";
+            }
+            $params['key'] = $query->key;
         }
 
-        if ($match === self::FULL) {
-            $conditions[] = 'key = :key';
-        } elseif ($match === self::PREFIX) {
-            $conditions[] = "key glob :key||'*'";
-        } elseif ($match === self::SUFFIX) {
-            $conditions[] = "key glob '*'||:key";
+        if ($query->category !== null) {
+            $conditions[] = 'category = :category';
+            $params['category'] = $query->category;
+        }
+
+        if ($query->uri !== null) {
+            $conditions[] = 'source_uri = :uri';
+            $params['uri'] = (string)$query->uri;
         }
 
         $stmt = $this->getPdo()->prepare('

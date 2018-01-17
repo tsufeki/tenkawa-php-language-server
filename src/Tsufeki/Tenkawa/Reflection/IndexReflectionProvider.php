@@ -6,6 +6,7 @@ use Tsufeki\KayoJsonMapper\Mapper;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Index\Index;
 use Tsufeki\Tenkawa\Index\IndexEntry;
+use Tsufeki\Tenkawa\Index\Query;
 use Tsufeki\Tenkawa\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Reflection\Element\Const_;
 use Tsufeki\Tenkawa\Reflection\Element\Function_;
@@ -35,9 +36,12 @@ class IndexReflectionProvider implements ReflectionProvider
         string $itemClass
     ): \Generator {
         $fullyQualifiedName = '\\' . ltrim($fullyQualifiedName, '\\');
+        $query = new Query();
+        $query->category = $category;
+        $query->key = $fullyQualifiedName;
 
         /** @var IndexEntry[] $entries */
-        $entries = yield $this->index->search($document, $category, $fullyQualifiedName);
+        $entries = yield $this->index->search($document, $query);
 
         return array_map(function (IndexEntry $entry) use ($itemClass) {
             return $this->mapper->load($entry->data, $itemClass);

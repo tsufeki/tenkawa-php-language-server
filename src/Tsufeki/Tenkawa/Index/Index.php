@@ -7,18 +7,14 @@ use Tsufeki\Tenkawa\Index\Storage\IndexStorage;
 
 class Index
 {
-    const PREFIX = IndexStorage::PREFIX;
-    const SUFFIX = IndexStorage::SUFFIX;
-    const FULL = IndexStorage::FULL;
-
     /**
      * @resolve IndexEntry[]
      */
-    public function search(Document $document, string $category = null, string $key, int $match = self::FULL): \Generator
+    public function search(Document $document, Query $query): \Generator
     {
         /** @var IndexStorage $indexStorage */
         $indexStorage = $document->getProject()->get('index');
 
-        return yield $indexStorage->search($category, $key, $match);
+        return yield $indexStorage->search($query);
     }
 }
