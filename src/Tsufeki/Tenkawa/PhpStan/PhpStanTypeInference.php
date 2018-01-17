@@ -39,6 +39,11 @@ class PhpStanTypeInference implements TypeInference
     private $broker;
 
     /**
+     * @var PhpDocResolver
+     */
+    private $phpDocResolver;
+
+    /**
      * @var Standard
      */
     private $printer;
@@ -57,6 +62,7 @@ class PhpStanTypeInference implements TypeInference
         NodeScopeResolver $nodeScopeResolver,
         DocumentParser $parser,
         IndexBroker $broker,
+        PhpDocResolver $phpDocResolver,
         Standard $printer,
         TypeSpecifier $typeSpecifier,
         SyncAsync $syncAsync
@@ -64,6 +70,7 @@ class PhpStanTypeInference implements TypeInference
         $this->nodeScopeResolver = $nodeScopeResolver;
         $this->parser = $parser;
         $this->broker = $broker;
+        $this->phpDocResolver = $phpDocResolver;
         $this->printer = $printer;
         $this->typeSpecifier = $typeSpecifier;
         $this->syncAsync = $syncAsync;
@@ -101,11 +108,13 @@ class PhpStanTypeInference implements TypeInference
             function () use ($document, $path) {
                 $this->broker->setDocument($document);
                 $this->parser->setDocument($document);
+                $this->phpDocResolver->setDocument($document);
                 $this->nodeScopeResolver->setAnalysedFiles([$path]);
             },
             function () {
                 $this->broker->setDocument(null);
                 $this->parser->setDocument(null);
+                $this->phpDocResolver->setDocument(null);
                 $this->nodeScopeResolver->setAnalysedFiles([]);
             }
         );
