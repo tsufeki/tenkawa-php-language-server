@@ -32,6 +32,7 @@ abstract class LanguageServer implements MethodProvider
             'exit' => 'exit',
             'textDocument/didOpen' => 'didOpenTextDocument',
             'textDocument/didChange' => 'didChangeTextDocument',
+            'textDocument/didSave' => 'didSaveTextDocument',
             'textDocument/didClose' => 'didCloseTextDocument',
         ];
     }
@@ -93,6 +94,16 @@ abstract class LanguageServer implements MethodProvider
      *                                                         then c1 move the document to S11 and c2 to S12.
      */
     abstract public function didChangeTextDocument(VersionedTextDocumentIdentifier $textDocument, array $contentChanges): \Generator;
+
+    /**
+     * The document save notification is sent from the client to the server
+     * when the document was saved in the client.
+     *
+     * @param TextDocumentIdentifier $textDocument The document that was saved.
+     * @param string|null            $text         Optional the content when saved. Depends on the includeText value
+     *                                             when the save notification was requested.
+     */
+    abstract public function didSaveTextDocument(TextDocumentIdentifier $textDocument, string $text = null): \Generator;
 
     /**
      * The document close notification is sent from the client to the server

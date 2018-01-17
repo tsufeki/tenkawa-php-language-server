@@ -10,6 +10,7 @@ use Tsufeki\Tenkawa\Protocol\Common\VersionedTextDocumentIdentifier;
 use Tsufeki\Tenkawa\Protocol\LanguageServer;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\ClientCapabilities;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\InitializeResult;
+use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\SaveOptions;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\ServerCapabilities;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\TextDocumentSyncKind;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\TextDocumentSyncOptions;
@@ -64,6 +65,8 @@ class Server extends LanguageServer
         $serverCapabilities->textDocumentSync = new TextDocumentSyncOptions();
         $serverCapabilities->textDocumentSync->openClose = true;
         $serverCapabilities->textDocumentSync->change = TextDocumentSyncKind::FULL;
+        $serverCapabilities->textDocumentSync->save = new SaveOptions();
+        $serverCapabilities->textDocumentSync->save->includeText = false;
         $serverCapabilities->hoverProvider = $this->hoverAggregator->hasProviders();
         $serverCapabilities->definitionProvider = $this->goToDefinitionAggregator->hasProviders();
 
@@ -98,6 +101,12 @@ class Server extends LanguageServer
     {
         $document = $this->documentStore->get($textDocument->uri);
         yield $this->documentStore->update($document, $contentChanges[0]->text, $textDocument->version);
+    }
+
+    public function didSaveTextDocument(TextDocumentIdentifier $textDocument, string $text = null): \Generator
+    {
+        return;
+        yield;
     }
 
     public function didCloseTextDocument(TextDocumentIdentifier $textDocument): \Generator

@@ -61,7 +61,7 @@ class IntegrationTest extends TestCase
                             'change' => 1,
                             'willSave' => false,
                             'willSaveWaitUntil' => false,
-                            'save' => null,
+                            'save' => ['includeText' => false],
                         ],
                         'hoverProvider' => true,
                         'definitionProvider' => true,
