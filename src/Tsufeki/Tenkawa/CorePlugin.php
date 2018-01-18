@@ -199,11 +199,14 @@ class CorePlugin extends Plugin
 
         return MapperBuilder::create()
             ->setNameMangler(new NullNameMangler())
-            ->setPrivatePropertyAccess(true)
-            ->throwOnInfiniteRecursion(true)
-            ->throwOnMissingProperty(false)
+            ->setPrivatePropertyAccess(false)
+            ->setGuessRequiredProperties(true)
+            ->setDumpNullProperties(false)
+            ->throwOnMissingProperty(true)
             ->throwOnUnknownProperty(false)
+            ->throwOnInfiniteRecursion(true)
             ->acceptStdClassAsArray(true)
+            ->setStrictNulls(true)
             ->addLoader($uriMapper)
             ->addDumper($uriMapper)
             ->getMapper();
