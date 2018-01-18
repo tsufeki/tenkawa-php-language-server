@@ -22,8 +22,9 @@ abstract class LanguageServer implements MethodProvider
         return [
             'initialize' => 'initialize',
             'shutdown' => 'shutdown',
-            'textDocument/definition' => 'definition',
             'textDocument/hover' => 'hover',
+            'textDocument/definition' => 'definition',
+            'textDocument/documentSymbol' => 'documentSymbol',
         ];
     }
 

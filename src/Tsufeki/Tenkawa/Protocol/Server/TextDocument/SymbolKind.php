@@ -9,7 +9,7 @@ class SymbolKind
 {
     const FILE = 1;
     const MODULE = 2;
-    const NAMESPACE = 3;
+    const NAMESPACE_ = 3;
     const PACKAGE = 4;
     const CLASS_ = 5;
     const METHOD = 6;
