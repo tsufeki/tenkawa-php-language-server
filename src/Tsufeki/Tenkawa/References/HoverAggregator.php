@@ -14,7 +14,7 @@ class HoverAggregator
     /**
      * @var HoverProvider[]
      */
-    private $hoverProviders;
+    private $providers;
 
     /**
      * @var Parser
@@ -22,11 +22,11 @@ class HoverAggregator
     private $parser;
 
     /**
-     * @param HoverProvider[] $hoverProviders
+     * @param HoverProvider[] $providers
      */
-    public function __construct(array $hoverProviders, Parser $parser)
+    public function __construct(array $providers, Parser $parser)
     {
-        $this->hoverProviders = $hoverProviders;
+        $this->providers = $providers;
         $this->parser = $parser;
     }
 
@@ -48,7 +48,7 @@ class HoverAggregator
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($ast->nodes);
 
-        foreach ($this->hoverProviders as $provider) {
+        foreach ($this->providers as $provider) {
             $hover = yield $provider->getHover($document, $position, $nodes);
             if ($hover !== null) {
                 return $hover;
@@ -60,6 +60,6 @@ class HoverAggregator
 
     public function hasProviders(): bool
     {
-        return !empty($this->hoverProviders);
+        return !empty($this->providers);
     }
 }

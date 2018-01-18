@@ -14,6 +14,7 @@ use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\SaveOptions;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\ServerCapabilities;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\TextDocumentSyncKind;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\TextDocumentSyncOptions;
+use Tsufeki\Tenkawa\References\DocumentSymbolsAggregator;
 use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
 use Tsufeki\Tenkawa\References\HoverAggregator;
 
@@ -25,23 +26,30 @@ class Server extends LanguageServer
     private $documentStore;
 
     /**
+     * @var HoverAggregator
+     */
+    private $hoverAggregator;
+
+    /**
      * @var GoToDefinitionAggregator
      */
     private $goToDefinitionAggregator;
 
     /**
-     * @var HoverAggregator
+     * @var DocumentSymbolsAggregator
      */
-    private $hoverAggregator;
+    private $documentSymbolsAggregator;
 
     public function __construct(
         DocumentStore $documentStore,
+        HoverAggregator $hoverAggregator,
         GoToDefinitionAggregator $goToDefinitionAggregator,
-        HoverAggregator $hoverAggregator
+        DocumentSymbolsAggregator $documentSymbolsAggregator
     ) {
         $this->documentStore = $documentStore;
         $this->goToDefinitionAggregator = $goToDefinitionAggregator;
         $this->hoverAggregator = $hoverAggregator;
+        $this->documentSymbolsAggregator = $documentSymbolsAggregator;
     }
 
     /**
@@ -69,6 +77,7 @@ class Server extends LanguageServer
         $serverCapabilities->textDocumentSync->save->includeText = false;
         $serverCapabilities->hoverProvider = $this->hoverAggregator->hasProviders();
         $serverCapabilities->definitionProvider = $this->goToDefinitionAggregator->hasProviders();
+        $serverCapabilities->documentSymbolProvider = $this->documentSymbolsAggregator->hasProviders();
 
         $result = new InitializeResult();
         $result->capabilities = $serverCapabilities;
@@ -115,6 +124,13 @@ class Server extends LanguageServer
         yield $this->documentStore->close($document);
     }
 
+    public function hover(TextDocumentIdentifier $textDocument, Position $position): \Generator
+    {
+        $document = $this->documentStore->get($textDocument->uri);
+
+        return yield $this->hoverAggregator->getHover($document, $position);
+    }
+
     public function definition(TextDocumentIdentifier $textDocument, Position $position): \Generator
     {
         $document = $this->documentStore->get($textDocument->uri);
@@ -131,10 +147,10 @@ class Server extends LanguageServer
         return $locations;
     }
 
-    public function hover(TextDocumentIdentifier $textDocument, Position $position): \Generator
+    public function documentSymbol(TextDocumentIdentifier $textDocument): \Generator
     {
         $document = $this->documentStore->get($textDocument->uri);
 
-        return yield $this->hoverAggregator->getHover($document, $position);
+        return yield $this->documentSymbolsAggregator->getSymbols($document);
     }
 }

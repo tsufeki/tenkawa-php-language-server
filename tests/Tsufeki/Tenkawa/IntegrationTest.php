@@ -65,6 +65,7 @@ class IntegrationTest extends TestCase
                         ],
                         'hoverProvider' => true,
                         'definitionProvider' => true,
+                        'documentSymbolProvider' => true,
                     ],
                 ],
             ]), $resp);

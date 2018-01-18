@@ -11,6 +11,7 @@ use Tsufeki\Tenkawa\Protocol\Common\VersionedTextDocumentIdentifier;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\ClientCapabilities;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\InitializeResult;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\Hover;
+use Tsufeki\Tenkawa\Protocol\Server\TextDocument\SymbolInformation;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\TextDocumentContentChangeEvent;
 use Tsufeki\Tenkawa\Uri;
 
@@ -121,6 +122,17 @@ abstract class LanguageServer implements MethodProvider
     abstract public function didCloseTextDocument(TextDocumentIdentifier $textDocument): \Generator;
 
     /**
+     * The hover request is sent from the client to the server to request hover
+     * information at a given text document position.
+     *
+     * @param TextDocumentIdentifier $textDocument The text document.
+     * @param Position               $position     The position inside the text document.
+     *
+     * @resolve Hover|null
+     */
+    abstract public function hover(TextDocumentIdentifier $textDocument, Position $position): \Generator;
+
+    /**
      * The goto definition request is sent from the client to the server to
      * resolve the definition location of a symbol at a given text document
      * position.
@@ -133,13 +145,15 @@ abstract class LanguageServer implements MethodProvider
     abstract public function definition(TextDocumentIdentifier $textDocument, Position $position): \Generator;
 
     /**
-     * The hover request is sent from the client to the server to request hover
-     * information at a given text document position.
+     * The document symbol request is sent from the client to the server to
+     * return a flat list of all symbols found in a given text document.
+     *
+     * Neither the document’s location range nor the documents container name
+     * should be used to infer a hierarchy.
      *
      * @param TextDocumentIdentifier $textDocument The text document.
-     * @param Position               $position     The position inside the text document.
      *
-     * @resolve Hover|null
+     * @resolve SymbolInformation[]|null
      */
-    abstract public function hover(TextDocumentIdentifier $textDocument, Position $position): \Generator;
+    abstract public function documentSymbol(TextDocumentIdentifier $textDocument): \Generator;
 }

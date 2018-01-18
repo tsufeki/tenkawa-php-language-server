@@ -66,6 +66,8 @@ use Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ThrottledProcessRunner;
 use Tsufeki\Tenkawa\Protocol\LanguageClient;
 use Tsufeki\Tenkawa\References\DocCommentHelper;
+use Tsufeki\Tenkawa\References\DocumentSymbolsAggregator;
+use Tsufeki\Tenkawa\References\DocumentSymbolsProvider;
 use Tsufeki\Tenkawa\References\ExpressionTypeHoverProvider;
 use Tsufeki\Tenkawa\References\GlobalsHelper;
 use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
@@ -80,6 +82,7 @@ use Tsufeki\Tenkawa\References\HoverGlobalsProvider;
 use Tsufeki\Tenkawa\References\HoverMembersProvider;
 use Tsufeki\Tenkawa\References\HoverProvider;
 use Tsufeki\Tenkawa\References\MembersHelper;
+use Tsufeki\Tenkawa\References\ReflectionDocumentSymbolsProvider;
 use Tsufeki\Tenkawa\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Reflection\IndexReflectionProvider;
 use Tsufeki\Tenkawa\Reflection\ReflectionIndexDataProvider;
@@ -182,6 +185,9 @@ class CorePlugin extends Plugin
         $container->setClass(HoverProvider::class, HoverMembersProvider::class, true);
 
         $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
+
+        $container->setClass(DocumentSymbolsAggregator::class);
+        $container->setClass(DocumentSymbolsProvider::class, ReflectionDocumentSymbolsProvider::class, true);
     }
 
     /**

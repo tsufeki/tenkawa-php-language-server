@@ -13,7 +13,7 @@ class GoToDefinitionAggregator
     /**
      * @var GoToDefinitionProvider[]
      */
-    private $goToProviders;
+    private $providers;
 
     /**
      * @var Parser
@@ -21,11 +21,11 @@ class GoToDefinitionAggregator
     private $parser;
 
     /**
-     * @param GoToDefinitionProvider[] $goToProviders
+     * @param GoToDefinitionProvider[] $providers
      */
-    public function __construct(array $goToProviders, Parser $parser)
+    public function __construct(array $providers, Parser $parser)
     {
-        $this->goToProviders = $goToProviders;
+        $this->providers = $providers;
         $this->parser = $parser;
     }
 
@@ -50,12 +50,12 @@ class GoToDefinitionAggregator
         return array_merge(
             ...yield array_map(function (GoToDefinitionProvider $provider) use ($document, $position, $nodes) {
                 return yield $provider->getLocations($document, $position, $nodes);
-            }, $this->goToProviders)
+            }, $this->providers)
         );
     }
 
     public function hasProviders(): bool
     {
-        return !empty($this->goToProviders);
+        return !empty($this->providers);
     }
 }

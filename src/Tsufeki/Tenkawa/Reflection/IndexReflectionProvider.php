@@ -81,30 +81,36 @@ class IndexReflectionProvider implements ReflectionProvider
         );
     }
 
-    public function getSymbolsFromUri(Document $document, Uri $uri): \Generator
+    public function getClassesFromUri(Document $document, Uri $uri): \Generator
     {
-        return array_merge(...yield [
-            $this->getFromIndex(
-                $document,
-                ReflectionIndexDataProvider::CATEGORY_CLASS,
-                ClassLike::class,
-                null,
-                $uri
-            ),
-            $this->getFromIndex(
-                $document,
-                ReflectionIndexDataProvider::CATEGORY_FUNCTION,
-                Function_::class,
-                null,
-                $uri
-            ),
-            $this->getFromIndex(
-                $document,
-                ReflectionIndexDataProvider::CATEGORY_CONST,
-                Const_::class,
-                null,
-                $uri
-            ),
-        ]);
+        return yield $this->getFromIndex(
+            $document,
+            ReflectionIndexDataProvider::CATEGORY_CLASS,
+            ClassLike::class,
+            null,
+            $uri
+        );
+    }
+
+    public function getFunctionsFromUri(Document $document, Uri $uri): \Generator
+    {
+        return yield $this->getFromIndex(
+            $document,
+            ReflectionIndexDataProvider::CATEGORY_FUNCTION,
+            Function_::class,
+            null,
+            $uri
+        );
+    }
+
+    public function getConstsFromUri(Document $document, Uri $uri): \Generator
+    {
+        return yield $this->getFromIndex(
+            $document,
+            ReflectionIndexDataProvider::CATEGORY_CONST,
+            Const_::class,
+            null,
+            $uri
+        );
     }
 }

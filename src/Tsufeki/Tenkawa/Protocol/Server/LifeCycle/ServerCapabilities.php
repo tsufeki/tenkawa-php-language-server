@@ -24,4 +24,11 @@ class ServerCapabilities
      * @var bool
      */
     public $definitionProvider = false;
+
+    /**
+     * The server provides document symbol support.
+     *
+     * @var bool
+     */
+    public $documentSymbolProvider = false;
 }

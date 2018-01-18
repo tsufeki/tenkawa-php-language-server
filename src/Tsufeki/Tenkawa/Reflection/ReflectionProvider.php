@@ -5,7 +5,6 @@ namespace Tsufeki\Tenkawa\Reflection;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Reflection\Element\Const_;
-use Tsufeki\Tenkawa\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Uri;
 
@@ -27,7 +26,17 @@ interface ReflectionProvider
     public function getConst(Document $document, string $fullyQualifiedName): \Generator;
 
     /**
-     * @resolve Element[]
+     * @resolve ClassLike[]
      */
-    public function getSymbolsFromUri(Document $document, Uri $uri): \Generator;
+    public function getClassesFromUri(Document $document, Uri $uri): \Generator;
+
+    /**
+     * @resolve Function_[]
+     */
+    public function getFunctionsFromUri(Document $document, Uri $uri): \Generator;
+
+    /**
+     * @resolve Const_[]
+     */
+    public function getConstsFromUri(Document $document, Uri $uri): \Generator;
 }

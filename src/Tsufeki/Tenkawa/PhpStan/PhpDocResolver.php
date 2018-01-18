@@ -99,22 +99,42 @@ class PhpDocResolver extends FileTypeMapper
             throw new ShouldNotHappenException();
         }
 
-        /** @var (ClassLike|Function_|Const_)[] $elements */
-        $elements = $this->syncAsync->callAsync(
-            $this->reflectionProvider->getSymbolsFromUri($this->document, $uri)
+        /** @var ClassLike[] $classes */
+        $classes = $this->syncAsync->callAsync(
+            $this->reflectionProvider->getClassesFromUri($this->document, $uri)
         );
 
-        foreach ($elements as $element) {
-            if ($element->docComment === $docComment) {
-                return $element->nameContext;
+        foreach ($classes as $class) {
+            if ($class->docComment === $docComment) {
+                return $class->nameContext;
             }
 
-            if ($element instanceof ClassLike) {
-                foreach (array_merge($element->methods, $element->properties, $element->consts) as $subElement) {
-                    if ($subElement->docComment === $docComment) {
-                        return $subElement->nameContext;
-                    }
+            foreach (array_merge($class->methods, $class->properties, $class->consts) as $member) {
+                if ($member->docComment === $docComment) {
+                    return $member->nameContext;
                 }
+            }
+        }
+
+        /** @var Function_[] $functions */
+        $functions = $this->syncAsync->callAsync(
+            $this->reflectionProvider->getFunctionsFromUri($this->document, $uri)
+        );
+
+        foreach ($functions as $function) {
+            if ($function->docComment === $docComment) {
+                return $function->nameContext;
+            }
+        }
+
+        /** @var Const_[] $consts */
+        $consts = $this->syncAsync->callAsync(
+            $this->reflectionProvider->getConstsFromUri($this->document, $uri)
+        );
+
+        foreach ($consts as $const) {
+            if ($const->docComment === $docComment) {
+                return $const->nameContext;
             }
         }
 
