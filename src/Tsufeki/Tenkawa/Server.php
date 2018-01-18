@@ -14,6 +14,7 @@ use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\SaveOptions;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\ServerCapabilities;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\TextDocumentSyncKind;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\TextDocumentSyncOptions;
+use Tsufeki\Tenkawa\Protocol\Server\TextDocument\CompletionContext;
 use Tsufeki\Tenkawa\References\DocumentSymbolsAggregator;
 use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
 use Tsufeki\Tenkawa\References\HoverAggregator;
@@ -122,6 +123,15 @@ class Server extends LanguageServer
     {
         $document = $this->documentStore->get($textDocument->uri);
         yield $this->documentStore->close($document);
+    }
+
+    public function completion(
+        TextDocumentIdentifier $textDocument,
+        Position $position,
+        CompletionContext $context = null
+    ): \Generator {
+        return [];
+        yield;
     }
 
     public function hover(TextDocumentIdentifier $textDocument, Position $position): \Generator

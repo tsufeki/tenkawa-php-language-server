@@ -19,6 +19,13 @@ class ServerCapabilities
     public $hoverProvider = false;
 
     /**
+     * The server provides completion support.
+     *
+     * @var CompletionOptions|null
+     */
+    public $completionProvider;
+
+    /**
      * The server provides goto definition support.
      *
      * @var bool

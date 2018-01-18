@@ -10,6 +10,9 @@ use Tsufeki\Tenkawa\Protocol\Common\TextDocumentItem;
 use Tsufeki\Tenkawa\Protocol\Common\VersionedTextDocumentIdentifier;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\ClientCapabilities;
 use Tsufeki\Tenkawa\Protocol\Server\LifeCycle\InitializeResult;
+use Tsufeki\Tenkawa\Protocol\Server\TextDocument\CompletionContext;
+use Tsufeki\Tenkawa\Protocol\Server\TextDocument\CompletionItem;
+use Tsufeki\Tenkawa\Protocol\Server\TextDocument\CompletionList;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\Hover;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\SymbolInformation;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\TextDocumentContentChangeEvent;
@@ -22,6 +25,7 @@ abstract class LanguageServer implements MethodProvider
         return [
             'initialize' => 'initialize',
             'shutdown' => 'shutdown',
+            'textDocument/completion' => 'completion',
             'textDocument/hover' => 'hover',
             'textDocument/definition' => 'definition',
             'textDocument/documentSymbol' => 'documentSymbol',
@@ -121,6 +125,29 @@ abstract class LanguageServer implements MethodProvider
      * @param TextDocumentIdentifier $textDocument The document that was closed.
      */
     abstract public function didCloseTextDocument(TextDocumentIdentifier $textDocument): \Generator;
+
+    /**
+     * The completion request is sent from the client to the server to compute
+     * completion items at a given cursor position.
+     *
+     * Completion items are presented in the IntelliSense user interface. If
+     * computing full completion items is expensive, servers can additionally
+     * provide a handler for the completion item resolve request
+     * (‘completionItem/resolve’).
+     *
+     * @param TextDocumentIdentifier $textDocument The text document.
+     * @param Position               $position     The position inside the text document.
+     * @param CompletionContext      $context      The completion context. This is only available it the client
+     *                                             specifies to send this using
+     *                                             `ClientCapabilities.textDocument.completion.contextSupport === true`
+     *
+     * @resolve CompletionItem[]|CompletionList|null If a CompletionItem[] is provided it is interpreted to be complete.
+     */
+    abstract public function completion(
+        TextDocumentIdentifier $textDocument,
+        Position $position,
+        CompletionContext $context = null
+    ): \Generator;
 
     /**
      * The hover request is sent from the client to the server to request hover
