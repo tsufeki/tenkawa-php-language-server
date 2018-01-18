@@ -12,9 +12,12 @@ use Tsufeki\Tenkawa\Parser\TokenIterator;
 use Tsufeki\Tenkawa\Protocol\Common\Position;
 use Tsufeki\Tenkawa\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Reflection\Element\ClassConst;
+use Tsufeki\Tenkawa\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Reflection\Element\Property;
+use Tsufeki\Tenkawa\Reflection\NameContext;
+use Tsufeki\Tenkawa\Reflection\ResolvedClassLike;
 use Tsufeki\Tenkawa\TypeInference\BasicType;
 use Tsufeki\Tenkawa\TypeInference\IntersectionType;
 use Tsufeki\Tenkawa\TypeInference\ObjectType;
@@ -142,6 +145,39 @@ class MembersHelper
     }
 
     /**
+     * @param (ClassConst|Method|Property)[] $members
+     * @param NameContext                    $nameContext
+     *
+     * @resolve (ClassConst|Method|Property)[]
+     */
+    public function filterAccesibleMembers(array $members, NameContext $nameContext, Document $document): \Generator
+    {
+        $parentClassNames = [];
+        if ($nameContext->class !== null) {
+            /** @var ResolvedClassLike $resolveClass */
+            $resolvedClass = yield $this->classResolver->resolve($nameContext->class, $document);
+            while ($resolvedClass !== null) {
+                $parentClassNames[] = strtolower($resolvedClass->name);
+                $resolvedClass = $resolvedClass->parentClass;
+            }
+            $parentClassNames[] = $parentClassNames ?: [strtolower($nameContext->class)];
+        }
+
+        return array_values(array_filter($members, function ($element) use ($parentClassNames) {
+            switch ($element->accessibility) {
+                case ClassLike::M_PUBLIC:
+                    return true;
+                case ClassLike::M_PROTECTED:
+                    return in_array(strtolower($element->nameContext->class), $parentClassNames, true);
+                case ClassLike::M_PRIVATE:
+                    return strtolower($element->nameContext->class) === ($parentClassNames[0] ?? '');
+                default:
+                    return false;
+            }
+        }));
+    }
+
+    /**
      * @param (Node|Comment)[] $nodes
      *
      * @resolve Element[]
@@ -207,6 +243,9 @@ class MembersHelper
             $name = strtolower($name);
         }
 
-        return $allElements[$name] ?? [];
+        /** @var NameContext $nameContext */
+        $nameContext = $node->getAttribute('nameContext') ?? new NameContext();
+
+        return yield $this->filterAccesibleMembers($allElements[$name] ?? [], $nameContext, $document);
     }
 }

@@ -5,6 +5,7 @@ namespace Tsufeki\Tenkawa\Reflection;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Reflection\Element\Method;
+use Tsufeki\Tenkawa\Reflection\Element\Property;
 
 class ClassResolver
 {
@@ -67,7 +68,7 @@ class ClassResolver
         }
 
         foreach ($resolved->traits as $trait) {
-            $resolved->properties = array_replace($resolved->properties, $trait->properties);
+            $resolved->properties = $this->mergeTraitProperties($resolved->properties, $trait, $class);
             $resolved->methods = $this->mergeTraitMethods($resolved->methods, $trait, $class);
         }
 
@@ -89,6 +90,25 @@ class ClassResolver
         });
 
         return array_replace($members, $superMembers);
+    }
+
+    /**
+     * @param Property[] $properties
+     *
+     * @return Property[]
+     */
+    private function mergeTraitProperties(array $properties, ResolvedClassLike $trait, ClassLike $class): array
+    {
+        $traitProperties = $trait->properties;
+
+        foreach ($traitProperties as &$property) {
+            $property = clone $property;
+            $property->nameContext = clone $property->nameContext;
+            $property->nameContext->class = $class->name;
+        }
+        unset($property);
+
+        return array_replace($properties, $traitProperties);
     }
 
     /**
@@ -117,6 +137,13 @@ class ClassResolver
                 }
             }
         }
+
+        foreach ($traitMethods as &$method) {
+            $method = clone $method;
+            $method->nameContext = clone $method->nameContext;
+            $method->nameContext->class = $class->name;
+        }
+        unset($method);
 
         return array_replace($methods, $traitMethods);
     }
