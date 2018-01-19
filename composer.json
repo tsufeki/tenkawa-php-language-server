@@ -1,7 +1,7 @@
 {
     "name": "tsufeki/tenkawa-php-language-server",
     "description": "Language server protocol implementation for PHP",
-    "license": "GPL-3.0+",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "tsufeki",
@@ -15,7 +15,7 @@
         "react/child-process": "^0.5",
         "react/promise-stream": "^1.1",
         "tsufeki/hmcontainer": "^0.3",
-        "tsufeki/php-lenient-parser": "dev-master",
+        "tsufeki/php-lenient-parser": "^0.1",
         "webmozart/glob": "^4.1",
         "phpstan/phpstan": "0.9.1",
         "jetbrains/phpstorm-stubs": "dev-master"
