@@ -37,7 +37,7 @@ class Position
      */
     public $character;
 
-    public function __construct(int $line = null, int $character = null)
+    public function __construct(int $line = 0, int $character = 0)
     {
         $this->line = $line;
         $this->character = $character;

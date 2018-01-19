@@ -236,7 +236,7 @@ class ReflectionVisitor extends NameContextVisitor
                         $class->traitInsteadOfs[] = $insteadOf;
                     } elseif ($adaptation instanceof Stmt\TraitUseAdaptation\Alias) {
                         $alias = new TraitAlias();
-                        $alias->trait = $this->nameToString($adaptation->trait);
+                        $alias->trait = $adaptation->trait ? $this->nameToString($adaptation->trait) : null;
                         $alias->method = $adaptation->method;
                         $alias->newName = $adaptation->newName;
                         $alias->newAccessibility =

@@ -5,7 +5,7 @@ namespace Tsufeki\Tenkawa\Reflection\Element;
 class TraitAlias
 {
     /**
-     * @var string
+     * @var string|null
      */
     public $trait;
 

@@ -122,7 +122,7 @@ class ClassResolver
         $traitMethods = $trait->methods;
 
         foreach ($class->traitAliases as $alias) {
-            if (strtolower($alias->trait) === $traitName && isset($traitMethods[strtolower($alias->method)])) {
+            if (($alias->trait === null || strtolower($alias->trait) === $traitName) && isset($traitMethods[strtolower($alias->method)])) {
                 $method = clone $traitMethods[strtolower($alias->method)];
                 $method->name = $alias->newName ?? $method->name;
                 $method->accessibility = $alias->newAccessibility ?? $method->accessibility;
