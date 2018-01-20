@@ -57,7 +57,7 @@ class IndexReflectionProvider implements ReflectionProvider
             $document,
             ReflectionIndexDataProvider::CATEGORY_CLASS,
             ClassLike::class,
-            strtolower($fullyQualifiedName)
+            $fullyQualifiedName
         );
     }
 
@@ -67,7 +67,7 @@ class IndexReflectionProvider implements ReflectionProvider
             $document,
             ReflectionIndexDataProvider::CATEGORY_FUNCTION,
             Function_::class,
-            strtolower($fullyQualifiedName)
+            $fullyQualifiedName
         );
     }
 

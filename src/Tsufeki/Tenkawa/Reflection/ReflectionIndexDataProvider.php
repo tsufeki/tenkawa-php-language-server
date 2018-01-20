@@ -33,7 +33,7 @@ class ReflectionIndexDataProvider implements IndexDataProvider
 
     public function getVersion(): int
     {
-        return 2;
+        return 3;
     }
 
     /**
@@ -49,8 +49,8 @@ class ReflectionIndexDataProvider implements IndexDataProvider
         $nodeTraverser->traverse($ast->nodes);
 
         $entries = array_merge(
-            $this->makeEntries($visitor->getClasses(), self::CATEGORY_CLASS, $document),
-            $this->makeEntries($visitor->getFunctions(), self::CATEGORY_FUNCTION, $document),
+            $this->makeEntries($visitor->getClasses(), self::CATEGORY_CLASS, $document, true),
+            $this->makeEntries($visitor->getFunctions(), self::CATEGORY_FUNCTION, $document, true),
             $this->makeEntries($visitor->getConsts(), self::CATEGORY_CONST, $document, true)
         );
 
