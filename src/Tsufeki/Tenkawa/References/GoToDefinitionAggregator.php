@@ -49,7 +49,7 @@ class GoToDefinitionAggregator
 
         return array_merge(
             ...yield array_map(function (GoToDefinitionProvider $provider) use ($document, $position, $nodes) {
-                return yield $provider->getLocations($document, $position, $nodes);
+                return $provider->getLocations($document, $position, $nodes);
             }, $this->providers)
         );
     }

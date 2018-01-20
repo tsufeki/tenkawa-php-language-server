@@ -63,6 +63,10 @@ class IntegrationTest extends TestCase
                             'willSaveWaitUntil' => false,
                         ],
                         'hoverProvider' => true,
+                        'completionProvider' => [
+                            'resolveProvider' => false,
+                            'triggerCharacters' => [],
+                        ],
                         'definitionProvider' => true,
                         'documentSymbolProvider' => true,
                     ],

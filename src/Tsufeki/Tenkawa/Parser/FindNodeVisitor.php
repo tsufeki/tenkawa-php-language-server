@@ -22,16 +22,28 @@ class FindNodeVisitor extends NodeVisitorAbstract
      */
     private $nodes = [];
 
-    public function __construct(Document $document, Position $position)
+    /**
+     * @var int
+     */
+    private $leftEndAdjustment;
+
+    /**
+     * @param bool $stickToLeftEnd If true, positions just after a node are
+     *                             counted as belonging to it.
+     */
+    public function __construct(Document $document, Position $position, bool $stickToLeftEnd = false)
     {
         $this->offset = PositionUtils::offsetFromPosition($position, $document);
+        $this->leftEndAdjustment = $stickToLeftEnd ? 1 : 0;
     }
 
     public function enterNode(Node $node)
     {
         /** @var Comment $comment */
         foreach ($node->getAttribute('comments') ?? [] as $comment) {
-            if ($comment->getFilePos() <= $this->offset && $this->offset < $comment->getFilePos() + strlen($comment->getText())) {
+            if ($comment->getFilePos() <= $this->offset
+                && $this->offset < $comment->getFilePos() + strlen($comment->getText())
+            ) {
                 $this->nodes[] = $node;
                 $this->nodes[] = $comment;
 
@@ -39,7 +51,9 @@ class FindNodeVisitor extends NodeVisitorAbstract
             }
         }
 
-        if ($node->getAttribute('startFilePos') <= $this->offset && $this->offset <= $node->getAttribute('endFilePos')) {
+        if ($node->getAttribute('startFilePos') <= $this->offset
+            && $this->offset <= $node->getAttribute('endFilePos') + $this->leftEndAdjustment
+        ) {
             $this->nodes[] = $node;
         } else {
             return NodeTraverser::DONT_TRAVERSE_CHILDREN;

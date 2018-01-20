@@ -117,8 +117,13 @@ class SqliteStorage implements WritableIndexStorage
             $params['uri'] = (string)$query->uri;
         }
 
+        $fields = ['source_uri', 'category', 'key'];
+        if ($query->includeData) {
+            $fields[] = 'data';
+        }
+
         $stmt = $this->getPdo()->prepare('
-            select source_uri, category, key, data
+            select ' . implode(', ', $fields) . '
                 from tenkawa_index
                 where ' . implode(' and ', $conditions)
         );
@@ -130,7 +135,9 @@ class SqliteStorage implements WritableIndexStorage
             $entry->sourceUri = Uri::fromString($row['source_uri']);
             $entry->category = $row['category'];
             $entry->key = $row['key'];
-            $entry->data = Json::decode($row['data']);
+            if ($query->includeData) {
+                $entry->data = Json::decode($row['data']);
+            }
             $result[] = $entry;
         }
 

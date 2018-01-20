@@ -27,7 +27,7 @@ class DocumentSymbolsAggregator
     {
         return array_merge(
             ...yield array_map(function (DocumentSymbolsProvider $provider) use ($document) {
-                return yield $provider->getSymbols($document);
+                return $provider->getSymbols($document);
             }, $this->providers)
         );
     }

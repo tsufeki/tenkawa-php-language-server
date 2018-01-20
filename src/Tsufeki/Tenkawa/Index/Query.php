@@ -29,4 +29,11 @@ class Query
      * @var Uri|null
      */
     public $uri = null;
+
+    /**
+     * If false, storage may skip loading data field into returned entries.
+     *
+     * @var bool
+     */
+    public $includeData = true;
 }

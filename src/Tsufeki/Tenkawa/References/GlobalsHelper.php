@@ -17,7 +17,6 @@ class GlobalsHelper
     const CLASS_REFERENCING_NODES = [
         Expr\ClassConstFetch::class => true,
         Expr\Closure::class => true,
-        Expr\FuncCall::class => true,
         Expr\Instanceof_::class => true,
         Expr\New_::class => true,
         Expr\StaticCall::class => true,
@@ -32,6 +31,14 @@ class GlobalsHelper
         Stmt\TraitUseAdaptation\Precedence::class => true,
         NullableType::class => true,
         Param::class => true,
+    ];
+
+    const FUNCTION_REFERENCING_NODES = [
+        Expr\FuncCall::class => true,
+    ];
+
+    const CONST_REFERENCING_NODES = [
+        Expr\ConstFetch::class => true,
     ];
 
     /**
@@ -61,7 +68,7 @@ class GlobalsHelper
      */
     public function getReferencedFunction(Name $name, Node $parentNode = null, Node $grandparentNode = null)
     {
-        if ($parentNode instanceof Expr\FuncCall) {
+        if ($parentNode !== null && isset(self::FUNCTION_REFERENCING_NODES[get_class($parentNode)])) {
             return '\\' . $name->toString();
         }
 
@@ -73,7 +80,7 @@ class GlobalsHelper
      */
     public function getReferencedConst(Name $name, Node $parentNode = null, Node $grandparentNode = null)
     {
-        if ($parentNode instanceof Expr\ConstFetch) {
+        if ($parentNode !== null && isset(self::CONST_REFERENCING_NODES[get_class($parentNode)])) {
             return '\\' . $name->toString();
         }
 

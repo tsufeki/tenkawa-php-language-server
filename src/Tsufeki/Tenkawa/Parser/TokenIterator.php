@@ -2,6 +2,8 @@
 
 namespace Tsufeki\Tenkawa\Parser;
 
+use PhpParser\Node;
+
 class TokenIterator
 {
     const WHITESPACE_TOKENS = [
@@ -30,6 +32,11 @@ class TokenIterator
         $this->tokens = $tokens;
         $this->index = $index;
         $this->offset = $offset;
+    }
+
+    public function valid(): bool
+    {
+        return isset($this->tokens[$this->index]);
     }
 
     /**
@@ -74,5 +81,14 @@ class TokenIterator
         while (in_array($this->getType(), self::WHITESPACE_TOKENS, true)) {
             $this->eat();
         }
+    }
+
+    public static function fromNode(Node $node, array $documentTokens): self
+    {
+        $index = $node->getAttribute('startTokenPos');
+        $lastIndex = $node->getAttribute('endTokenPos');
+        $offset = $node->getAttribute('startFilePos');
+
+        return new static(array_slice($documentTokens, $index, $lastIndex - $index + 1), 0, $offset);
     }
 }

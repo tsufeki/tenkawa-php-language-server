@@ -65,10 +65,13 @@ use Tsufeki\Tenkawa\ProcessRunner\ProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ThrottledProcessRunner;
 use Tsufeki\Tenkawa\Protocol\LanguageClient;
+use Tsufeki\Tenkawa\References\CompletionAggregator;
+use Tsufeki\Tenkawa\References\CompletionProvider;
 use Tsufeki\Tenkawa\References\DocCommentHelper;
 use Tsufeki\Tenkawa\References\DocumentSymbolsAggregator;
 use Tsufeki\Tenkawa\References\DocumentSymbolsProvider;
 use Tsufeki\Tenkawa\References\ExpressionTypeHoverProvider;
+use Tsufeki\Tenkawa\References\GlobalsCompletionProvider;
 use Tsufeki\Tenkawa\References\GlobalsHelper;
 use Tsufeki\Tenkawa\References\GoToDefinitionAggregator;
 use Tsufeki\Tenkawa\References\GoToDefinitionProvider;
@@ -152,10 +155,12 @@ class CorePlugin extends Plugin
         $container->setClass(HoverAggregator::class);
         $container->setClass(HoverFormatter::class);
         $container->setClass(GoToDefinitionAggregator::class);
+        $container->setClass(CompletionAggregator::class);
 
         $container->setClass(GlobalsHelper::class);
         $container->setClass(GoToDefinitionProvider::class, GoToGlobalsProvider::class, true);
         $container->setClass(HoverProvider::class, HoverGlobalsProvider::class, true);
+        $container->setClass(CompletionProvider::class, GlobalsCompletionProvider::class, true);
 
         $container->setClass(DocCommentHelper::class);
         $container->setClass(GoToDefinitionProvider::class, GoToDocCommentProvider::class, true);

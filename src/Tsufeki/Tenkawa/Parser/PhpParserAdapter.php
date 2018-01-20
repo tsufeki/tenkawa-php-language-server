@@ -59,7 +59,9 @@ class PhpParserAdapter implements Parser
         $ast->tokens = $this->lexer->getTokens();
 
         $nodeTraverser = new NodeTraverser();
-        $nodeTraverser->addVisitor(new NameResolver($errorHandler));
+        $nodeTraverser->addVisitor(new NameResolver($errorHandler, [
+            'preserveOriginalNames' => true,
+        ]));
         $nodeTraverser->traverse($ast->nodes);
 
         $ast->errors = $errorHandler->getErrors();
