@@ -25,16 +25,16 @@ class FindNodeVisitor extends NodeVisitorAbstract
     /**
      * @var int
      */
-    private $leftEndAdjustment;
+    private $rightEndAdjustment;
 
     /**
-     * @param bool $stickToLeftEnd If true, positions just after a node are
-     *                             counted as belonging to it.
+     * @param bool $stickToRightEnd If true, positions just after a node are
+     *                              counted as belonging to it.
      */
-    public function __construct(Document $document, Position $position, bool $stickToLeftEnd = false)
+    public function __construct(Document $document, Position $position, bool $stickToRightEnd = false)
     {
         $this->offset = PositionUtils::offsetFromPosition($position, $document);
-        $this->leftEndAdjustment = $stickToLeftEnd ? 1 : 0;
+        $this->rightEndAdjustment = $stickToRightEnd ? 1 : 0;
     }
 
     public function enterNode(Node $node)
@@ -52,7 +52,7 @@ class FindNodeVisitor extends NodeVisitorAbstract
         }
 
         if ($node->getAttribute('startFilePos') <= $this->offset
-            && $this->offset <= $node->getAttribute('endFilePos') + $this->leftEndAdjustment
+            && $this->offset <= $node->getAttribute('endFilePos') + $this->rightEndAdjustment
         ) {
             $this->nodes[] = $node;
         } else {

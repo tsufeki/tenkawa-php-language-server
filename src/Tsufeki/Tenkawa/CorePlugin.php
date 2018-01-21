@@ -81,6 +81,7 @@ use Tsufeki\Tenkawa\References\HoverFormatter;
 use Tsufeki\Tenkawa\References\HoverGlobalsProvider;
 use Tsufeki\Tenkawa\References\HoverMembersProvider;
 use Tsufeki\Tenkawa\References\HoverProvider;
+use Tsufeki\Tenkawa\References\MembersCompletionProvider;
 use Tsufeki\Tenkawa\References\MembersHelper;
 use Tsufeki\Tenkawa\References\ReflectionDocumentSymbolsProvider;
 use Tsufeki\Tenkawa\Reflection\ClassResolver;
@@ -183,6 +184,7 @@ class CorePlugin extends Plugin
         $container->setClass(MembersHelper::class);
         $container->setClass(GoToDefinitionProvider::class, GoToMembersProvider::class, true);
         $container->setClass(HoverProvider::class, HoverMembersProvider::class, true);
+        $container->setClass(CompletionProvider::class, MembersCompletionProvider::class, true);
 
         $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
 

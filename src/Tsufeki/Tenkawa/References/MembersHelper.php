@@ -51,26 +51,90 @@ class MembersHelper
     }
 
     /**
-     * @return int|null
+     * @resolve array [Node|null $leftNode, string|Node|null $name]
      */
-    private function getMemberNameOffset(Node $node, Node $leftNode, array $tokens, $separatorToken, $nameToken)
+    private function getMemberFetchParts(Node $node, Position $position, Document $document, bool $stickToRightEnd = false): \Generator
     {
+        $leftNode = null;
+        $name = null;
+        $separatorToken = null;
+        $nameToken = null;
+
+        if ($node instanceof Expr\ClassConstFetch || $node instanceof Expr\StaticCall) {
+            $leftNode = $node->class;
+            $name = $node->name;
+            $separatorToken = T_PAAMAYIM_NEKUDOTAYIM;
+            $nameToken = T_STRING;
+        } elseif ($node instanceof Expr\StaticPropertyFetch) {
+            $leftNode = $node->class;
+            $name = $node->name;
+            $separatorToken = T_PAAMAYIM_NEKUDOTAYIM;
+            $nameToken = T_VARIABLE;
+        } elseif ($node instanceof Expr\PropertyFetch || $node instanceof Expr\MethodCall) {
+            $leftNode = $node->var;
+            $name = $node->name;
+            $separatorToken = T_OBJECT_OPERATOR;
+            $nameToken = T_STRING;
+        }
+
+        if ($leftNode === null || $name === null || !is_string($name)) {
+            return [$leftNode, $name];
+        }
+
+        /** @var Ast $ast */
+        $ast = yield $this->parser->parse($document);
+        $offset = PositionUtils::offsetFromPosition($position, $document);
+
         $tokenIndex = $leftNode->getAttribute('endTokenPos') + 1;
         $lastTokenIndex = $node->getAttribute('endTokenPos');
         $tokenOffset = $leftNode->getAttribute('endFilePos') + 1;
 
-        $iterator = new TokenIterator(array_slice($tokens, $tokenIndex, $lastTokenIndex - $tokenIndex + 1), 0, $tokenOffset);
+        $iterator = new TokenIterator(array_slice($ast->tokens, $tokenIndex, $lastTokenIndex - $tokenIndex + 1), 0, $tokenOffset);
         $iterator->eatWhitespace();
         if (!$iterator->isType($separatorToken)) {
-            return null;
+            return [null, null];
         }
         $iterator->eat();
         $iterator->eatWhitespace();
         if (!$iterator->isType($nameToken)) {
-            return null;
+            return [null, null];
         }
 
-        return $iterator->getOffset();
+        $nameOffset = $iterator->getOffset();
+        if ($offset < $nameOffset || $offset >= $nameOffset + strlen($name) + (int)$stickToRightEnd) {
+            return [null, null];
+        }
+
+        return [$leftNode, $name];
+    }
+
+    /**
+     * @resolve Type
+     */
+    private function getTypeFromNode(Node $node, NameContext $nameContext, Document $document): \Generator
+    {
+        yield $this->typeInference->infer($document);
+
+        $type = new BasicType();
+        if ($node instanceof Node\Name) {
+            $type = new ObjectType();
+            $type->class = '\\' . ltrim((string)$node, '\\');
+            if ($nameContext->class !== null) {
+                if (in_array(strtolower((string)$node), ['self', 'static'], true)) {
+                    $type->class = $nameContext->class;
+                } elseif (strtolower((string)$node) === 'parent') {
+                    /** @var ResolvedClassLike|null $class */
+                    $class = yield $this->classResolver->resolve($nameContext->class, $document);
+                    if ($class !== null && $class->parentClass !== null) {
+                        $type->class = $class->parentClass->name;
+                    }
+                }
+            }
+        } elseif ($node instanceof Expr) {
+            $type = $node->getAttribute('type', $type);
+        }
+
+        return $type;
     }
 
     /**
@@ -123,7 +187,7 @@ class MembersHelper
     /**
      * @resolve array<string,ClassConst[]>
      */
-    public function getClassConstsForType(Type $type, Document $document): \Generator
+    private function getClassConstsForType(Type $type, Document $document): \Generator
     {
         return yield $this->getMembersForType($type, 'consts', $document);
     }
@@ -131,7 +195,7 @@ class MembersHelper
     /**
      * @resolve array<string,Property[]>
      */
-    public function getPropertiesForType(Type $type, Document $document): \Generator
+    private function getPropertiesForType(Type $type, Document $document): \Generator
     {
         return yield $this->getMembersForType($type, 'properties', $document);
     }
@@ -139,7 +203,7 @@ class MembersHelper
     /**
      * @resolve array<string,Method[]>
      */
-    public function getMethodsForType(Type $type, Document $document): \Generator
+    private function getMethodsForType(Type $type, Document $document): \Generator
     {
         return yield $this->getMembersForType($type, 'methods', $document);
     }
@@ -150,7 +214,7 @@ class MembersHelper
      *
      * @resolve (ClassConst|Method|Property)[]
      */
-    public function filterAccesibleMembers(array $members, NameContext $nameContext, Document $document): \Generator
+    private function filterAccesibleMembers(array $members, NameContext $nameContext, Document $document): \Generator
     {
         $parentClassNames = [];
         if ($nameContext->class !== null) {
@@ -178,6 +242,18 @@ class MembersHelper
     }
 
     /**
+     * @param (ClassConst|Method|Property)[] $members
+     *
+     * @return (ClassConst|Method|Property)[]
+     */
+    private function filterStaticMembers(array $members, bool $static = true): array
+    {
+        return array_values(array_filter($members, function ($element) use ($static) {
+            return $element->static === $static;
+        }));
+    }
+
+    /**
      * @param (Node|Comment)[] $nodes
      *
      * @resolve Element[]
@@ -188,64 +264,16 @@ class MembersHelper
             return [];
         }
 
-        /** @var Ast $ast */
-        $ast = yield $this->parser->parse($document);
         $node = $nodes[0];
-        $offset = PositionUtils::offsetFromPosition($position, $document);
-
-        $leftNode = null;
-        $name = null;
-        $separatorToken = null;
-        $nameToken = null;
-
-        if ($node instanceof Expr\ClassConstFetch || $node instanceof Expr\StaticCall) {
-            $leftNode = $node->class;
-            $name = $node->name;
-            $separatorToken = T_PAAMAYIM_NEKUDOTAYIM;
-            $nameToken = T_STRING;
-        } elseif ($node instanceof Expr\StaticPropertyFetch) {
-            $leftNode = $node->class;
-            $name = $node->name;
-            $separatorToken = T_PAAMAYIM_NEKUDOTAYIM;
-            $nameToken = T_VARIABLE;
-        } elseif ($node instanceof Expr\PropertyFetch || $node instanceof Expr\MethodCall) {
-            $leftNode = $node->var;
-            $name = $node->name;
-            $separatorToken = T_OBJECT_OPERATOR;
-            $nameToken = T_STRING;
-        }
-
-        if ($leftNode === null || !is_string($name) || $separatorToken === null || $nameToken === null) {
-            return [];
-        }
-
-        $nameOffset = $this->getMemberNameOffset($node, $leftNode, $ast->tokens, $separatorToken, $nameToken);
-        if ($offset < $nameOffset || $offset >= $nameOffset + strlen($name)) {
+        list($leftNode, $name) = yield $this->getMemberFetchParts($node, $position, $document);
+        if ($leftNode === null || !is_string($name)) {
             return [];
         }
 
         /** @var NameContext $nameContext */
         $nameContext = $node->getAttribute('nameContext') ?? new NameContext();
-
-        yield $this->typeInference->infer($document);
-        $type = new BasicType();
-        if ($leftNode instanceof Node\Name) {
-            $type = new ObjectType();
-            $type->class = '\\' . ltrim((string)$leftNode, '\\');
-            if ($nameContext->class !== null) {
-                if (in_array(strtolower((string)$leftNode), ['self', 'static'], true)) {
-                    $type->class = $nameContext->class;
-                } elseif (strtolower((string)$leftNode) === 'parent') {
-                    /** @var ResolvedClassLike|null $class */
-                    $class = yield $this->classResolver->resolve($nameContext->class, $document);
-                    if ($class !== null && $class->parentClass !== null) {
-                        $type->class = $class->parentClass->name;
-                    }
-                }
-            }
-        } elseif ($leftNode instanceof Expr) {
-            $type = $leftNode->getAttribute('type', $type);
-        }
+        /** @var Type $type */
+        $type = yield $this->getTypeFromNode($leftNode, $nameContext, $document);
 
         $allElements = [];
         if ($node instanceof Expr\ClassConstFetch) {
@@ -258,5 +286,69 @@ class MembersHelper
         }
 
         return yield $this->filterAccesibleMembers($allElements[$name] ?? [], $nameContext, $document);
+    }
+
+    /**
+     * @param (Node|Comment)[] $nodes
+     *
+     * @resolve Element[]
+     */
+    public function getAllMemberReflectionsFromNodePath(array $nodes, Document $document, Position $position): \Generator
+    {
+        $errorNode = null;
+        if (($nodes[0] ?? null) instanceof Expr\Error) {
+            $errorNode = array_shift($nodes);
+        }
+
+        if (empty($nodes)) {
+            return [];
+        }
+
+        $node = $nodes[0];
+        list($leftNode, $name) = yield $this->getMemberFetchParts($node, $position, $document, true);
+        if ($leftNode === null) {
+            return [];
+        }
+
+        /** @var NameContext $nameContext */
+        $nameContext = $node->getAttribute('nameContext') ?? new NameContext();
+        /** @var Type $type */
+        $type = yield $this->getTypeFromNode($leftNode, $nameContext, $document);
+
+        $consts = $this->flatten(yield $this->getClassConstsForType($type, $document));
+        $properties = $this->flatten(yield $this->getPropertiesForType($type, $document));
+        $methods = $this->flatten(yield $this->getMethodsForType($type, $document));
+
+        /** @var Element[][] $allElements */
+        $allElements = [];
+        if ($node instanceof Expr\ClassConstFetch) {
+            $allElements[] = $consts;
+            $allElements[] = $this->filterStaticMembers($methods, true);
+            // TODO static properties
+            // TODO non-static method in object context (like parent::)
+        } elseif ($node instanceof Expr\StaticPropertyFetch) {
+            $allElements[] = $this->filterStaticMembers($properties, true);
+        } elseif ($node instanceof Expr\StaticCall) {
+            $allElements[] = $this->filterStaticMembers($methods, true);
+            // TODO non-static method in object context (like parent::)
+        } elseif ($node instanceof Expr\PropertyFetch) {
+            $allElements[] = $this->filterStaticMembers($properties, false);
+            $allElements[] = $methods;
+        } elseif ($node instanceof Expr\MethodCall) {
+            $allElements[] = $methods;
+        }
+
+        // TODO filter out __construct when not parent::__construct
+        return yield $this->filterAccesibleMembers(array_merge(...$allElements), $nameContext, $document);
+    }
+
+    /**
+     * @param array<string,(ClassConst|Method|Property)[]> $elements
+     *
+     * @return (ClassConst|Method|Property)[]
+     */
+    private function flatten(array $elements): array
+    {
+        return empty($elements) ? [] : array_merge(...array_values($elements));
     }
 }
