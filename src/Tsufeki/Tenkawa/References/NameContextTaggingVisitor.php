@@ -27,7 +27,7 @@ class NameContextTaggingVisitor extends NameContextVisitor
         parent::enterNode($node);
 
         if (in_array($node, $this->nodesToTag, true)) {
-            $node->setAttribute('nameContext', $this->nameContext);
+            $node->setAttribute('nameContext', clone $this->nameContext);
         }
 
         return null;

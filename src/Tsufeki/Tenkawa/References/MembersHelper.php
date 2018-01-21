@@ -224,11 +224,25 @@ class MembersHelper
             return [];
         }
 
+        /** @var NameContext $nameContext */
+        $nameContext = $node->getAttribute('nameContext') ?? new NameContext();
+
         yield $this->typeInference->infer($document);
         $type = new BasicType();
         if ($leftNode instanceof Node\Name) {
             $type = new ObjectType();
             $type->class = '\\' . ltrim((string)$leftNode, '\\');
+            if ($nameContext->class !== null) {
+                if (in_array(strtolower((string)$leftNode), ['self', 'static'], true)) {
+                    $type->class = $nameContext->class;
+                } elseif (strtolower((string)$leftNode) === 'parent') {
+                    /** @var ResolvedClassLike|null $class */
+                    $class = yield $this->classResolver->resolve($nameContext->class, $document);
+                    if ($class !== null && $class->parentClass !== null) {
+                        $type->class = $class->parentClass->name;
+                    }
+                }
+            }
         } elseif ($leftNode instanceof Expr) {
             $type = $leftNode->getAttribute('type', $type);
         }
@@ -242,9 +256,6 @@ class MembersHelper
             $allElements = yield $this->getMethodsForType($type, $document);
             $name = strtolower($name);
         }
-
-        /** @var NameContext $nameContext */
-        $nameContext = $node->getAttribute('nameContext') ?? new NameContext();
 
         return yield $this->filterAccesibleMembers($allElements[$name] ?? [], $nameContext, $document);
     }

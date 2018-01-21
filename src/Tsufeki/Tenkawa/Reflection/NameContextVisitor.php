@@ -69,7 +69,8 @@ class NameContextVisitor extends NodeVisitorAbstract
 
         if ($node instanceof Stmt\ClassLike) {
             $className = isset($node->namespacedName) ? $node->namespacedName : $node->name;
-            $this->nameContext->class = $className ? '\\' . (string)$className : null;
+            $className = $className ? '\\' . (string)$className : null;
+            $this->nameContext->class = $className;
             $this->classStack[] = $className;
 
             return null;
@@ -77,6 +78,7 @@ class NameContextVisitor extends NodeVisitorAbstract
 
         if ($node instanceof Stmt\Function_) {
             $this->nameContext->class = null;
+            $this->classStack[] = null;
 
             return null;
         }
@@ -86,14 +88,8 @@ class NameContextVisitor extends NodeVisitorAbstract
 
     public function leaveNode(Node $node)
     {
-        if ($node instanceof Stmt\ClassLike) {
+        if ($node instanceof Stmt\ClassLike || $node instanceof Stmt\Function_) {
             array_pop($this->classStack);
-            $this->nameContext->class = $this->classStack[count($this->classStack) - 1] ?? null;
-
-            return null;
-        }
-
-        if ($node instanceof Stmt\Function_) {
             $this->nameContext->class = $this->classStack[count($this->classStack) - 1] ?? null;
 
             return null;
