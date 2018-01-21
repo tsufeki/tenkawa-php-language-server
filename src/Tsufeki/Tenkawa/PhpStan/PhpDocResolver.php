@@ -17,7 +17,7 @@ use Tsufeki\Tenkawa\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Reflection\NameContext;
 use Tsufeki\Tenkawa\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Uri;
-use Tsufeki\Tenkawa\Utils\SyncAsync;
+use Tsufeki\Tenkawa\Utils\SyncAsyncKernel;
 
 class PhpDocResolver extends FileTypeMapper
 {
@@ -37,7 +37,7 @@ class PhpDocResolver extends FileTypeMapper
     private $reflectionProvider;
 
     /**
-     * @var SyncAsync
+     * @var SyncAsyncKernel
      */
     private $syncAsync;
 
@@ -50,7 +50,7 @@ class PhpDocResolver extends FileTypeMapper
         Parser $phpParser,
         PhpDocStringResolver $phpDocStringResolver,
         ReflectionProvider $reflectionProvider,
-        SyncAsync $syncAsync
+        SyncAsyncKernel $syncAsync
     ) {
         $this->phpParser = $phpParser;
         $this->phpDocStringResolver = $phpDocStringResolver;

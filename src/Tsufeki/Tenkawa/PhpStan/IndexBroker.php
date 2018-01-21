@@ -18,7 +18,7 @@ use PHPStan\Type\DynamicStaticMethodReturnTypeExtension;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Reflection\ReflectionProvider;
-use Tsufeki\Tenkawa\Utils\SyncAsync;
+use Tsufeki\Tenkawa\Utils\SyncAsyncKernel;
 
 class IndexBroker extends Broker
 {
@@ -43,7 +43,7 @@ class IndexBroker extends Broker
     private $classResolver;
 
     /**
-     * @var SyncAsync
+     * @var SyncAsyncKernel
      */
     private $syncAsync;
 
@@ -72,7 +72,7 @@ class IndexBroker extends Broker
         array $dynamicFunctionReturnTypeExtensions,
         ReflectionProvider $reflectionProvider,
         ClassResolver $classResolver,
-        SyncAsync $syncAsync,
+        SyncAsyncKernel $syncAsync,
         PhpDocResolver $phpDocResolver
     ) {
         parent::__construct(

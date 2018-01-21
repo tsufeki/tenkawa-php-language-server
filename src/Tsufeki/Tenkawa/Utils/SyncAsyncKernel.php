@@ -4,8 +4,9 @@ namespace Tsufeki\Tenkawa\Utils;
 
 use Recoil\Kernel;
 use Recoil\Recoil;
+use Recoil\Strand;
 
-class SyncAsync
+class SyncAsyncKernel implements Kernel
 {
     /**
      * @var Kernel
@@ -38,7 +39,9 @@ class SyncAsync
         callable $resumeCallback = null,
         callable $pauseCallback = null
     ): \Generator {
-        assert(!$this->sync);
+        if ($this->sync) {
+            throw new \RuntimeException("Can't call SyncAsyncKernel::callSync in sync mode");
+        }
 
         $done = false;
         $result = null;
@@ -77,7 +80,9 @@ class SyncAsync
      */
     public function callAsync(\Generator $coroutine)
     {
-        assert($this->sync);
+        if (!$this->sync) {
+            throw new \RuntimeException("Can't call SyncAsyncKernel::callAsync in async mode");
+        }
 
         $done = false;
         $result = null;
@@ -105,9 +110,12 @@ class SyncAsync
         return $result;
     }
 
-    private function run()
+    public function run()
     {
-        assert($this->sync);
+        if (!$this->sync) {
+            throw new \RuntimeException("Can't call SyncAsyncKernel::run in async mode");
+        }
+
         $callerContext = null;
         if (!empty($this->syncStack)) {
             $callerContext = $this->syncStack[count($this->syncStack) - 1];
@@ -140,9 +148,34 @@ class SyncAsync
         }
     }
 
+    public function stop()
+    {
+        $this->kernel->stop();
+    }
+
+    public function execute($coroutine): Strand
+    {
+        return $this->kernel->execute($coroutine);
+    }
+
+    public function setExceptionHandler(callable $fn = null)
+    {
+        $this->kernel->setExceptionHandler($fn);
+    }
+
+    public function send($value = null, Strand $strand = null)
+    {
+        $this->kernel->send($value, $strand);
+    }
+
+    public function throw(\Throwable $exception, Strand $strand = null)
+    {
+        $this->kernel->throw($exception, $strand);
+    }
+
     public function start($coroutine)
     {
-        $this->kernel->execute($coroutine);
+        $this->execute($coroutine);
         $this->run();
     }
 }

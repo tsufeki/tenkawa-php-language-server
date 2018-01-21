@@ -7,7 +7,7 @@ use PHPStan\ShouldNotHappenException;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Parser\Ast;
 use Tsufeki\Tenkawa\Parser\Parser as TenkawaParser;
-use Tsufeki\Tenkawa\Utils\SyncAsync;
+use Tsufeki\Tenkawa\Utils\SyncAsyncKernel;
 
 class DocumentParser implements Parser
 {
@@ -17,7 +17,7 @@ class DocumentParser implements Parser
     private $parser;
 
     /**
-     * @var SyncAsync
+     * @var SyncAsyncKernel
      */
     private $syncAsync;
 
@@ -26,7 +26,7 @@ class DocumentParser implements Parser
      */
     private $document;
 
-    public function __construct(TenkawaParser $parser, SyncAsync $syncAsync)
+    public function __construct(TenkawaParser $parser, SyncAsyncKernel $syncAsync)
     {
         $this->parser = $parser;
         $this->syncAsync = $syncAsync;

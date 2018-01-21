@@ -4,17 +4,17 @@ namespace Tests\Tsufeki\Tenkawa\Utils;
 
 use PHPStan\Testing\TestCase;
 use Recoil\React\ReactKernel;
-use Tsufeki\Tenkawa\Utils\SyncAsync;
+use Tsufeki\Tenkawa\Utils\SyncAsyncKernel;
 
 /**
- * @covers \Tsufeki\Tenkawa\Utils\SyncAsync
+ * @covers \Tsufeki\Tenkawa\Utils\SyncAsyncKernel
  * @covers \Tsufeki\Tenkawa\Utils\SyncCallContext
  */
-class SyncAsyncTest extends TestCase
+class SyncAsyncKernelTest extends TestCase
 {
     public function test()
     {
-        $sa = new SyncAsync(ReactKernel::create());
+        $sa = new SyncAsyncKernel(ReactKernel::create());
 
         $sa->start(function () use ($sa) {
             $result = yield $sa->callSync(function () use ($sa) {

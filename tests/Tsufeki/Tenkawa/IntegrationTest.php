@@ -3,13 +3,14 @@
 namespace Tests\Tsufeki\Tenkawa;
 
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use Recoil\React\ReactKernel;
 use Recoil\Recoil;
 use Tests\Tsufeki\Tenkawa\Fixtures\DummyTransport;
 use Tsufeki\BlancheJsonRpc\Json;
 use Tsufeki\Tenkawa\CorePlugin;
 use Tsufeki\Tenkawa\Tenkawa;
-use Tsufeki\Tenkawa\Utils\SyncAsync;
+use Tsufeki\Tenkawa\Utils\SyncAsyncKernel;
 
 /**
  * @covers \Tsufeki\Tenkawa\Client
@@ -22,20 +23,18 @@ class IntegrationTest extends TestCase
 {
     public function test()
     {
-        $kernel = ReactKernel::create();
+        $kernel = new SyncAsyncKernel(ReactKernel::create());
         $kernel->execute(function () use ($kernel) {
+            $tenkawa = new Tenkawa(new NullLogger(), $kernel, [new CorePlugin()]);
             $transport = new DummyTransport();
-            $syncAsync = new SyncAsync($kernel);
-            $tenkawa = new Tenkawa();
 
             $options = [
                 'index.memory_only' => true,
                 'index.stubs' => false,
-                'log.stderr' => false,
                 'log.client' => false,
             ];
 
-            yield Recoil::execute($tenkawa->run($transport, $kernel, $syncAsync, [new CorePlugin()], $options));
+            yield Recoil::execute($tenkawa->run($transport, $options));
             yield;
             yield;
 

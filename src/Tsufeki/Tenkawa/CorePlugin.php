@@ -16,7 +16,6 @@ use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TypeParser;
 use PHPStan\Type\FileTypeMapper;
-use Psr\Log\LoggerInterface;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodRegistry;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
@@ -51,8 +50,6 @@ use Tsufeki\Tenkawa\Io\FileSearch;
 use Tsufeki\Tenkawa\Io\LocalFileReader;
 use Tsufeki\Tenkawa\Io\LocalFileSearch;
 use Tsufeki\Tenkawa\Logger\ClientLogger;
-use Tsufeki\Tenkawa\Logger\CompositeLogger;
-use Tsufeki\Tenkawa\Logger\StreamLogger;
 use Tsufeki\Tenkawa\Mapper\UriMapper;
 use Tsufeki\Tenkawa\Parser\Parser;
 use Tsufeki\Tenkawa\Parser\ParserDiagnosticsProvider;
@@ -98,9 +95,7 @@ class CorePlugin extends Plugin
     public function configureContainer(Container $container, array $options)
     {
         $container->setValue(EventDispatcher::class, new EventDispatcher($container));
-        $container->setClass(LoggerInterface::class, CompositeLogger::class);
         $container->setClass(ClientLogger::class);
-        $container->setClass(StreamLogger::class, null, false, [new Value(STDERR)]);
 
         $container->setClass(OnStart::class, CorePluginInit::class, true);
         $container->setCallable(Mapper::class, [$this, 'createMapper']);

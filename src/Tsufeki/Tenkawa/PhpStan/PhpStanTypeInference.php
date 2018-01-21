@@ -19,7 +19,7 @@ use Tsufeki\Tenkawa\TypeInference\ObjectType;
 use Tsufeki\Tenkawa\TypeInference\Type;
 use Tsufeki\Tenkawa\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\TypeInference\UnionType;
-use Tsufeki\Tenkawa\Utils\SyncAsync;
+use Tsufeki\Tenkawa\Utils\SyncAsyncKernel;
 
 class PhpStanTypeInference implements TypeInference
 {
@@ -54,7 +54,7 @@ class PhpStanTypeInference implements TypeInference
     private $typeSpecifier;
 
     /**
-     * @var SyncAsync
+     * @var SyncAsyncKernel
      */
     private $syncAsync;
 
@@ -65,7 +65,7 @@ class PhpStanTypeInference implements TypeInference
         PhpDocResolver $phpDocResolver,
         Standard $printer,
         TypeSpecifier $typeSpecifier,
-        SyncAsync $syncAsync
+        SyncAsyncKernel $syncAsync
     ) {
         $this->nodeScopeResolver = $nodeScopeResolver;
         $this->parser = $parser;
