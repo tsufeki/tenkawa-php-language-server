@@ -2,7 +2,9 @@
 
 namespace Tsufeki\Tenkawa\References;
 
+use PhpParser\Node;
 use PhpParser\Node\Name;
+use PhpParser\Node\Stmt;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Index\Index;
 use Tsufeki\Tenkawa\Index\IndexEntry;
@@ -50,14 +52,59 @@ class GlobalsCompletionProvider implements CompletionProvider
             return $completions;
         }
 
+        $name = $nodes[0];
+        $node = $nodes[1];
+        $parentNode = $nodes[2] ?? null;
+
+        list($beforeParts, $afterParts) = yield $this->splitName($name, $position, $document);
+        $kinds = $this->getKinds($node, $parentNode);
+        $absolute = $this->isAbsolute($name, $node);
+
+        if ($node instanceof Stmt\UseUse && $parentNode instanceof Stmt\GroupUse) {
+            $name = Name::concat($parentNode->prefix, $name);
+        }
+        assert($name !== null);
+
+        /** @var CompletionItem[][] $items */
+        $items = [];
+        foreach ($kinds as $kind) {
+            if (empty($beforeParts)) {
+                if ($absolute) {
+                    $items[] = yield $this->searchNamespace('\\', $kind, $document);
+                } else {
+                    /** @var NameContext $nameContext */
+                    $nameContext = $name->getAttribute('nameContext') ?? new NameContext();
+                    $items[] = yield $this->searchNamespace($nameContext->namespace, $kind, $document);
+                    $items[] = $this->getAliases($nameContext, $kind);
+                    if (
+                        in_array($kind, [CompletionItemKind::CONSTANT, CompletionItemKind::FUNCTION_], true)
+                        && $nameContext->namespace !== '\\'
+                    ) {
+                        $items[] = yield $this->searchNamespace('\\', $kind, $document);
+                    }
+                }
+            } else {
+                $prefix = $name->slice(0, count($name->parts) - count($afterParts));
+                $items[] = yield $this->searchNamespace('\\' . (string)$prefix, $kind, $document);
+            }
+        }
+
+        $completions->items = array_unique(array_merge(...$items), SORT_REGULAR);
+
+        return $completions;
+    }
+
+    /**
+     * @resolve string[][] Two element array: name parts before the position
+     *                     and after (includes part the position is on).
+     */
+    private function splitName(Name $name, Position $position, Document $document): \Generator
+    {
         /** @var Ast $ast */
         $ast = yield $this->parser->parse($document);
         $offset = PositionUtils::offsetFromPosition($position, $document);
-        /** @var Name $node */
-        $node = $nodes[0];
 
-        $iterator = TokenIterator::fromNode($node, $ast->tokens);
-        $startsWithBackslash = $iterator->valid() && $iterator->getType() === T_NS_SEPARATOR;
+        $iterator = TokenIterator::fromNode($name, $ast->tokens);
         $beforeParts = [];
         $afterParts = [];
         while ($iterator->valid()) {
@@ -72,28 +119,62 @@ class GlobalsCompletionProvider implements CompletionProvider
             $iterator->eat();
         }
 
-        // TODO
-        $kind = CompletionItemKind::CLASS_;
+        return [$beforeParts, $afterParts];
+    }
 
-        /** @var NameContext $nameContext */
-        $nameContext = $node->getAttribute('nameContext') ?? new NameContext();
+    /**
+     * @return int[] CompletionItemKind[]
+     */
+    private function getKinds(Node $node, Node $parentNode = null): array
+    {
+        if (isset(GlobalsHelper::FUNCTION_REFERENCING_NODES[get_class($node)])) {
+            return [CompletionItemKind::FUNCTION_];
+        }
+        if (isset(GlobalsHelper::CONST_REFERENCING_NODES[get_class($node)])) {
+            // const fetch may be an incomplete function call or static class member access
+            return [
+                CompletionItemKind::CONSTANT,
+                CompletionItemKind::FUNCTION_,
+                CompletionItemKind::CLASS_,
+            ];
+        }
+        if ($node instanceof Stmt\UseUse) {
+            assert($parentNode instanceof Stmt\Use_ || $parentNode instanceof Stmt\GroupUse);
 
-        // TODO use & group use
-        if (empty($beforeParts)) {
-            if ($startsWithBackslash) {
-                $completions->items = yield $this->searchNamespace('\\', $kind, $document);
-            } else {
-                $completions->items = array_merge(
-                    yield $this->searchNamespace($nameContext->namespace, $kind, $document),
-                    $this->getAliases($nameContext, $kind)
-                );
-            }
-        } else {
-            $prefix = $node->slice(0, count($node->parts) - count($afterParts));
-            $completions->items = yield $this->searchNamespace('\\' . (string)$prefix, $kind, $document);
+            return [$this->getKindFromUse($node) ?? $this->getKindFromUse($parentNode) ?? CompletionItemKind::CLASS_];
+        }
+        if ($node instanceof Stmt\GroupUse) {
+            return [$this->getKindFromUse($node) ?? CompletionItemKind::CLASS_];
         }
 
-        return $completions;
+        return [CompletionItemKind::CLASS_];
+    }
+
+    /**
+     * @param Stmt\Use_|Stmt\GroupUse|Stmt\UseUse $useNode
+     *
+     * @return int|null CompletionItemKind
+     */
+    private function getKindFromUse(Node $useNode)
+    {
+        if ($useNode->type === Stmt\Use_::TYPE_FUNCTION) {
+            return CompletionItemKind::FUNCTION_;
+        }
+        if ($useNode->type === Stmt\Use_::TYPE_CONSTANT) {
+            return CompletionItemKind::CONSTANT;
+        }
+        if ($useNode->type === Stmt\Use_::TYPE_NORMAL) {
+            return CompletionItemKind::CLASS_;
+        }
+
+        return null;
+    }
+
+    private function isAbsolute(Name $name, Node $node): bool
+    {
+        return $name instanceof Name\FullyQualified
+            || $node instanceof Stmt\UseUse
+            || $node instanceof Stmt\GroupUse;
     }
 
     /**
@@ -168,7 +249,7 @@ class GlobalsCompletionProvider implements CompletionProvider
         $item->label = $shortName;
         $item->kind = $kind === CompletionItemKind::CONSTANT ? CompletionItemKind::VARIABLE : $kind;
         $item->detail = $name;
-        $item->insertText = $shortName;
+        $item->insertText = $shortName . ($kind === CompletionItemKind::MODULE ? '\\' : '');
 
         return $item;
     }
