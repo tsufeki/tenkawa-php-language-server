@@ -22,4 +22,9 @@ interface CompletionProvider
         CompletionContext $context = null,
         array $nodes
     ): \Generator;
+
+    /**
+     * @return string[]
+     */
+    public function getTriggerCharacters(): array;
 }

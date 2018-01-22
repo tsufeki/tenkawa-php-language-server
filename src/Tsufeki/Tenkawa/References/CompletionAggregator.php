@@ -69,6 +69,16 @@ class CompletionAggregator
         return $completions;
     }
 
+    /**
+     * @return string[]
+     */
+    public function getTriggerCharacters(): array
+    {
+        return array_unique(array_merge(...array_map(function (CompletionProvider $provider) {
+            return $provider->getTriggerCharacters();
+        }, $this->providers)));
+    }
+
     public function hasProviders(): bool
     {
         return !empty($this->providers);

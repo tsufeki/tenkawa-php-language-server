@@ -85,7 +85,7 @@ class Server extends LanguageServer
         $serverCapabilities->hoverProvider = $this->hoverAggregator->hasProviders();
         if ($this->completionAggregator->hasProviders()) {
             $serverCapabilities->completionProvider = new CompletionOptions();
-            $serverCapabilities->completionProvider->triggerCharacters = []; // TODO
+            $serverCapabilities->completionProvider->triggerCharacters = $this->completionAggregator->getTriggerCharacters();
         }
         $serverCapabilities->definitionProvider = $this->goToDefinitionAggregator->hasProviders();
         $serverCapabilities->documentSymbolProvider = $this->documentSymbolsAggregator->hasProviders();

@@ -25,6 +25,11 @@ class MembersCompletionProvider implements CompletionProvider
         $this->membersHelper = $membersHelper;
     }
 
+    public function getTriggerCharacters(): array
+    {
+        return ['>', ':'];
+    }
+
     public function getCompletions(
         Document $document,
         Position $position,

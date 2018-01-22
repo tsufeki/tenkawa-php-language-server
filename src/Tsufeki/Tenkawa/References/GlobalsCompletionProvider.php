@@ -40,6 +40,11 @@ class GlobalsCompletionProvider implements CompletionProvider
         $this->index = $index;
     }
 
+    public function getTriggerCharacters(): array
+    {
+        return ['\\'];
+    }
+
     public function getCompletions(
         Document $document,
         Position $position,
