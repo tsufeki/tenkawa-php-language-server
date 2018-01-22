@@ -187,7 +187,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
             yield $this->clearDocument($uri, $indexStorage);
         }
 
-        $this->logger->info("Project indexing finished. [$indexedFilesCount files, $stopwatch]");
+        $this->logger->info('Project indexing finished: ' . $project->getRootUri() . " [$indexedFilesCount files, $stopwatch]");
     }
 
     public function onStart(array $options): \Generator

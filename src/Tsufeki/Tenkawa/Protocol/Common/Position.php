@@ -42,4 +42,9 @@ class Position
         $this->line = $line;
         $this->character = $character;
     }
+
+    public function __toString(): string
+    {
+        return "($this->line,$this->character)";
+    }
 }

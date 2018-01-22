@@ -10,6 +10,7 @@ use Tsufeki\HmContainer\Container;
 use Tsufeki\Tenkawa\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Event\OnStart;
 use Tsufeki\Tenkawa\Transport\RunnableTransport;
+use Tsufeki\Tenkawa\Utils\Stopwatch;
 use Tsufeki\Tenkawa\Utils\SyncAsyncKernel;
 
 class Tenkawa
@@ -41,6 +42,9 @@ class Tenkawa
 
     public function run(RunnableTransport $transport, array $options = []): \Generator
     {
+        $time = new Stopwatch();
+        $this->logger->debug('start');
+
         $container = new Container();
         $container->setValue(LoggerInterface::class, $this->logger);
         $container->setValue(Kernel::class, $this->kernel);
@@ -57,6 +61,8 @@ class Tenkawa
 
         // Materialize the RPC server
         $rpc = $container->get(MappedJsonRpc::class);
+
+        $this->logger->debug("started [$time]");
 
         yield $transport->run();
     }
