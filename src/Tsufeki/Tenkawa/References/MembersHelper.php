@@ -5,6 +5,8 @@ namespace Tsufeki\Tenkawa\References;
 use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Name;
+use PhpParser\Node\Stmt;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Parser\Ast;
 use Tsufeki\Tenkawa\Parser\Parser;
@@ -325,12 +327,18 @@ class MembersHelper
             $allElements[] = $consts;
             $allElements[] = $this->filterStaticMembers($methods, true);
             $allElements[] = $this->filterStaticMembers($properties, true);
-            // TODO non-static method in object context (like parent::)
+
+            if (yield $this->isStaticCallToNonStaticAllowed($leftNode, $nodes, $nameContext, $document)) {
+                $allElements[] = $this->filterStaticMembers($methods, false);
+            }
         } elseif ($node instanceof Expr\StaticPropertyFetch) {
             $allElements[] = $this->filterStaticMembers($properties, true);
         } elseif ($node instanceof Expr\StaticCall) {
             $allElements[] = $this->filterStaticMembers($methods, true);
-            // TODO non-static method in object context (like parent::)
+
+            if (yield $this->isStaticCallToNonStaticAllowed($leftNode, $nodes, $nameContext, $document)) {
+                $allElements[] = $this->filterStaticMembers($methods, false);
+            }
         } elseif ($node instanceof Expr\PropertyFetch) {
             $allElements[] = $this->filterStaticMembers($properties, false);
             $allElements[] = $methods;
@@ -340,6 +348,63 @@ class MembersHelper
 
         // TODO filter out __construct when not parent::__construct
         return yield $this->filterAccesibleMembers(array_merge(...$allElements), $nameContext, $document);
+    }
+
+    /**
+     * @param (Node|Comment)[] $nodes
+     */
+    private function isInObjectContext(array $nodes): bool
+    {
+        foreach ($nodes as $node) {
+            if ($node instanceof Stmt\ClassMethod) {
+                return !$node->isStatic();
+            }
+            if ($node instanceof Stmt\Function_) {
+                return false;
+            }
+            if ($node instanceof Stmt\ClassLike) {
+                return false;
+            }
+            if ($node instanceof Expr\Closure && $node->static) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param (Node|Comment)[] $nodes
+     *
+     * @resolve bool
+     */
+    private function isStaticCallToNonStaticAllowed(
+        Node $className,
+        array $nodes,
+        NameContext $nameContext,
+        Document $document
+    ): \Generator {
+        if ($nameContext->class === null
+            || !$this->isInObjectContext($nodes)
+            || !($className instanceof Name)
+        ) {
+            return false;
+        }
+
+        if (in_array(strtolower((string)$className), ['self', 'static', 'parent'], true)) {
+            return true;
+        }
+
+        /** @var ResolvedClassLike|null $class */
+        $class = yield $this->classResolver->resolve($nameContext->class, $document);
+        while ($class !== null) {
+            if (strtolower($class->name) === '\\' . strtolower((string)$className)) {
+                return true;
+            }
+            $class = $class->parentClass;
+        }
+
+        return false;
     }
 
     /**
