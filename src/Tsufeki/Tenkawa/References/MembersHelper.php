@@ -346,8 +346,15 @@ class MembersHelper
             $allElements[] = $methods;
         }
 
-        // TODO filter out __construct when not parent::__construct
-        return yield $this->filterAccesibleMembers(array_merge(...$allElements), $nameContext, $document);
+        $elements = yield $this->filterAccesibleMembers(array_merge(...$allElements), $nameContext, $document);
+
+        if (!($leftNode instanceof Name) || strtolower((string)$leftNode) !== 'parent') {
+            $elements = array_filter($elements, function (Element $element) {
+                return !($element instanceof Method) || !in_array(strtolower($element->name), ['__construct', '__destruct'], true);
+            });
+        }
+
+        return $elements;
     }
 
     /**
