@@ -64,6 +64,7 @@ class SqliteStorage implements WritableIndexStorage
         $stmt = $this->getPdo()->prepare('select version from tenkawa_version');
         $stmt->execute();
         $dbVersion = $stmt->fetchColumn();
+        $stmt = null;
 
         if ($dbVersion !== $version) {
             $this->getPdo()->prepare('drop table if exists tenkawa_index')->execute();
