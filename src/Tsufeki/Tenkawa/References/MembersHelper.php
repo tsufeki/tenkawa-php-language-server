@@ -324,7 +324,7 @@ class MembersHelper
         if ($node instanceof Expr\ClassConstFetch) {
             $allElements[] = $consts;
             $allElements[] = $this->filterStaticMembers($methods, true);
-            // TODO static properties
+            $allElements[] = $this->filterStaticMembers($properties, true);
             // TODO non-static method in object context (like parent::)
         } elseif ($node instanceof Expr\StaticPropertyFetch) {
             $allElements[] = $this->filterStaticMembers($properties, true);

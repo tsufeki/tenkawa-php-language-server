@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\References;
 
+use PhpParser\Node\Expr;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Protocol\Common\Position;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\CompletionContext;
@@ -50,7 +51,17 @@ class MembersCompletionProvider implements CompletionProvider
             $item->label = $element->name;
             $item->kind = $this->getKind($element);
             $item->detail = $element->nameContext->class;
-            $item->insertText = $element->name . ($element instanceof Method ? '(' : '');
+            $item->insertText = $element->name;
+
+            if ($element instanceof Method) {
+                $item->insertText .= '(';
+            }
+            if ($element instanceof Property) {
+                $item->label = '$' . $item->label;
+                if ($element->static && $nodes[0] instanceof Expr\ClassConstFetch) {
+                    $item->insertText = '$' . $item->insertText;
+                }
+            }
 
             $completions->items[] = $item;
         }
