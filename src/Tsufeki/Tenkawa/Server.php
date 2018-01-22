@@ -206,6 +206,8 @@ class Server extends LanguageServer
         $locations = yield $this->goToDefinitionAggregator->getLocations($document, $position);
         $count = count($locations);
 
+        $this->logger->debug(__FUNCTION__ . " $textDocument->uri$position [$time, $count items]");
+
         if ($count === 0) {
             return null;
         }
@@ -213,8 +215,6 @@ class Server extends LanguageServer
         if ($count === 1) {
             return $locations[0];
         }
-
-        $this->logger->debug(__FUNCTION__ . " $textDocument->uri$position [$time, $count items]");
 
         return $locations;
     }
