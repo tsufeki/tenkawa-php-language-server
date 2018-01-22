@@ -28,6 +28,11 @@ class FindNodeVisitor extends NodeVisitorAbstract
     private $rightEndAdjustment;
 
     /**
+     * @var int
+     */
+    private $depth = 0;
+
+    /**
      * @param bool $stickToRightEnd If true, positions just after a node are
      *                              counted as belonging to it.
      */
@@ -39,6 +44,8 @@ class FindNodeVisitor extends NodeVisitorAbstract
 
     public function enterNode(Node $node)
     {
+        $this->depth++;
+
         /** @var Comment $comment */
         foreach ($node->getAttribute('comments') ?? [] as $comment) {
             if ($comment->getFilePos() <= $this->offset
@@ -53,11 +60,17 @@ class FindNodeVisitor extends NodeVisitorAbstract
 
         if ($node->getAttribute('startFilePos') <= $this->offset
             && $this->offset <= $node->getAttribute('endFilePos') + $this->rightEndAdjustment
+            && $this->depth > count($this->nodes)
         ) {
             $this->nodes[] = $node;
         } else {
             return NodeTraverser::DONT_TRAVERSE_CHILDREN;
         }
+    }
+
+    public function leaveNode(Node $node)
+    {
+        $this->depth--;
     }
 
     /**

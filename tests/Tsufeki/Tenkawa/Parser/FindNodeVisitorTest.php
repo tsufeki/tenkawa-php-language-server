@@ -6,6 +6,9 @@ use PhpLenientParser\LenientParserFactory;
 use PhpParser\Comment;
 use PhpParser\Lexer;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Name;
+use PhpParser\Node\Param;
+use PhpParser\Node\Stmt;
 use PhpParser\NodeTraverser;
 use PHPUnit\Framework\TestCase;
 use Tsufeki\Tenkawa\Document\Document;
@@ -22,7 +25,7 @@ class FindNodeVisitorTest extends TestCase
     /**
      * @dataProvider data
      */
-    public function test(string $source, int $line, int $col, array $nodeTypes)
+    public function test(string $source, int $line, int $col, array $nodeTypes, bool $stickToRightEnd = false)
     {
         $lexer = new Lexer\Emulative(['usedAttributes' => [
             'comments',
@@ -38,7 +41,7 @@ class FindNodeVisitorTest extends TestCase
         $document = new Document(Uri::fromString('file:///foo'), 'php', $project);
         $document->update($source);
 
-        $visitor = new FindNodeVisitor($document, new Position($line, $col));
+        $visitor = new FindNodeVisitor($document, new Position($line, $col), $stickToRightEnd);
         $nodeTraverser = new NodeTraverser();
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($nodes);
@@ -87,6 +90,12 @@ class FindNodeVisitorTest extends TestCase
                 '<?php [/* bar */ $foo = 7];',
                 0, 10,
                 [Comment::class, Expr\ArrayItem::class, Expr\Array_::class],
+            ],
+            [
+                '<?php function f($x, A) {}',
+                0, 22,
+                [Name::class, Param::class, Stmt\Function_::class],
+                true,
             ],
         ];
     }

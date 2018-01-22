@@ -177,7 +177,7 @@ class GlobalsCompletionProvider implements CompletionProvider
 
     private function isAbsolute(Name $name, Node $node): bool
     {
-        return $name instanceof Name\FullyQualified
+        return $name->getAttribute('originalName', $name) instanceof Name\FullyQualified
             || $node instanceof Stmt\UseUse
             || $node instanceof Stmt\GroupUse;
     }
