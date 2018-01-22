@@ -55,6 +55,7 @@ use Tsufeki\Tenkawa\Parser\Parser;
 use Tsufeki\Tenkawa\Parser\ParserDiagnosticsProvider;
 use Tsufeki\Tenkawa\Parser\PhpParserAdapter;
 use Tsufeki\Tenkawa\PhpStan\DocumentParser;
+use Tsufeki\Tenkawa\PhpStan\ErrorTolerantPrettyPrinter;
 use Tsufeki\Tenkawa\PhpStan\IndexBroker;
 use Tsufeki\Tenkawa\PhpStan\PhpDocResolver;
 use Tsufeki\Tenkawa\PhpStan\PhpStanTypeInference;
@@ -168,7 +169,7 @@ class CorePlugin extends Plugin
         $container->setAlias(PhpStanParser::class, DocumentParser::class);
         $container->setClass(IndexBroker::class);
         $container->setAlias(Broker::class, IndexBroker::class);
-        $container->setClass(Standard::class, null, false, [new Value([])]);
+        $container->setClass(Standard::class, ErrorTolerantPrettyPrinter::class, false, [new Value([])]);
         $container->setClass(TypeSpecifier::class);
         $container->setClass(PhpDocResolver::class);
         $container->setAlias(FileTypeMapper::class, PhpDocResolver::class);
