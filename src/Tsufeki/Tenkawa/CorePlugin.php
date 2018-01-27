@@ -15,7 +15,14 @@ use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TypeParser;
+use PHPStan\Type\DynamicFunctionReturnTypeExtension;
 use PHPStan\Type\FileTypeMapper;
+use PHPStan\Type\Php\AllArgumentBasedFunctionReturnTypeExtension;
+use PHPStan\Type\Php\ArgumentBasedArrayFunctionReturnTypeExtension;
+use PHPStan\Type\Php\ArgumentBasedFunctionReturnTypeExtension;
+use PHPStan\Type\Php\ArrayFilterFunctionReturnTypeReturnTypeExtension;
+use PHPStan\Type\Php\CallbackBasedArrayFunctionReturnTypeExtension;
+use PHPStan\Type\Php\CallbackBasedFunctionReturnTypeExtension;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodRegistry;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
@@ -181,6 +188,13 @@ class CorePlugin extends Plugin
         $container->setClass(TypeParser::class);
         $container->setClass(ConstExprParser::class);
         $container->setClass(FileHelper::class, null, false, [new Value(getcwd())]);
+
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, AllArgumentBasedFunctionReturnTypeExtension::class, true);
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, ArgumentBasedArrayFunctionReturnTypeExtension::class, true);
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, ArgumentBasedFunctionReturnTypeExtension::class, true);
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayFilterFunctionReturnTypeReturnTypeExtension::class, true);
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, CallbackBasedArrayFunctionReturnTypeExtension::class, true);
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, CallbackBasedFunctionReturnTypeExtension::class, true);
 
         $container->setClass(MembersHelper::class);
         $container->setClass(GoToDefinitionProvider::class, GoToMembersProvider::class, true);
