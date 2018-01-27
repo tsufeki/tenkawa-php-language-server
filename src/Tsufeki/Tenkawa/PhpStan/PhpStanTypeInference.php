@@ -3,6 +3,8 @@
 namespace Tsufeki\Tenkawa\PhpStan;
 
 use PhpParser\Node;
+use PhpParser\Node\Expr;
+use PhpParser\Node\Scalar;
 use PhpParser\PrettyPrinter\Standard;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\Scope;
@@ -58,6 +60,11 @@ class PhpStanTypeInference implements TypeInference
      */
     private $syncAsync;
 
+    const IGNORED_EXPR_NODES = [
+        Expr\Error::class => true,
+        Scalar\EncapsedStringPart::class => true,
+    ];
+
     public function __construct(
         NodeScopeResolver $nodeScopeResolver,
         DocumentParser $parser,
@@ -97,7 +104,7 @@ class PhpStanTypeInference implements TypeInference
                     $this->parser->parseFile($path),
                     new Scope($this->broker, $this->printer, $this->typeSpecifier, $path),
                     function (Node $node, Scope $scope) {
-                        if ($node instanceof Node\Expr && !($node instanceof Node\Expr\Error)) {
+                        if ($node instanceof Expr && !isset(self::IGNORED_EXPR_NODES[get_class($node)])) {
                             $type = $scope->getType($node);
                             $node->setAttribute('type', $this->processType($type));
                         }

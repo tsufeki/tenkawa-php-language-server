@@ -41,6 +41,10 @@ class ReflectionIndexDataProvider implements IndexDataProvider
      */
     public function getEntries(Document $document): \Generator
     {
+        if ($document->getLanguage() !== 'php') {
+            return [];
+        }
+
         $ast = yield $this->parser->parse($document);
 
         $visitor = new ReflectionVisitor($document);
