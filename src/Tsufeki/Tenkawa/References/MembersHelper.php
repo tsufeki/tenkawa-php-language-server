@@ -331,6 +331,16 @@ class MembersHelper
             if (yield $this->isStaticCallToNonStaticAllowed($leftNode, $nodes, $nameContext, $document)) {
                 $allElements[] = $this->filterStaticMembers($methods, false);
             }
+
+            if ($leftNode instanceof Name) {
+                $classConst = new ClassConst();
+                $classConst->name = 'class';
+                $classConst->nameContext = new NameContext();
+                $classConst->nameContext->class = '\\' . (string)$leftNode;
+                $classConst->accessibility = ClassLike::M_PUBLIC;
+                $classConst->static = true;
+                $allElements[] = [$classConst];
+            }
         } elseif ($node instanceof Expr\StaticPropertyFetch) {
             $allElements[] = $this->filterStaticMembers($properties, true);
         } elseif ($node instanceof Expr\StaticCall) {
