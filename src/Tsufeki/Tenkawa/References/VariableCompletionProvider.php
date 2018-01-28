@@ -68,14 +68,18 @@ class VariableCompletionProvider implements CompletionProvider
         /** @var array<string,Type|null> $variables */
         $variables = yield $this->getVariables($nodes, $document);
 
-        foreach ($variables as $name => $type) {
-            $item = new CompletionItem();
-            $item->label = '$' . $name;
-            $item->kind = CompletionItemKind::VARIABLE;
-            $item->detail = $type ? (string)$type : null;
-            $item->insertText = $name;
+        $variableUnderCursor = is_string($nodes[0]->name) ? $nodes[0]->name : null;
 
-            $completions->items[] = $item;
+        foreach ($variables as $name => $type) {
+            if ($name !== $variableUnderCursor) {
+                $item = new CompletionItem();
+                $item->label = '$' . $name;
+                $item->kind = CompletionItemKind::VARIABLE;
+                $item->detail = $type ? (string)$type : null;
+                $item->insertText = $name;
+
+                $completions->items[] = $item;
+            }
         }
 
         return $completions;
