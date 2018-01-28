@@ -118,7 +118,21 @@ class IndexMethodReflection extends PhpMethodReflection
 
     public function getPrototype(): MethodReflection
     {
-        //TODO
+        if ($this->isPrivate() || $this->declaringClass->isInterface() || $this->method->abstract) {
+            return $this;
+        }
+
+        foreach (array_reverse($this->declaringClass->getInterfaces()) as $interface) {
+            if ($interface->hasNativeMethod($this->getName())) {
+                return $interface->getNativeMethod($this->getName())->getPrototype();
+            }
+        }
+
+        $parent = $this->declaringClass->getParentClass();
+        if (strtolower($this->getName()) !== '__construct' && $parent !== false && $parent->hasNativeMethod($this->getName())) {
+            return $parent->getNativeMethod($this->getName())->getPrototype();
+        }
+
         return $this;
     }
 
