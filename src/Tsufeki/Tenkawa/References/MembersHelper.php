@@ -53,9 +53,9 @@ class MembersHelper
     }
 
     /**
-     * @resolve array [Node|null $leftNode, string|Node|null $name]
+     * @resolve array [Node|Comment|null $leftNode, string|Node|null $name]
      */
-    private function getMemberFetchParts(Node $node, Position $position, Document $document, bool $stickToRightEnd = false): \Generator
+    private function getMemberFetchParts($node, Position $position, Document $document, bool $stickToRightEnd = false): \Generator
     {
         $leftNode = null;
         $name = null;
