@@ -92,6 +92,7 @@ use Tsufeki\Tenkawa\References\HoverProvider;
 use Tsufeki\Tenkawa\References\MembersCompletionProvider;
 use Tsufeki\Tenkawa\References\MembersHelper;
 use Tsufeki\Tenkawa\References\ReflectionDocumentSymbolsProvider;
+use Tsufeki\Tenkawa\References\VariableCompletionProvider;
 use Tsufeki\Tenkawa\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Reflection\IndexReflectionProvider;
 use Tsufeki\Tenkawa\Reflection\ReflectionIndexDataProvider;
@@ -202,6 +203,7 @@ class CorePlugin extends Plugin
         $container->setClass(CompletionProvider::class, MembersCompletionProvider::class, true);
 
         $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
+        $container->setClass(CompletionProvider::class, VariableCompletionProvider::class, true);
 
         $container->setClass(DocumentSymbolsAggregator::class);
         $container->setClass(DocumentSymbolsProvider::class, ReflectionDocumentSymbolsProvider::class, true);

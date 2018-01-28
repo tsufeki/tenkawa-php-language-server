@@ -64,7 +64,7 @@ class IntegrationTest extends TestCase
                         'hoverProvider' => true,
                         'completionProvider' => [
                             'resolveProvider' => false,
-                            'triggerCharacters' => ['\\', '>', ':'],
+                            'triggerCharacters' => ['\\', '>', ':', '$'],
                         ],
                         'definitionProvider' => true,
                         'documentSymbolProvider' => true,
