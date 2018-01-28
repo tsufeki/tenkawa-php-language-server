@@ -31,10 +31,16 @@ class VariableCompletionProvider implements CompletionProvider
      */
     private $typeInference;
 
-    public function __construct(Parser $parser, TypeInference $typeInference)
+    /**
+     * @var MembersHelper
+     */
+    private $membersHelper;
+
+    public function __construct(Parser $parser, TypeInference $typeInference, MembersHelper $membersHelper)
     {
         $this->parser = $parser;
         $this->typeInference = $typeInference;
+        $this->membersHelper = $membersHelper;
     }
 
     public function getTriggerCharacters(): array
@@ -94,6 +100,10 @@ class VariableCompletionProvider implements CompletionProvider
                 $statements = $node->getStmts() ?: [];
                 foreach ($node->getParams() as $param) {
                     $variables[$param->name] = null; // TODO: type
+                }
+
+                if ($this->membersHelper->isInObjectContext($nodes)) {
+                    $variables['this'] = null; // TODO: type
                 }
 
                 if ($node instanceof Expr\Closure) {

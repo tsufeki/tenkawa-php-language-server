@@ -360,7 +360,7 @@ class MembersHelper
     /**
      * @param (Node|Comment)[] $nodes
      */
-    private function isInObjectContext(array $nodes): bool
+    public function isInObjectContext(array $nodes): bool
     {
         foreach ($nodes as $node) {
             if ($node instanceof Stmt\ClassMethod) {
