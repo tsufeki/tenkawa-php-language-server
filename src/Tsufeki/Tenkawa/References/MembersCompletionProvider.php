@@ -5,6 +5,7 @@ namespace Tsufeki\Tenkawa\References;
 use PhpParser\Node\Expr;
 use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Protocol\Common\Position;
+use Tsufeki\Tenkawa\Protocol\Common\TextEdit;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\CompletionContext;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\CompletionItem;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\CompletionItemKind;
@@ -58,8 +59,18 @@ class MembersCompletionProvider implements CompletionProvider
             }
             if ($element instanceof Property) {
                 $item->label = '$' . $item->label;
-                if ($element->static && $nodes[0] instanceof Expr\ClassConstFetch) {
-                    $item->insertText = '$' . $item->insertText;
+                if ($element->static) {
+                    if ($nodes[0] instanceof Expr\ClassConstFetch) {
+                        $item->insertText = '$' . $item->insertText;
+                    }
+
+                    /** @var MemberFetch|null $memberFetch */
+                    $memberFetch = yield $this->membersHelper->getMemberFetch($nodes[0], $position, $document, true);
+                    if ($memberFetch !== null) {
+                        $item->textEdit = new TextEdit();
+                        $item->textEdit->range = $memberFetch->nameRange;
+                        $item->textEdit->newText = '$' . $element->name;
+                    }
                 }
             }
 

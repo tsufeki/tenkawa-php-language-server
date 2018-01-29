@@ -12,6 +12,7 @@ use Tsufeki\Tenkawa\Parser\Ast;
 use Tsufeki\Tenkawa\Parser\Parser;
 use Tsufeki\Tenkawa\Parser\TokenIterator;
 use Tsufeki\Tenkawa\Protocol\Common\Position;
+use Tsufeki\Tenkawa\Protocol\Common\Range;
 use Tsufeki\Tenkawa\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Reflection\Element\ClassLike;
@@ -53,9 +54,11 @@ class MembersHelper
     }
 
     /**
-     * @resolve array [Node|Comment|null $leftNode, string|Node|null $name]
+     * @param Node|Comment $node
+     *
+     * @resolve MemberFetch|null
      */
-    private function getMemberFetchParts($node, Position $position, Document $document, bool $stickToRightEnd = false): \Generator
+    public function getMemberFetch($node, Position $position, Document $document, bool $stickToRightEnd = false): \Generator
     {
         $leftNode = null;
         $name = null;
@@ -79,8 +82,19 @@ class MembersHelper
             $nameToken = T_STRING;
         }
 
-        if ($leftNode === null || $name === null || !is_string($name)) {
-            return [$leftNode, $name];
+        if ($leftNode === null || $name === null) {
+            return null;
+        }
+
+        assert($node instanceof Node);
+        $fetch = new MemberFetch();
+        $fetch->leftNode = $leftNode;
+        $fetch->name = $name;
+
+        if ($name instanceof Node) {
+            $fetch->nameRange = PositionUtils::rangeFromNodeAttrs($name->getAttributes(), $document);
+
+            return $fetch;
         }
 
         /** @var Ast $ast */
@@ -94,20 +108,26 @@ class MembersHelper
         $iterator = new TokenIterator(array_slice($ast->tokens, $tokenIndex, $lastTokenIndex - $tokenIndex + 1), 0, $tokenOffset);
         $iterator->eatWhitespace();
         if (!$iterator->isType($separatorToken)) {
-            return [null, null];
+            return null;
         }
         $iterator->eat();
         $iterator->eatWhitespace();
         if (!$iterator->isType($nameToken)) {
-            return [null, null];
+            return null;
         }
 
         $nameOffset = $iterator->getOffset();
-        if ($offset < $nameOffset || $offset >= $nameOffset + strlen($name) + (int)$stickToRightEnd) {
-            return [null, null];
+        $nameOffsetEnd = $nameOffset + strlen($iterator->getValue());
+        if ($offset < $nameOffset || $offset >= $nameOffsetEnd + (int)$stickToRightEnd) {
+            return null;
         }
 
-        return [$leftNode, $name];
+        $fetch->nameRange = new Range(
+            PositionUtils::positionFromOffset($nameOffset, $document),
+            PositionUtils::positionFromOffset($nameOffsetEnd, $document)
+        );
+
+        return $fetch;
     }
 
     /**
@@ -267,10 +287,14 @@ class MembersHelper
         }
 
         $node = $nodes[0];
-        list($leftNode, $name) = yield $this->getMemberFetchParts($node, $position, $document);
-        if ($leftNode === null || !is_string($name)) {
+        /** @var MemberFetch|null $memberFetch */
+        $memberFetch = yield $this->getMemberFetch($node, $position, $document);
+        if ($memberFetch === null || !is_string($memberFetch->name)) {
             return [];
         }
+
+        $leftNode = $memberFetch->leftNode;
+        $name = $memberFetch->name;
 
         /** @var NameContext $nameContext */
         $nameContext = $node->getAttribute('nameContext') ?? new NameContext();
@@ -307,10 +331,14 @@ class MembersHelper
         }
 
         $node = $nodes[0];
-        list($leftNode, $name) = yield $this->getMemberFetchParts($node, $position, $document, true);
-        if ($leftNode === null) {
+        /** @var MemberFetch|null $memberFetch */
+        $memberFetch = yield $this->getMemberFetch($node, $position, $document, true);
+        if ($memberFetch === null) {
             return [];
         }
+
+        $leftNode = $memberFetch->leftNode;
+        $name = $memberFetch->name;
 
         /** @var NameContext $nameContext */
         $nameContext = $node->getAttribute('nameContext') ?? new NameContext();
