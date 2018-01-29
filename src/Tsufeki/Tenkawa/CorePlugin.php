@@ -15,6 +15,11 @@ use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TypeParser;
+use PHPStan\Rules\FunctionCallParametersCheck;
+use PHPStan\Rules\Functions\CallToFunctionParametersRule;
+use PHPStan\Rules\Registry;
+use PHPStan\Rules\Rule;
+use PHPStan\Rules\RuleLevelHelper;
 use PHPStan\Type\DynamicFunctionReturnTypeExtension;
 use PHPStan\Type\FileTypeMapper;
 use PHPStan\Type\Php\AllArgumentBasedFunctionReturnTypeExtension;
@@ -66,6 +71,7 @@ use Tsufeki\Tenkawa\PhpStan\DocumentParser;
 use Tsufeki\Tenkawa\PhpStan\ErrorTolerantPrettyPrinter;
 use Tsufeki\Tenkawa\PhpStan\IndexBroker;
 use Tsufeki\Tenkawa\PhpStan\PhpDocResolver;
+use Tsufeki\Tenkawa\PhpStan\PhpStanDiagnosticsProvider;
 use Tsufeki\Tenkawa\PhpStan\PhpStanTypeInference;
 use Tsufeki\Tenkawa\ProcessRunner\ProcessRunner;
 use Tsufeki\Tenkawa\ProcessRunner\ReactProcessRunner;
@@ -209,6 +215,12 @@ class CorePlugin extends Plugin
 
         $container->setClass(DocumentSymbolsAggregator::class);
         $container->setClass(DocumentSymbolsProvider::class, ReflectionDocumentSymbolsProvider::class, true);
+
+        $container->setClass(DiagnosticsProvider::class, PhpStanDiagnosticsProvider::class, true);
+        $container->setClass(Registry::class);
+        $container->setClass(RuleLevelHelper::class, null, false, [null, new Value(true), new Value(false), new Value(true)]);
+        $container->setClass(FunctionCallParametersCheck::class, null, false, [null, new Value(true), new Value(true)]);
+        $container->setClass(Rule::class, CallToFunctionParametersRule::class, true);
     }
 
     /**
