@@ -12,12 +12,14 @@ use Tsufeki\Tenkawa\Document\Document;
 use Tsufeki\Tenkawa\Parser\Ast;
 use Tsufeki\Tenkawa\Parser\Parser;
 use Tsufeki\Tenkawa\Protocol\Common\Position;
+use Tsufeki\Tenkawa\Protocol\Common\TextEdit;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\CompletionContext;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\CompletionItem;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\CompletionItemKind;
 use Tsufeki\Tenkawa\Protocol\Server\TextDocument\CompletionList;
 use Tsufeki\Tenkawa\TypeInference\Type;
 use Tsufeki\Tenkawa\TypeInference\TypeInference;
+use Tsufeki\Tenkawa\Utils\PositionUtils;
 
 class VariableCompletionProvider implements CompletionProvider
 {
@@ -77,6 +79,9 @@ class VariableCompletionProvider implements CompletionProvider
                 $item->kind = CompletionItemKind::VARIABLE;
                 $item->detail = $type ? (string)$type : null;
                 $item->insertText = $name;
+                $item->textEdit = new TextEdit();
+                $item->textEdit->range = PositionUtils::rangeFromNodeAttrs($nodes[0]->getAttributes(), $document);
+                $item->textEdit->newText = '$' . $name;
 
                 $completions->items[] = $item;
             }
