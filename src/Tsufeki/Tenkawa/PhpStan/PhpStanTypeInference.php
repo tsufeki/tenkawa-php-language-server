@@ -5,10 +5,7 @@ namespace Tsufeki\Tenkawa\PhpStan;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Scalar;
-use PhpParser\PrettyPrinter\Standard;
-use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\Scope;
-use PHPStan\Analyser\TypeSpecifier;
 use PHPStan\Type\IntersectionType as PhpStanIntersectionType;
 use PHPStan\Type\Type as PhpStanType;
 use PHPStan\Type\TypeWithClassName;
@@ -21,66 +18,22 @@ use Tsufeki\Tenkawa\TypeInference\ObjectType;
 use Tsufeki\Tenkawa\TypeInference\Type;
 use Tsufeki\Tenkawa\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\TypeInference\UnionType;
-use Tsufeki\Tenkawa\Utils\SyncAsyncKernel;
 
 class PhpStanTypeInference implements TypeInference
 {
     /**
-     * @var NodeScopeResolver
+     * @var Analyser
      */
-    private $nodeScopeResolver;
-
-    /**
-     * @var DocumentParser
-     */
-    private $parser;
-
-    /**
-     * @var IndexBroker
-     */
-    private $broker;
-
-    /**
-     * @var PhpDocResolver
-     */
-    private $phpDocResolver;
-
-    /**
-     * @var Standard
-     */
-    private $printer;
-
-    /**
-     * @var TypeSpecifier
-     */
-    private $typeSpecifier;
-
-    /**
-     * @var SyncAsyncKernel
-     */
-    private $syncAsync;
+    private $analyser;
 
     const IGNORED_EXPR_NODES = [
         Expr\Error::class => true,
         Scalar\EncapsedStringPart::class => true,
     ];
 
-    public function __construct(
-        NodeScopeResolver $nodeScopeResolver,
-        DocumentParser $parser,
-        IndexBroker $broker,
-        PhpDocResolver $phpDocResolver,
-        Standard $printer,
-        TypeSpecifier $typeSpecifier,
-        SyncAsyncKernel $syncAsync
-    ) {
-        $this->nodeScopeResolver = $nodeScopeResolver;
-        $this->parser = $parser;
-        $this->broker = $broker;
-        $this->phpDocResolver = $phpDocResolver;
-        $this->printer = $printer;
-        $this->typeSpecifier = $typeSpecifier;
-        $this->syncAsync = $syncAsync;
+    public function __construct(Analyser $analyser)
+    {
+        $this->analyser = $analyser;
     }
 
     public function infer(Document $document): \Generator
@@ -96,33 +49,13 @@ class PhpStanTypeInference implements TypeInference
 
         $deferred = new Deferred();
         $document->set('type_inference', $deferred->promise());
-        $path = $document->getUri()->getFilesystemPath();
-
-        yield $this->syncAsync->callSync(
-            function () use ($path) {
-                $this->nodeScopeResolver->processNodes(
-                    $this->parser->parseFile($path),
-                    new Scope($this->broker, $this->printer, $this->typeSpecifier, $path),
-                    function (Node $node, Scope $scope) {
-                        if ($node instanceof Expr && !isset(self::IGNORED_EXPR_NODES[get_class($node)])) {
-                            $type = $scope->getType($node);
-                            $node->setAttribute('type', $this->processType($type));
-                        }
-                    }
-                );
-            },
-            [],
-            function () use ($document, $path) {
-                $this->broker->setDocument($document);
-                $this->parser->setDocument($document);
-                $this->phpDocResolver->setDocument($document);
-                $this->nodeScopeResolver->setAnalysedFiles([$path]);
-            },
-            function () {
-                $this->broker->setDocument(null);
-                $this->parser->setDocument(null);
-                $this->phpDocResolver->setDocument(null);
-                $this->nodeScopeResolver->setAnalysedFiles([]);
+        yield $this->analyser->analyse(
+            $document,
+            function (Node $node, Scope $scope) {
+                if ($node instanceof Expr && !isset(self::IGNORED_EXPR_NODES[get_class($node)])) {
+                    $type = $scope->getType($node);
+                    $node->setAttribute('type', $this->processType($type));
+                }
             }
         );
 

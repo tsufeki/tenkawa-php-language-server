@@ -61,6 +61,7 @@ use Tsufeki\Tenkawa\Mapper\UriMapper;
 use Tsufeki\Tenkawa\Parser\Parser;
 use Tsufeki\Tenkawa\Parser\ParserDiagnosticsProvider;
 use Tsufeki\Tenkawa\Parser\PhpParserAdapter;
+use Tsufeki\Tenkawa\PhpStan\Analyser;
 use Tsufeki\Tenkawa\PhpStan\DocumentParser;
 use Tsufeki\Tenkawa\PhpStan\ErrorTolerantPrettyPrinter;
 use Tsufeki\Tenkawa\PhpStan\IndexBroker;
@@ -189,6 +190,7 @@ class CorePlugin extends Plugin
         $container->setClass(TypeParser::class);
         $container->setClass(ConstExprParser::class);
         $container->setClass(FileHelper::class, null, false, [new Value(getcwd())]);
+        $container->setClass(Analyser::class);
 
         $container->setClass(DynamicFunctionReturnTypeExtension::class, AllArgumentBasedFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArgumentBasedArrayFunctionReturnTypeExtension::class, true);
