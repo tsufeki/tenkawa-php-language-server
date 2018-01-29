@@ -34,8 +34,14 @@ class HoverMembersProvider implements HoverProvider
             return [];
         }
 
+        /** @var MemberFetch|null $memberFetch */
+        $memberFetch = yield $this->membersHelper->getMemberFetch($nodes, $document, $position);
+        if ($memberFetch === null) {
+            return [];
+        }
+
         /** @var Element[] $elements */
-        $elements = yield $this->membersHelper->getReflectionFromNodePath($nodes, $document, $position);
+        $elements = yield $this->membersHelper->getReflectionFromMemberFetch($memberFetch, $document);
 
         if (empty($elements)) {
             return null;

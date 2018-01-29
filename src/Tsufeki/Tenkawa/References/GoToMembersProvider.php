@@ -24,7 +24,14 @@ class GoToMembersProvider implements GoToDefinitionProvider
             return [];
         }
 
-        $elements = yield $this->membersHelper->getReflectionFromNodePath($nodes, $document, $position);
+        /** @var MemberFetch|null $memberFetch */
+        $memberFetch = yield $this->membersHelper->getMemberFetch($nodes, $document, $position);
+        if ($memberFetch === null) {
+            return [];
+        }
+
+        /** @var Element[] $elements */
+        $elements = yield $this->membersHelper->getReflectionFromMemberFetch($memberFetch, $document);
 
         return array_values(array_filter(array_map(function (Element $element) {
             return $element->location;

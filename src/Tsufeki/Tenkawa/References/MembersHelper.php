@@ -54,45 +54,49 @@ class MembersHelper
     }
 
     /**
-     * @param Node|Comment $node
+     * @param (Node|Comment)[] $nodes
      *
      * @resolve MemberFetch|null
      */
-    public function getMemberFetch($node, Position $position, Document $document, bool $stickToRightEnd = false): \Generator
+    public function getMemberFetch(array $nodes, Document $document, Position $position, bool $stickToRightEnd = false): \Generator
     {
-        $leftNode = null;
-        $name = null;
-        $separatorToken = null;
-        $nameToken = null;
-
-        if ($node instanceof Expr\ClassConstFetch || $node instanceof Expr\StaticCall) {
-            $leftNode = $node->class;
-            $name = $node->name;
-            $separatorToken = T_PAAMAYIM_NEKUDOTAYIM;
-            $nameToken = T_STRING;
-        } elseif ($node instanceof Expr\StaticPropertyFetch) {
-            $leftNode = $node->class;
-            $name = $node->name;
-            $separatorToken = T_PAAMAYIM_NEKUDOTAYIM;
-            $nameToken = T_VARIABLE;
-        } elseif ($node instanceof Expr\PropertyFetch || $node instanceof Expr\MethodCall) {
-            $leftNode = $node->var;
-            $name = $node->name;
-            $separatorToken = T_OBJECT_OPERATOR;
-            $nameToken = T_STRING;
+        if (($nodes[0] ?? null) instanceof Expr\Error) {
+            array_shift($nodes);
         }
 
-        if ($leftNode === null || $name === null) {
+        if (empty($nodes)) {
             return null;
         }
 
-        assert($node instanceof Node);
         $fetch = new MemberFetch();
-        $fetch->leftNode = $leftNode;
-        $fetch->name = $name;
+        $node = $fetch->node = $nodes[0];
+        $separatorToken = null;
+        $nameTokens = null;
 
-        if ($name instanceof Node) {
-            $fetch->nameRange = PositionUtils::rangeFromNodeAttrs($name->getAttributes(), $document);
+        if ($node instanceof Expr\ClassConstFetch || $node instanceof Expr\StaticCall) {
+            $fetch->leftNode = $node->class;
+            $fetch->name = $node->name;
+            $separatorToken = T_PAAMAYIM_NEKUDOTAYIM;
+            $nameTokens = [T_STRING];
+        } elseif ($node instanceof Expr\StaticPropertyFetch) {
+            $fetch->leftNode = $node->class;
+            $fetch->name = $node->name;
+            $separatorToken = T_PAAMAYIM_NEKUDOTAYIM;
+            $nameTokens = [T_VARIABLE, '$'];
+        } elseif ($node instanceof Expr\PropertyFetch || $node instanceof Expr\MethodCall) {
+            $fetch->leftNode = $node->var;
+            $fetch->name = $node->name;
+            $separatorToken = T_OBJECT_OPERATOR;
+            $nameTokens = [T_STRING];
+        } else {
+            return null;
+        }
+
+        if ($fetch->name instanceof Expr) {
+            $fetch->nameRange = PositionUtils::rangeFromNodeAttrs($fetch->name->getAttributes(), $document);
+            if ($node instanceof Expr\StaticPropertyFetch) {
+                $fetch->nameRange->start->character--; // account for '$'
+            }
 
             return $fetch;
         }
@@ -101,9 +105,9 @@ class MembersHelper
         $ast = yield $this->parser->parse($document);
         $offset = PositionUtils::offsetFromPosition($position, $document);
 
-        $tokenIndex = $leftNode->getAttribute('endTokenPos') + 1;
+        $tokenIndex = $fetch->leftNode->getAttribute('endTokenPos') + 1;
         $lastTokenIndex = $node->getAttribute('endTokenPos');
-        $tokenOffset = $leftNode->getAttribute('endFilePos') + 1;
+        $tokenOffset = $fetch->leftNode->getAttribute('endFilePos') + 1;
 
         $iterator = new TokenIterator(array_slice($ast->tokens, $tokenIndex, $lastTokenIndex - $tokenIndex + 1), 0, $tokenOffset);
         $iterator->eatWhitespace();
@@ -112,7 +116,7 @@ class MembersHelper
         }
         $iterator->eat();
         $iterator->eatWhitespace();
-        if (!$iterator->isType($nameToken)) {
+        if (!$iterator->isType(...$nameTokens)) {
             return null;
         }
 
@@ -276,23 +280,15 @@ class MembersHelper
     }
 
     /**
-     * @param (Node|Comment)[] $nodes
-     *
      * @resolve Element[]
      */
-    public function getReflectionFromNodePath(array $nodes, Document $document, Position $position): \Generator
+    public function getReflectionFromMemberFetch(MemberFetch $memberFetch, Document $document): \Generator
     {
-        if (empty($nodes)) {
+        if (!is_string($memberFetch->name)) {
             return [];
         }
 
-        $node = $nodes[0];
-        /** @var MemberFetch|null $memberFetch */
-        $memberFetch = yield $this->getMemberFetch($node, $position, $document);
-        if ($memberFetch === null || !is_string($memberFetch->name)) {
-            return [];
-        }
-
+        $node = $memberFetch->node;
         $leftNode = $memberFetch->leftNode;
         $name = $memberFetch->name;
 
@@ -319,24 +315,9 @@ class MembersHelper
      *
      * @resolve Element[]
      */
-    public function getAllMemberReflectionsFromNodePath(array $nodes, Document $document, Position $position): \Generator
+    public function getAllReflectionsFromMemberFetch(MemberFetch $memberFetch, array $nodes, Document $document): \Generator
     {
-        $errorNode = null;
-        if (($nodes[0] ?? null) instanceof Expr\Error) {
-            $errorNode = array_shift($nodes);
-        }
-
-        if (empty($nodes)) {
-            return [];
-        }
-
-        $node = $nodes[0];
-        /** @var MemberFetch|null $memberFetch */
-        $memberFetch = yield $this->getMemberFetch($node, $position, $document, true);
-        if ($memberFetch === null) {
-            return [];
-        }
-
+        $node = $memberFetch->node;
         $leftNode = $memberFetch->leftNode;
         $name = $memberFetch->name;
 

@@ -44,8 +44,14 @@ class MembersCompletionProvider implements CompletionProvider
             return $completions;
         }
 
+        /** @var MemberFetch|null $memberFetch */
+        $memberFetch = yield $this->membersHelper->getMemberFetch($nodes, $document, $position, true);
+        if ($memberFetch === null) {
+            return $completions;
+        }
+
         /** @var Element[] $elements */
-        $elements = yield $this->membersHelper->getAllMemberReflectionsFromNodePath($nodes, $document, $position);
+        $elements = yield $this->membersHelper->getAllReflectionsFromMemberFetch($memberFetch, $nodes, $document);
 
         foreach ($elements as $element) {
             $item = new CompletionItem();
@@ -64,13 +70,9 @@ class MembersCompletionProvider implements CompletionProvider
                         $item->insertText = '$' . $item->insertText;
                     }
 
-                    /** @var MemberFetch|null $memberFetch */
-                    $memberFetch = yield $this->membersHelper->getMemberFetch($nodes[0], $position, $document, true);
-                    if ($memberFetch !== null) {
-                        $item->textEdit = new TextEdit();
-                        $item->textEdit->range = $memberFetch->nameRange;
-                        $item->textEdit->newText = '$' . $element->name;
-                    }
+                    $item->textEdit = new TextEdit();
+                    $item->textEdit->range = $memberFetch->nameRange;
+                    $item->textEdit->newText = '$' . $element->name;
                 }
             }
 

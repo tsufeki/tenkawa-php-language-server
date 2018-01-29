@@ -9,6 +9,11 @@ use Tsufeki\Tenkawa\Protocol\Common\Range;
 class MemberFetch
 {
     /**
+     * @var Expr
+     */
+    public $node;
+
+    /**
      * @var Name|Expr
      */
     public $leftNode;

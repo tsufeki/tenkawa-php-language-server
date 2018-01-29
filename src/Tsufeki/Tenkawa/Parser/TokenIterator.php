@@ -60,9 +60,9 @@ class TokenIterator
         return is_array($this->get()) ? $this->get()[1] : $this->get();
     }
 
-    public function isType($tokenType): bool
+    public function isType(...$tokenTypes): bool
     {
-        return $this->getType() === $tokenType;
+        return in_array($this->getType(), $tokenTypes, true);
     }
 
     public function getOffset(): int
