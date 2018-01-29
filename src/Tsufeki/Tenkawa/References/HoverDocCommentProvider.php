@@ -30,7 +30,7 @@ class HoverDocCommentProvider implements HoverProvider
     public function getHover(Document $document, Position $position, array $nodes): \Generator
     {
         if ($document->getLanguage() !== 'php') {
-            return [];
+            return null;
         }
 
         /** @var Element[] $elements */
