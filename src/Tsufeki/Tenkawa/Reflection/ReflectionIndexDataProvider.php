@@ -33,7 +33,7 @@ class ReflectionIndexDataProvider implements IndexDataProvider
 
     public function getVersion(): int
     {
-        return 4;
+        return 5;
     }
 
     /**
