@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "50c87c53e95674cea874f8fe467ec66d",
+    "content-hash": "aaa6e832f4f7e70e22d9a4163d6ca4b4",
     "packages": [
         {
             "name": "evenement/evenement",
@@ -102,16 +102,16 @@
         },
         {
             "name": "jean85/pretty-package-versions",
-            "version": "1.0.3",
+            "version": "1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Jean85/pretty-package-versions.git",
-                "reference": "3c8487fdd6c750ff3f10c32ddfdd2a7803c1d461"
+                "reference": "d457344b6a035ef99236bdda4729ad7eeb233f54"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Jean85/pretty-package-versions/zipball/3c8487fdd6c750ff3f10c32ddfdd2a7803c1d461",
-                "reference": "3c8487fdd6c750ff3f10c32ddfdd2a7803c1d461",
+                "url": "https://api.github.com/repos/Jean85/pretty-package-versions/zipball/d457344b6a035ef99236bdda4729ad7eeb233f54",
+                "reference": "d457344b6a035ef99236bdda4729ad7eeb233f54",
                 "shasum": ""
             },
             "require": {
@@ -122,6 +122,11 @@
                 "phpunit/phpunit": "^6.0"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.x-dev"
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "Jean85\\": "src/"
@@ -139,9 +144,12 @@
             ],
             "description": "A wrapper for ocramius/pretty-package-versions to get pretty versions strings",
             "keywords": [
-                "package versions"
+                "composer",
+                "package",
+                "release",
+                "versions"
             ],
-            "time": "2017-11-30T22:02:29+00:00"
+            "time": "2018-01-21T13:54:22+00:00"
         },
         {
             "name": "jetbrains/phpstorm-stubs",
@@ -149,12 +157,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "bcc073a39ef194cd80945667886952d000ea614c"
+                "reference": "6bdb253aa6e0d95a4223f30e934f0c822c3de442"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/bcc073a39ef194cd80945667886952d000ea614c",
-                "reference": "bcc073a39ef194cd80945667886952d000ea614c",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/6bdb253aa6e0d95a4223f30e934f0c822c3de442",
+                "reference": "6bdb253aa6e0d95a4223f30e934f0c822c3de442",
                 "shasum": ""
             },
             "type": "library",
@@ -174,7 +182,7 @@
                 "stubs",
                 "type"
             ],
-            "time": "2018-01-10T15:52:40+00:00"
+            "time": "2018-01-30T13:30:59+00:00"
         },
         {
             "name": "nette/bootstrap",
@@ -639,16 +647,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v3.1.3",
+            "version": "v3.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "579f4ce846734a1cf55d6a531d00ca07a43e3cda"
+                "reference": "e57b3a09784f846411aa7ed664eedb73e3399078"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/579f4ce846734a1cf55d6a531d00ca07a43e3cda",
-                "reference": "579f4ce846734a1cf55d6a531d00ca07a43e3cda",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/e57b3a09784f846411aa7ed664eedb73e3399078",
+                "reference": "e57b3a09784f846411aa7ed664eedb73e3399078",
                 "shasum": ""
             },
             "require": {
@@ -686,7 +694,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2017-12-26T14:43:21+00:00"
+            "time": "2018-01-25T21:31:33+00:00"
         },
         {
             "name": "ocramius/package-versions",
@@ -793,16 +801,16 @@
         },
         {
             "name": "phpdocumentor/reflection-docblock",
-            "version": "4.2.0",
+            "version": "4.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpDocumentor/ReflectionDocBlock.git",
-                "reference": "66465776cfc249844bde6d117abff1d22e06c2da"
+                "reference": "94fd0001232e47129dd3504189fa1c7225010d08"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/66465776cfc249844bde6d117abff1d22e06c2da",
-                "reference": "66465776cfc249844bde6d117abff1d22e06c2da",
+                "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/94fd0001232e47129dd3504189fa1c7225010d08",
+                "reference": "94fd0001232e47129dd3504189fa1c7225010d08",
                 "shasum": ""
             },
             "require": {
@@ -840,7 +848,7 @@
                 }
             ],
             "description": "With this component, a library can provide support for annotations via DocBlocks or otherwise retrieve information that is embedded in a DocBlock.",
-            "time": "2017-11-27T17:38:31+00:00"
+            "time": "2017-11-30T07:14:17+00:00"
         },
         {
             "name": "phpdocumentor/type-resolver",
@@ -889,16 +897,16 @@
         },
         {
             "name": "phpstan/phpdoc-parser",
-            "version": "0.1",
+            "version": "0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpdoc-parser.git",
-                "reference": "08d714b2f0bc0a2bf9407255d5bb634669b7065c"
+                "reference": "02f909f134fe06f0cd4790d8627ee24efbe84d6a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/08d714b2f0bc0a2bf9407255d5bb634669b7065c",
-                "reference": "08d714b2f0bc0a2bf9407255d5bb634669b7065c",
+                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/02f909f134fe06f0cd4790d8627ee24efbe84d6a",
+                "reference": "02f909f134fe06f0cd4790d8627ee24efbe84d6a",
                 "shasum": ""
             },
             "require": {
@@ -913,6 +921,11 @@
                 "slevomat/coding-standard": "^3.3.0"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.1-dev"
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "PHPStan\\PhpDocParser\\": [
@@ -925,20 +938,20 @@
                 "MIT"
             ],
             "description": "PHPDoc parser with support for nullable, intersection and generic types",
-            "time": "2017-11-22T10:46:07+00:00"
+            "time": "2018-01-13T18:19:41+00:00"
         },
         {
             "name": "phpstan/phpstan",
-            "version": "0.9.1",
+            "version": "0.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "ef60e5cc0a32ddb2637523dafef966e0aac1e16f"
+                "reference": "e59541bcc7cac9b35ca54db6365bf377baf4a488"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/ef60e5cc0a32ddb2637523dafef966e0aac1e16f",
-                "reference": "ef60e5cc0a32ddb2637523dafef966e0aac1e16f",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/e59541bcc7cac9b35ca54db6365bf377baf4a488",
+                "reference": "e59541bcc7cac9b35ca54db6365bf377baf4a488",
                 "shasum": ""
             },
             "require": {
@@ -949,18 +962,21 @@
                 "nette/utils": "^2.4.5 || ^3.0",
                 "nikic/php-parser": "^3.1",
                 "php": "~7.0",
-                "phpstan/phpdoc-parser": "^0.1",
+                "phpstan/phpdoc-parser": "^0.2",
                 "symfony/console": "~3.2 || ~4.0",
                 "symfony/finder": "~3.2 || ~4.0"
             },
             "require-dev": {
                 "consistence/coding-standard": "2.2.1",
+                "ext-gd": "*",
+                "ext-intl": "*",
+                "ext-mysqli": "*",
                 "jakub-onderka/php-parallel-lint": "^0.9.2",
                 "phing/phing": "^2.16.0",
                 "phpstan/phpstan-php-parser": "^0.9",
-                "phpstan/phpstan-phpunit": "^0.9",
+                "phpstan/phpstan-phpunit": "^0.9.3",
                 "phpstan/phpstan-strict-rules": "^0.9",
-                "phpunit/phpunit": "^6.5.2",
+                "phpunit/phpunit": "^6.5.4",
                 "slevomat/coding-standard": "4.0.0"
             },
             "bin": [
@@ -985,7 +1001,7 @@
                 "MIT"
             ],
             "description": "PHPStan - PHP Static Analysis Tool",
-            "time": "2017-12-02T19:34:06+00:00"
+            "time": "2018-01-28T13:22:19+00:00"
         },
         {
             "name": "psr/container",
@@ -1498,16 +1514,16 @@
         },
         {
             "name": "symfony/console",
-            "version": "v3.4.3",
+            "version": "v3.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "8394c8ef121949e8f858f13bc1e34f05169e4e7d"
+                "reference": "26b6f419edda16c19775211987651cb27baea7f1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/8394c8ef121949e8f858f13bc1e34f05169e4e7d",
-                "reference": "8394c8ef121949e8f858f13bc1e34f05169e4e7d",
+                "url": "https://api.github.com/repos/symfony/console/zipball/26b6f419edda16c19775211987651cb27baea7f1",
+                "reference": "26b6f419edda16c19775211987651cb27baea7f1",
                 "shasum": ""
             },
             "require": {
@@ -1563,20 +1579,20 @@
             ],
             "description": "Symfony Console Component",
             "homepage": "https://symfony.com",
-            "time": "2018-01-03T07:37:34+00:00"
+            "time": "2018-01-29T09:03:43+00:00"
         },
         {
             "name": "symfony/debug",
-            "version": "v3.4.3",
+            "version": "v3.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/debug.git",
-                "reference": "603b95dda8b00020e4e6e60dc906e7b715b1c245"
+                "reference": "53f6af2805daf52a43b393b93d2f24925d35c937"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/debug/zipball/603b95dda8b00020e4e6e60dc906e7b715b1c245",
-                "reference": "603b95dda8b00020e4e6e60dc906e7b715b1c245",
+                "url": "https://api.github.com/repos/symfony/debug/zipball/53f6af2805daf52a43b393b93d2f24925d35c937",
+                "reference": "53f6af2805daf52a43b393b93d2f24925d35c937",
                 "shasum": ""
             },
             "require": {
@@ -1619,11 +1635,11 @@
             ],
             "description": "Symfony Debug Component",
             "homepage": "https://symfony.com",
-            "time": "2018-01-03T17:14:19+00:00"
+            "time": "2018-01-18T22:16:57+00:00"
         },
         {
             "name": "symfony/finder",
-            "version": "v3.4.3",
+            "version": "v3.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/finder.git",
@@ -1911,16 +1927,16 @@
         },
         {
             "name": "webmozart/assert",
-            "version": "1.2.0",
+            "version": "1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webmozart/assert.git",
-                "reference": "2db61e59ff05fe5126d152bd0655c9ea113e550f"
+                "reference": "0df1908962e7a3071564e857d86874dad1ef204a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webmozart/assert/zipball/2db61e59ff05fe5126d152bd0655c9ea113e550f",
-                "reference": "2db61e59ff05fe5126d152bd0655c9ea113e550f",
+                "url": "https://api.github.com/repos/webmozart/assert/zipball/0df1908962e7a3071564e857d86874dad1ef204a",
+                "reference": "0df1908962e7a3071564e857d86874dad1ef204a",
                 "shasum": ""
             },
             "require": {
@@ -1957,7 +1973,7 @@
                 "check",
                 "validate"
             ],
-            "time": "2016-11-23T20:04:58+00:00"
+            "time": "2018-01-29T19:49:41+00:00"
         },
         {
             "name": "webmozart/glob",
@@ -3630,16 +3646,16 @@
         },
         {
             "name": "symfony/config",
-            "version": "v3.4.3",
+            "version": "v3.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/config.git",
-                "reference": "cfd5c972f7b4992a5df41673d25d980ab077aa5b"
+                "reference": "72689b934d6c6ecf73eca874e98933bf055313c9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/config/zipball/cfd5c972f7b4992a5df41673d25d980ab077aa5b",
-                "reference": "cfd5c972f7b4992a5df41673d25d980ab077aa5b",
+                "url": "https://api.github.com/repos/symfony/config/zipball/72689b934d6c6ecf73eca874e98933bf055313c9",
+                "reference": "72689b934d6c6ecf73eca874e98933bf055313c9",
                 "shasum": ""
             },
             "require": {
@@ -3688,11 +3704,11 @@
             ],
             "description": "Symfony Config Component",
             "homepage": "https://symfony.com",
-            "time": "2018-01-03T07:37:34+00:00"
+            "time": "2018-01-21T19:05:02+00:00"
         },
         {
             "name": "symfony/filesystem",
-            "version": "v3.4.3",
+            "version": "v3.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/filesystem.git",
@@ -3741,7 +3757,7 @@
         },
         {
             "name": "symfony/stopwatch",
-            "version": "v3.4.3",
+            "version": "v3.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/stopwatch.git",
@@ -3790,16 +3806,16 @@
         },
         {
             "name": "symfony/yaml",
-            "version": "v3.4.3",
+            "version": "v3.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "25c192f25721a74084272671f658797d9e0e0146"
+                "reference": "eab73b6c21d27ae4cd037c417618dfd4befb0bfe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/25c192f25721a74084272671f658797d9e0e0146",
-                "reference": "25c192f25721a74084272671f658797d9e0e0146",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/eab73b6c21d27ae4cd037c417618dfd4befb0bfe",
+                "reference": "eab73b6c21d27ae4cd037c417618dfd4befb0bfe",
                 "shasum": ""
             },
             "require": {
@@ -3844,7 +3860,7 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "time": "2018-01-03T07:37:34+00:00"
+            "time": "2018-01-21T19:05:02+00:00"
         },
         {
             "name": "theseer/tokenizer",
