@@ -43,34 +43,23 @@ class SyncAsyncKernel implements Kernel
             throw new \RuntimeException("Can't call SyncAsyncKernel::callSync in sync mode");
         }
 
-        $done = false;
-        $result = null;
-        $exception = null;
-
+        $strand = yield Recoil::strand();
         $context = new SyncCallContext();
         $context->resumeCallback = $resumeCallback;
         $context->pauseCallback = $pauseCallback;
 
-        $context->callable = function () use ($syncCallable, $args, &$done, &$result, &$exception) {
+        $context->callable = function () use ($syncCallable, $args, $strand) {
             try {
-                $result = $syncCallable(...$args);
+                $strand->send($syncCallable(...$args));
             } catch (\Throwable $e) {
-                $exception = $e;
-            } finally {
-                $done = true;
+                $strand->throw($e);
             }
         };
 
-        $this->syncNext[] = $context;
-        yield Recoil::execute(Recoil::stop());
-
-        while (!$done) {
-            yield;
-        }
-
-        if ($exception !== null) {
-            throw $exception;
-        }
+        $result = yield Recoil::suspend(function () use ($context) {
+            $this->syncNext[] = $context;
+            $this->kernel->stop();
+        });
 
         return $result;
     }
@@ -93,10 +82,10 @@ class SyncAsyncKernel implements Kernel
                 $result = yield $coroutine;
             } catch (\Throwable $e) {
                 $exception = $e;
-            } finally {
-                $done = true;
-                yield Recoil::execute(Recoil::stop());
             }
+
+            $done = true;
+            yield Recoil::execute(Recoil::stop());
         });
 
         while (!$done) {
