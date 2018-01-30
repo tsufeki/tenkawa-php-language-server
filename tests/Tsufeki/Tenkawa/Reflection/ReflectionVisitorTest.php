@@ -121,7 +121,7 @@ class ReflectionVisitorTest extends TestCase
                             'byRef' => false,
                             'type' => null,
                             'variadic' => true,
-                            'optional' => false,
+                            'optional' => true,
                             'defaultNull' => false,
                         ],
                     ],

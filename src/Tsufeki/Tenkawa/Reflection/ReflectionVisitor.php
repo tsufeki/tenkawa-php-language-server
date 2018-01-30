@@ -161,7 +161,7 @@ class ReflectionVisitor extends NameContextVisitor
             $param = new Param();
             $param->name = $paramNode->name;
             $param->byRef = $paramNode->byRef;
-            $param->optional = $optional = $optional && $paramNode->default !== null;
+            $param->optional = $optional = $optional && ($paramNode->default !== null || $paramNode->variadic);
             $param->variadic = $paramNode->variadic;
             $param->type = $this->getType($paramNode->type);
             $param->defaultNull = $paramNode->default instanceof Expr\ConstFetch
