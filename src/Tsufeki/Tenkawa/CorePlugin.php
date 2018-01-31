@@ -252,7 +252,7 @@ class CorePlugin extends Plugin
         $container->setClass(Rule::class, Rules\Comparison\ImpossibleCheckTypeFunctionCallRule::class, true, [null, new Value(true)]);
         $container->setClass(Rule::class, Rules\Comparison\StrictComparisonOfDifferentTypesRule::class, true);
         // $container->setClass(Rule::class, Rules\Constants\ConstantRule::class, true);
-        // $container->setClass(Rule::class, Rules\Exceptions\CaughtExceptionExistenceRule::class, true);
+        $container->setClass(Rule::class, Rules\Exceptions\CaughtExceptionExistenceRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\CallToCountOnlyWithArrayOrCountableRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\CallToFunctionParametersRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\CallToNonExistentFunctionRule::class, true);

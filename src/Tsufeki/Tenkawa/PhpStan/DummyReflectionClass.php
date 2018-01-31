@@ -23,4 +23,21 @@ class DummyReflectionClass extends \ReflectionClass
     {
         return $this->classReflection->isFinal();
     }
+
+    public function implementsInterface($interface)
+    {
+        $interface = strtolower($interface);
+
+        if ($this->classReflection->isInterface() && strtolower($this->classReflection->getName()) === $interface) {
+            return true;
+        }
+
+        foreach ($this->classReflection->getInterfaceNames() as $iface) {
+            if (strtolower($iface) === $interface) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
