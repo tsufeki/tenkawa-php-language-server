@@ -27,7 +27,7 @@ class PhplDiagnosticsProviderTest extends TestCase
         ReactKernel::start(function () use ($provider, $document) {
             $diags = yield $provider->getDiagnostics($document);
             $this->assertCount(1, $diags);
-            $this->assertSame('Parse error: syntax error, unexpected end of file', $diags[0]->message);
+            $this->assertSame('syntax error, unexpected end of file', $diags[0]->message);
             $this->assertSame(DiagnosticSeverity::ERROR, $diags[0]->severity);
             $this->assertSame(0, $diags[0]->range->start->line);
         });

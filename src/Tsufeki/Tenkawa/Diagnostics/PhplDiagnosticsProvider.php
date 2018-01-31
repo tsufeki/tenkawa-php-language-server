@@ -17,7 +17,7 @@ class PhplDiagnosticsProvider implements DiagnosticsProvider
      */
     private $processRunner;
 
-    const MESSAGE_REGEX = '~^(?:(?:PHP )?Fatal error: )?(.+?)(?: in - on line ([0-9]+))?$~m';
+    const MESSAGE_REGEX = '~^(?:(?:PHP +)?(?:Fatal|Parse) error: +)?(.+?)(?: in (?:-|Standard input code) on line ([0-9]+))?$~m';
 
     public function __construct(ProcessRunner $processRunner)
     {
@@ -49,8 +49,8 @@ class PhplDiagnosticsProvider implements DiagnosticsProvider
                 $diag->source = 'php -l';
                 $diag->message = $matches[1];
                 $diag->range = new Range(
-                    new Position(max(0, (int)$matches[2] - 1), 0),
-                    new Position(max(0, (int)$matches[2] - 1), 999)
+                    new Position(max(0, (int)($matches[2] ?? 1) - 1), 0),
+                    new Position(max(0, (int)($matches[2] ?? 1) - 1), 999)
                 );
                 $diagnostics[] = $diag;
             }

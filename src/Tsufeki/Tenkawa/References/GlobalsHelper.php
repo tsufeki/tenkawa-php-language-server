@@ -68,6 +68,7 @@ class GlobalsHelper
      */
     public function getReferencedFunction(Name $name, Node $parentNode = null, Node $grandparentNode = null)
     {
+        // TODO: namespaced vs global resolve of unqualified names
         if ($parentNode !== null && isset(self::FUNCTION_REFERENCING_NODES[get_class($parentNode)])) {
             return '\\' . $name->toString();
         }

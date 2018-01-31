@@ -61,6 +61,7 @@ class GlobalsCompletionProvider implements CompletionProvider
         $node = $nodes[1];
         $parentNode = $nodes[2] ?? null;
 
+        // TODO: namespaced vs global resolve of unqualified names
         list($beforeParts, $afterParts) = yield $this->splitName($name, $position, $document);
         $kinds = $this->getKinds($node, $parentNode);
         $absolute = $this->isAbsolute($name, $node);
