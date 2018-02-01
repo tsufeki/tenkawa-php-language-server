@@ -110,7 +110,11 @@ class HoverFormatter
         }
 
         $s .= ($class ? $class . '::' : '') . $function->name . '(';
-        $s .= implode(', ', array_map([$this, 'formatParam'], $function->params));
+        $params = array_map([$this, 'formatParam'], $function->params);
+        if ($function->callsFuncGetArgs) {
+            $params[] = '...';
+        }
+        $s .= implode(', ', $params);
         $s .= ')';
         if ($function->returnType !== null) {
             $s .= ': ' . $this->formatType($function->returnType);

@@ -362,6 +362,31 @@ class ReflectionVisitorTest extends TestCase
                     ]],
                 ],
             ],
+
+            [
+                '<?php
+                class C
+                {
+                    public static function f() {
+                        func_get_args();
+                    }
+                    public static function g() {
+                    }
+                }',
+                ['classes' => [[
+                    'name' => '\C',
+                    'methods' => [
+                        [
+                            'name' => 'f',
+                            'callsFuncGetArgs' => true,
+                        ],
+                        [
+                            'name' => 'g',
+                            'callsFuncGetArgs' => false,
+                        ],
+                    ],
+                ]]],
+            ],
         ];
     }
 }
