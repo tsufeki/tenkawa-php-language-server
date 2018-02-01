@@ -18,7 +18,7 @@ class StubsIndexer implements GlobalIndexer
 
     public function __construct()
     {
-        foreach (['../../../../vendor', '../../../../../..'] as $path) {
+        foreach (['../../../../../vendor', '../../../../../../..'] as $path) {
             $fullPath = Path::canonicalize(__DIR__ . '/' . $path . '/jetbrains/phpstorm-stubs');
             if (is_dir($fullPath)) {
                 $this->stubsUri = Uri::fromFilesystemPath($fullPath);

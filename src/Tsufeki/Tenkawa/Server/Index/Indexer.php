@@ -16,11 +16,11 @@ use Tsufeki\Tenkawa\Server\Event\OnStart;
 use Tsufeki\Tenkawa\Server\Index\Storage\ChainedStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\MergedStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\WritableIndexStorage;
+use Tsufeki\Tenkawa\Server\Io\FileLister\FileFilter;
+use Tsufeki\Tenkawa\Server\Io\FileLister\FileLister;
 use Tsufeki\Tenkawa\Server\Io\FileReader;
-use Tsufeki\Tenkawa\Server\Io\FileSearch;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
-use Webmozart\Glob\Glob;
 
 class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnProjectClose
 {
@@ -50,24 +50,19 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
     private $fileReader;
 
     /**
-     * @var FileSearch
+     * @var FileLister
      */
-    private $fileSearch;
+    private $fileLister;
+
+    /**
+     * @var FileFilter[]
+     */
+    private $fileFilters;
 
     /**
      * @var WritableIndexStorage
      */
     private $globalIndex;
-
-    /**
-     * @var array<string,string> Glob => language id, e.g. "**\/*.php" => "php".
-     */
-    private $globs = [];
-
-    /**
-     * @var string[]
-     */
-    private $blacklistGlobs = [];
 
     /**
      * @var LoggerInterface
@@ -82,6 +77,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
     /**
      * @param IndexDataProvider[] $indexDataProviders
      * @param GlobalIndexer[]     $globalIndexers
+     * @param FileFilter[]        $fileFilters
      */
     public function __construct(
         array $indexDataProviders,
@@ -89,7 +85,8 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         IndexStorageFactory $indexStorageFactory,
         DocumentStore $documentStore,
         FileReader $fileReader,
-        FileSearch $fileSearch,
+        FileLister $fileLister,
+        array $fileFilters,
         LoggerInterface $logger
     ) {
         $this->indexDataProviders = $indexDataProviders;
@@ -97,11 +94,9 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         $this->indexStorageFactory = $indexStorageFactory;
         $this->documentStore = $documentStore;
         $this->fileReader = $fileReader;
-        $this->fileSearch = $fileSearch;
+        $this->fileLister = $fileLister;
+        $this->fileFilters = $fileFilters;
         $this->logger = $logger;
-
-        $this->globs = ['**/*.php' => 'php'];
-        $this->blacklistGlobs = ['var/**/*', 'app/cache/**/*', 'cache/**/*'];
 
         $versions = array_map(function (IndexDataProvider $provider) {
             return get_class($provider) . '=' . $provider->getVersion();
@@ -132,49 +127,32 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         yield $indexStorage->replaceFile($uri, []);
     }
 
-    private function getLanguageForFile(Project $project, string $uri): string
-    {
-        $rootUri = (string)$project->getRootUri();
-        foreach ($this->globs as $glob => $language) {
-            if (Glob::match($uri, $rootUri . '/' . $glob)) {
-                return $language;
-            }
-        }
-    }
-
-    private function joinGlobs(array $globs): string
-    {
-        return count($globs) === 1 ? $globs[0] : '{' . implode(',', $globs) . '}';
-    }
-
     public function indexProject(Project $project, WritableIndexStorage $indexStorage): \Generator
     {
-        if (empty($this->indexDataProviders) || empty($this->globs)) {
+        if (empty($this->indexDataProviders) || empty($this->fileFilters)) {
             return;
         }
 
-        $this->logger->info('Project indexing started: ' . $project->getRootUri());
-
-        $stopwatch = new Stopwatch();
         $rootUri = $project->getRootUri();
+        $stopwatch = new Stopwatch();
+        $this->logger->info("Project indexing started: $rootUri");
 
-        $glob = $this->joinGlobs(array_keys($this->globs));
-        $blacklistGlob = $this->joinGlobs($this->blacklistGlobs);
-
-        $currentFiles = yield $this->fileSearch->searchWithTimestamps($rootUri, $glob, $blacklistGlob);
-        yield;
         $indexedFiles = yield $indexStorage->getFileTimestamps();
-        $indexedFilesCount = 0;
+        $processedFilesCount = 0;
 
-        foreach (array_diff_assoc($currentFiles, $indexedFiles) as $uriString => $timestamp) {
+        foreach (yield $this->fileLister->list($rootUri, $this->fileFilters) as $uriString => list($language, $timestamp)) {
             yield;
+            if (array_key_exists($uriString, $indexedFiles) && $indexedFiles[$uriString] === $timestamp) {
+                unset($indexedFiles[$uriString]);
+                continue;
+            }
 
             try {
+                unset($indexedFiles[$uriString]);
                 $uri = Uri::fromString($uriString);
-                $language = $this->getLanguageForFile($project, $uriString);
                 $text = yield $this->fileReader->read($uri);
                 $document = yield $this->documentStore->load($uri, $language, $text, $project);
-                $indexedFilesCount++;
+                $processedFilesCount++;
 
                 yield $this->indexDocument($document, $indexStorage, $timestamp);
             } catch (\Throwable $e) {
@@ -182,12 +160,13 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
             }
         }
 
-        foreach (array_diff_key($indexedFiles, $currentFiles) as $uriString => $timestamp) {
+        foreach ($indexedFiles as $uriString => $timestamp) {
+            yield;
             $uri = Uri::fromString($uriString);
             yield $this->clearDocument($uri, $indexStorage);
         }
 
-        $this->logger->info('Project indexing finished: ' . $project->getRootUri() . " [$indexedFilesCount files, $stopwatch]");
+        $this->logger->info("Project indexing finished: $rootUri [$processedFilesCount files, $stopwatch]");
     }
 
     public function onStart(array $options): \Generator
@@ -232,12 +211,14 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
 
     public function onChange(Document $document): \Generator
     {
+        /** @var WritableIndexStorage $openFilesIndex */
         $openFilesIndex = $document->getProject()->get('index.open_files');
         yield $this->indexDocument($document, $openFilesIndex, $document->getVersion());
     }
 
     public function onClose(Document $document): \Generator
     {
+        /** @var WritableIndexStorage $openFilesIndex */
         $openFilesIndex = $document->getProject()->get('index.open_files');
         yield $this->clearDocument($document->getUri(), $openFilesIndex);
     }

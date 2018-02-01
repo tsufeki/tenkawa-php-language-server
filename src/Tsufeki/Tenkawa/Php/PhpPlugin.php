@@ -72,6 +72,9 @@ use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\Server\Event\OnStart;
 use Tsufeki\Tenkawa\Server\Index\GlobalIndexer;
 use Tsufeki\Tenkawa\Server\Index\IndexDataProvider;
+use Tsufeki\Tenkawa\Server\Io\FileLister\FileFilter;
+use Tsufeki\Tenkawa\Server\Io\FileLister\GlobFileFilter;
+use Tsufeki\Tenkawa\Server\Io\FileLister\GlobRejectDirectoryFilter;
 use Tsufeki\Tenkawa\Server\Language\CompletionProvider;
 use Tsufeki\Tenkawa\Server\Language\DiagnosticsProvider;
 use Tsufeki\Tenkawa\Server\Language\DocumentSymbolsProvider;
@@ -93,6 +96,8 @@ class PhpPlugin extends Plugin
             $container->setClass(GlobalIndexer::class, StubsIndexer::class, true);
         }
 
+        $container->setValue(FileFilter::class, new GlobFileFilter('**/*.php', 'php'), true);
+        $container->setValue(FileFilter::class, new GlobRejectDirectoryFilter('{var,app/cache,cache,.git}'), true);
         $container->setClass(IndexDataProvider::class, ReflectionIndexDataProvider::class, true);
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
         $container->setClass(ClassResolver::class);

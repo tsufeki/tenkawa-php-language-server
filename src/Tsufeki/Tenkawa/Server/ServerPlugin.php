@@ -25,10 +25,10 @@ use Tsufeki\Tenkawa\Server\Index\IndexStorageFactory;
 use Tsufeki\Tenkawa\Server\Index\LocalCacheIndexStorageFactory;
 use Tsufeki\Tenkawa\Server\Index\MemoryIndexStorageFactory;
 use Tsufeki\Tenkawa\Server\Io\Directories;
+use Tsufeki\Tenkawa\Server\Io\FileLister\FileLister;
+use Tsufeki\Tenkawa\Server\Io\FileLister\LocalFileLister;
 use Tsufeki\Tenkawa\Server\Io\FileReader;
-use Tsufeki\Tenkawa\Server\Io\FileSearch;
 use Tsufeki\Tenkawa\Server\Io\LocalFileReader;
-use Tsufeki\Tenkawa\Server\Io\LocalFileSearch;
 use Tsufeki\Tenkawa\Server\Language\CompletionAggregator;
 use Tsufeki\Tenkawa\Server\Language\DiagnosticsAggregator;
 use Tsufeki\Tenkawa\Server\Language\DocumentSymbolsAggregator;
@@ -56,7 +56,7 @@ class ServerPlugin extends Plugin
 
         $container->setClass(Directories::class);
         $container->setClass(FileReader::class, LocalFileReader::class);
-        $container->setClass(FileSearch::class, LocalFileSearch::class);
+        $container->setClass(FileLister::class, LocalFileLister::class);
 
         $container->setClass(ReactProcessRunner::class);
         $container->setClass(ProcessRunner::class, ThrottledProcessRunner::class, false, [
