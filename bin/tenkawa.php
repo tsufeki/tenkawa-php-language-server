@@ -3,12 +3,12 @@
 
 use Recoil\Exception\StrandException;
 use Recoil\React\ReactKernel;
-use Tsufeki\Tenkawa\Logger\CompositeLogger;
-use Tsufeki\Tenkawa\Logger\StreamLogger;
-use Tsufeki\Tenkawa\PluginFinder;
-use Tsufeki\Tenkawa\Tenkawa;
-use Tsufeki\Tenkawa\Transport\StreamTransport;
-use Tsufeki\Tenkawa\Utils\SyncAsyncKernel;
+use Tsufeki\Tenkawa\Server\Logger\CompositeLogger;
+use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
+use Tsufeki\Tenkawa\Server\PluginFinder;
+use Tsufeki\Tenkawa\Server\Tenkawa;
+use Tsufeki\Tenkawa\Server\Transport\StreamTransport;
+use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
 
 foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
     if (file_exists($file)) {

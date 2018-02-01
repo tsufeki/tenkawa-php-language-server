@@ -6,7 +6,7 @@ use Recoil\Recoil;
 use Recoil\Strand;
 use Tsufeki\BlancheJsonRpc\Json;
 use Tsufeki\BlancheJsonRpc\Transport\TransportMessageObserver;
-use Tsufeki\Tenkawa\Transport\RunnableTransport;
+use Tsufeki\Tenkawa\Server\Transport\RunnableTransport;
 
 class DummyTransport implements RunnableTransport
 {

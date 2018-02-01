@@ -8,16 +8,19 @@ use Recoil\React\ReactKernel;
 use Recoil\Recoil;
 use Tests\Tsufeki\Tenkawa\Fixtures\DummyTransport;
 use Tsufeki\BlancheJsonRpc\Json;
-use Tsufeki\Tenkawa\CorePlugin;
-use Tsufeki\Tenkawa\Tenkawa;
-use Tsufeki\Tenkawa\Utils\SyncAsyncKernel;
+use Tsufeki\Tenkawa\Php\PhpPlugin;
+use Tsufeki\Tenkawa\Server\ServerPlugin;
+use Tsufeki\Tenkawa\Server\Tenkawa;
+use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
 
 /**
- * @covers \Tsufeki\Tenkawa\Client
- * @covers \Tsufeki\Tenkawa\CorePlugin
- * @covers \Tsufeki\Tenkawa\CorePluginInit
- * @covers \Tsufeki\Tenkawa\Tenkawa
- * @covers \Tsufeki\Tenkawa\Server
+ * @covers \Tsufeki\Tenkawa\Server\Client
+ * @covers \Tsufeki\Tenkawa\Server\ServerPlugin
+ * @covers \Tsufeki\Tenkawa\Server\ServerPluginInit
+ * @covers \Tsufeki\Tenkawa\Php\PhpPlugin
+ * @covers \Tsufeki\Tenkawa\Php\PhpPluginInit
+ * @covers \Tsufeki\Tenkawa\Server\Tenkawa
+ * @covers \Tsufeki\Tenkawa\Server\Server
  */
 class IntegrationTest extends TestCase
 {
@@ -25,7 +28,7 @@ class IntegrationTest extends TestCase
     {
         $kernel = new SyncAsyncKernel(ReactKernel::create());
         $kernel->execute(function () use ($kernel) {
-            $tenkawa = new Tenkawa(new NullLogger(), $kernel, [new CorePlugin()]);
+            $tenkawa = new Tenkawa(new NullLogger(), $kernel, [new ServerPlugin(), new PhpPlugin()]);
             $transport = new DummyTransport();
 
             $options = [

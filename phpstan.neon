@@ -5,4 +5,4 @@ includes:
 parameters:
     ignoreErrors:
         - '#Call to an undefined static method Recoil\\Recoil::eventLoop\(\)#'
-        - '#Tsufeki\\Tenkawa\\PhpStan\\.*::__construct\(\) does not call parent constructor from (PHPStan\\.*|ReflectionClass)#'
+        - '#Tsufeki\\Tenkawa\\Php\\PhpStan\\.*::__construct\(\) does not call parent constructor from (PHPStan\\.*|ReflectionClass)#'
