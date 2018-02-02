@@ -50,6 +50,11 @@ class ReflectionVisitor extends NameContextVisitor
     private $consts = [];
 
     /**
+     * @var (ClassLike|null)[]
+     */
+    private $classLikeStack = [];
+
+    /**
      * @var (Function_|null)[]
      */
     private $functionStack = [];
@@ -188,34 +193,6 @@ class ReflectionVisitor extends NameContextVisitor
         $member->static = $node instanceof Stmt\ClassConst || $node->isStatic();
     }
 
-    private function processClassLike(ClassLike $class, Stmt\ClassLike $node)
-    {
-        foreach ($node->stmts as $child) {
-            if ($child instanceof Stmt\ClassConst) {
-                foreach ($child->consts as $constNode) {
-                    $const = new ClassConst();
-                    $this->init($const, $constNode, $child);
-                    $this->processMember($const, $child);
-                    $class->consts[] = $const;
-                }
-            } elseif ($child instanceof Stmt\Property) {
-                foreach ($child->props as $propertyNode) {
-                    $property = new Property();
-                    $this->init($property, $propertyNode, $child);
-                    $this->processMember($property, $child);
-                    $class->properties[] = $property;
-                }
-            } elseif ($child instanceof Stmt\ClassMethod) {
-                $method = new Method();
-                $this->processFunction($method, $child);
-                $this->processMember($method, $child);
-                $method->abstract = $child->isAbstract();
-                $method->final = $child->isFinal();
-                $class->methods[] = $method;
-            }
-        }
-    }
-
     private function processUsedTraits(ClassLike $class, Stmt\ClassLike $node)
     {
         foreach ($node->stmts as $child) {
@@ -253,7 +230,6 @@ class ReflectionVisitor extends NameContextVisitor
     private function processClass(ClassLike $class, Stmt\Class_ $node)
     {
         $this->init($class, $node);
-        $this->processClassLike($class, $node);
         $class->isClass = true;
         $class->abstract = $node->isAbstract();
         $class->final = $node->isFinal();
@@ -267,7 +243,6 @@ class ReflectionVisitor extends NameContextVisitor
     private function processInterface(ClassLike $interface, Stmt\Interface_ $node)
     {
         $this->init($interface, $node);
-        $this->processClassLike($interface, $node);
         $interface->isInterface = true;
         foreach ($node->extends as $extends) {
             $interface->interfaces[] = $this->nameToString($extends);
@@ -277,7 +252,6 @@ class ReflectionVisitor extends NameContextVisitor
     private function processTrait(ClassLike $trait, Stmt\Trait_ $node)
     {
         $this->init($trait, $node);
-        $this->processClassLike($trait, $node);
         $trait->isTrait = true;
         $this->processUsedTraits($trait, $node);
     }
@@ -304,16 +278,18 @@ class ReflectionVisitor extends NameContextVisitor
 
         if ($node instanceof Stmt\Class_) {
             if ($node->name !== null) {
-                $class = new ClassLike();
+                $class = $this->classLikeStack[] = new ClassLike();
                 $this->processClass($class, $node);
                 $this->classes[] = $class;
+            } else {
+                $this->classLikeStack[] = null;
             }
 
             return null;
         }
 
         if ($node instanceof Stmt\Interface_) {
-            $interface = new ClassLike();
+            $interface = $this->classLikeStack[] = new ClassLike();
             $this->processInterface($interface, $node);
             $this->classes[] = $interface;
 
@@ -321,11 +297,47 @@ class ReflectionVisitor extends NameContextVisitor
         }
 
         if ($node instanceof Stmt\Trait_) {
-            $trait = new ClassLike();
+            $trait = $this->classLikeStack[] = new ClassLike();
             $this->processTrait($trait, $node);
             $this->classes[] = $trait;
 
             return null;
+        }
+
+        if ($node instanceof Stmt\ClassConst) {
+            $class = $this->classLikeStack[count($this->classLikeStack) - 1] ?? null;
+            if ($class !== null) {
+                foreach ($node->consts as $constNode) {
+                    $const = new ClassConst();
+                    $this->init($const, $constNode, $node);
+                    $this->processMember($const, $node);
+                    $class->consts[] = $const;
+                }
+            }
+        }
+
+        if ($node instanceof Stmt\Property) {
+            $class = $this->classLikeStack[count($this->classLikeStack) - 1] ?? null;
+            if ($class !== null) {
+                foreach ($node->props as $propertyNode) {
+                    $property = new Property();
+                    $this->init($property, $propertyNode, $node);
+                    $this->processMember($property, $node);
+                    $class->properties[] = $property;
+                }
+            }
+        }
+
+        if ($node instanceof Stmt\ClassMethod) {
+            $class = $this->classLikeStack[count($this->classLikeStack) - 1] ?? null;
+            if ($class !== null) {
+                $method = new Method();
+                $this->processFunction($method, $node);
+                $this->processMember($method, $node);
+                $method->abstract = $node->isAbstract();
+                $method->final = $node->isFinal();
+                $class->methods[] = $method;
+            }
         }
 
         if ($node instanceof Stmt\Const_) {
@@ -376,6 +388,10 @@ class ReflectionVisitor extends NameContextVisitor
 
         if ($node instanceof FunctionLike) {
             array_pop($this->functionStack);
+        }
+
+        if ($node instanceof Stmt\ClassLike) {
+            array_pop($this->classLikeStack);
         }
     }
 
