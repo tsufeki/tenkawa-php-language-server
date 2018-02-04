@@ -4,4 +4,8 @@ namespace Tsufeki\Tenkawa\Php\Reflection\Element;
 
 class Const_ extends Element
 {
+    /**
+     * @var string|null
+     */
+    public $valueExpression = null;
 }

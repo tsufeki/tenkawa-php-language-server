@@ -6,6 +6,7 @@ use PhpLenientParser\LenientParserFactory;
 use PhpParser\Lexer;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
+use PhpParser\PrettyPrinter\Standard;
 use PHPUnit\Framework\TestCase;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionVisitor;
@@ -58,7 +59,8 @@ class ReflectionVisitorTest extends TestCase
         $document = new Document(Uri::fromString('file:///foo'), 'php', $project);
         $document->update($source);
 
-        $visitor = new ReflectionVisitor($document);
+        $prettyPrinter = new Standard();
+        $visitor = new ReflectionVisitor($document, $prettyPrinter);
         $nodeTraverser = new NodeTraverser();
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($nodes);
@@ -92,6 +94,7 @@ class ReflectionVisitorTest extends TestCase
                             'end' => ['line' => 2, 'character' => 29],
                         ],
                     ],
+                    'valueExpression' => '1',
                 ]]],
             ],
 
@@ -162,6 +165,7 @@ class ReflectionVisitorTest extends TestCase
                             'variadic' => false,
                             'optional' => true,
                             'defaultNull' => false,
+                            'defaultExpression' => '7',
                         ],
                     ],
                     'returnType' => null,

@@ -65,6 +65,7 @@ use Tsufeki\Tenkawa\Php\PhpStan\PhpDocResolver;
 use Tsufeki\Tenkawa\Php\PhpStan\PhpStanDiagnosticsProvider;
 use Tsufeki\Tenkawa\Php\PhpStan\PhpStanTypeInference;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
+use Tsufeki\Tenkawa\Php\Reflection\ConstExprEvaluator;
 use Tsufeki\Tenkawa\Php\Reflection\IndexReflectionProvider;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionIndexDataProvider;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
@@ -101,6 +102,7 @@ class PhpPlugin extends Plugin
         $container->setClass(IndexDataProvider::class, ReflectionIndexDataProvider::class, true);
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
         $container->setClass(ClassResolver::class);
+        $container->setClass(ConstExprEvaluator::class);
 
         $container->setClass(HoverFormatter::class);
         $container->setClass(NodeFinder::class);
@@ -163,7 +165,7 @@ class PhpPlugin extends Plugin
         $container->setClass(PropertyDescriptor::class);
 
         $container->setClass(Rule::class, Rules\Arrays\AppendedArrayItemTypeRule::class, true);
-        // $container->setClass(Rule::class, Rules\Arrays\DuplicateKeysInLiteralArraysRule::class, true);
+        $container->setClass(Rule::class, Rules\Arrays\DuplicateKeysInLiteralArraysRule::class, true);
         $container->setClass(Rule::class, Rules\Arrays\InvalidKeyInArrayDimFetchRule::class, true);
         $container->setClass(Rule::class, Rules\Arrays\InvalidKeyInArrayItemRule::class, true);
         $container->setClass(Rule::class, Rules\Arrays\IterableInForeachRule::class, true, [new Value(true)]);
@@ -180,7 +182,7 @@ class PhpPlugin extends Plugin
         $container->setClass(Rule::class, Rules\Classes\UnusedConstructorParametersRule::class, true);
         $container->setClass(Rule::class, Rules\Comparison\ImpossibleCheckTypeFunctionCallRule::class, true, [null, new Value(true)]);
         $container->setClass(Rule::class, Rules\Comparison\StrictComparisonOfDifferentTypesRule::class, true);
-        // $container->setClass(Rule::class, Rules\Constants\ConstantRule::class, true);
+        $container->setClass(Rule::class, Rules\Constants\ConstantRule::class, true);
         $container->setClass(Rule::class, Rules\Exceptions\CaughtExceptionExistenceRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\CallToCountOnlyWithArrayOrCountableRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\CallToFunctionParametersRule::class, true);

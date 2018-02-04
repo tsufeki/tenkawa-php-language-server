@@ -7,6 +7,7 @@ use PhpLenientParser\LenientParserFactory;
 use PhpParser\ErrorHandler;
 use PhpParser\Lexer;
 use PhpParser\Node;
+use PhpParser\Node\Expr;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
 use React\Promise\Deferred;
@@ -68,5 +69,14 @@ class PhpParserAdapter implements Parser
         $deferred->resolve($ast);
 
         return $ast;
+    }
+
+    public function parseExpr(string $expr): \Generator
+    {
+        $errorHandler = new ErrorHandler\Collecting();
+        $nodes = $this->parser->parse("<?php $expr;", $errorHandler) ?? [];
+
+        return $nodes[0] ?? new Expr\Error();
+        yield;
     }
 }

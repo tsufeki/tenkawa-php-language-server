@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\Parser;
 
+use PhpParser\Node\Expr;
 use Tsufeki\Tenkawa\Server\Document\Document;
 
 interface Parser
@@ -10,4 +11,9 @@ interface Parser
      * @resolve Ast
      */
     public function parse(Document $document): \Generator;
+
+    /**
+     * @resolve Expr
+     */
+    public function parseExpr(string $expr): \Generator;
 }

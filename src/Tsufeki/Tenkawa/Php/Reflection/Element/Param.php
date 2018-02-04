@@ -33,4 +33,9 @@ class Param
      * @var bool
      */
     public $defaultNull = false;
+
+    /**
+     * @var string|null
+     */
+    public $defaultExpression = null;
 }

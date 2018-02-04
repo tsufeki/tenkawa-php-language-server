@@ -19,12 +19,19 @@ class IndexClassConstantReflection implements ClassConstantReflection
      */
     private $const;
 
+    /**
+     * @var mixed
+     */
+    private $value;
+
     public function __construct(
         ClassReflection $declaringClass,
-        ClassConst $const
+        ClassConst $const,
+        $value
     ) {
         $this->declaringClass = $declaringClass;
         $this->const = $const;
+        $this->value = $value;
     }
 
     public function getName(): string
@@ -37,8 +44,7 @@ class IndexClassConstantReflection implements ClassConstantReflection
      */
     public function getValue()
     {
-        //TODO
-        return null;
+        return $this->value;
     }
 
     public function getDeclaringClass(): ClassReflection

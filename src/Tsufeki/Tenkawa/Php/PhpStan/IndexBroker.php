@@ -16,6 +16,8 @@ use PHPStan\Type\DynamicFunctionReturnTypeExtension;
 use PHPStan\Type\DynamicMethodReturnTypeExtension;
 use PHPStan\Type\DynamicStaticMethodReturnTypeExtension;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
+use Tsufeki\Tenkawa\Php\Reflection\ConstExprEvaluator;
+use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
@@ -41,6 +43,11 @@ class IndexBroker extends Broker
      * @var ClassResolver
      */
     private $classResolver;
+
+    /**
+     * @var ConstExprEvaluator
+     */
+    private $constExprEvaluator;
 
     /**
      * @var SyncAsyncKernel
@@ -72,6 +79,7 @@ class IndexBroker extends Broker
         array $dynamicFunctionReturnTypeExtensions,
         ReflectionProvider $reflectionProvider,
         ClassResolver $classResolver,
+        ConstExprEvaluator $constExprEvaluator,
         SyncAsyncKernel $syncAsync,
         PhpDocResolver $phpDocResolver
     ) {
@@ -89,6 +97,7 @@ class IndexBroker extends Broker
         $this->methodsReflectionExtensions = $methodsClassReflectionExtensions;
         $this->reflectionProvider = $reflectionProvider;
         $this->classResolver = $classResolver;
+        $this->constExprEvaluator = $constExprEvaluator;
         $this->syncAsync = $syncAsync;
         $this->phpDocResolver = $phpDocResolver;
     }
@@ -183,9 +192,7 @@ class IndexBroker extends Broker
 
     public function hasConstant(\PhpParser\Node\Name $nameNode, Scope $scope = null): bool
     {
-        //TODO
-        return false;
-        // return $this->resolveConstantName($nameNode, $scope) !== null;
+        return $this->resolveConstantName($nameNode, $scope) !== null;
     }
 
     /**
@@ -206,6 +213,36 @@ class IndexBroker extends Broker
         }
 
         return null;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getConstantValue(string $name)
+    {
+        if ($this->document === null) {
+            throw new ShouldNotHappenException();
+        }
+
+        $name = '\\' . ltrim($name, '\\');
+        $const = $this->syncAsync->callAsync($this->reflectionProvider->getConst($this->document, $name))[0] ?? null;
+        if ($const === null) {
+            return null;
+        }
+
+        return $this->getConstantValueFromReflection($const);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getConstantValueFromReflection(Const_ $const)
+    {
+        if ($this->document === null) {
+            throw new ShouldNotHappenException();
+        }
+
+        return $this->syncAsync->callAsync($this->constExprEvaluator->getConstValue($const, $this->document));
     }
 
     /**

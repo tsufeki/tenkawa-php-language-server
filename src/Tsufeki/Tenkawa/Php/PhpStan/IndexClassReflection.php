@@ -3,7 +3,6 @@
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
 use PHPStan\Analyser\Scope;
-use PHPStan\Broker\Broker;
 use PHPStan\Reflection\ClassConstantReflection;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\MethodReflection;
@@ -26,7 +25,7 @@ class IndexClassReflection extends ClassReflection
     private $class;
 
     /**
-     * @var Broker
+     * @var IndexBroker
      */
     private $broker;
 
@@ -66,7 +65,7 @@ class IndexClassReflection extends ClassReflection
      */
     public function __construct(
         ResolvedClassLike $class,
-        Broker $broker,
+        IndexBroker $broker,
         PhpDocResolver $phpDocResolver,
         array $propertiesClassReflectionExtensions,
         array $methodsClassReflectionExtensions
@@ -325,7 +324,8 @@ class IndexClassReflection extends ClassReflection
 
         return $this->constants[$name] = new IndexClassConstantReflection(
             $this->broker->getClass((string)$const->nameContext->class),
-            $const
+            $const,
+            $this->broker->getConstantValueFromReflection($const)
         );
     }
 

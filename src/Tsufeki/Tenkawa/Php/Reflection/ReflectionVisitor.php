@@ -12,6 +12,7 @@ use PhpParser\Node\Name\Relative;
 use PhpParser\Node\NullableType;
 use PhpParser\Node\Scalar;
 use PhpParser\Node\Stmt;
+use PhpParser\PrettyPrinter\Standard;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
@@ -33,6 +34,11 @@ class ReflectionVisitor extends NameContextVisitor
      * @var Document
      */
     private $document;
+
+    /**
+     * @var Standard
+     */
+    private $prettyPrinter;
 
     /**
      * @var ClassLike[]
@@ -65,10 +71,11 @@ class ReflectionVisitor extends NameContextVisitor
         'func_num_args',
     ];
 
-    public function __construct(Document $document)
+    public function __construct(Document $document, Standard $prettyPrinter)
     {
         parent::__construct();
         $this->document = $document;
+        $this->prettyPrinter = $prettyPrinter;
     }
 
     private function nameToString(Name $name): string
@@ -171,6 +178,9 @@ class ReflectionVisitor extends NameContextVisitor
             $param->type = $this->getType($paramNode->type);
             $param->defaultNull = $paramNode->default instanceof Expr\ConstFetch
                 && strtolower((string)$paramNode->default->name) === 'null';
+            if ($paramNode->default !== null) {
+                $param->defaultExpression = mb_convert_encoding($this->prettyPrinter->prettyPrintExpr($paramNode->default), 'UTF-8', 'UTF-8');
+            }
 
             $params[] = $param;
         }
@@ -262,6 +272,12 @@ class ReflectionVisitor extends NameContextVisitor
         assert($nameNode instanceof Scalar\String_);
         $const->name = '\\' . ltrim($nameNode->value, '\\');
         $this->setCommonInfo($const, $defineNode);
+        if (isset($defineNode->args[1])) {
+            $const->valueExpression = mb_convert_encoding(
+                $this->prettyPrinter->prettyPrintExpr($defineNode->args[1]->value),
+                'UTF-8', 'UTF-8'
+            );
+        }
     }
 
     public function enterNode(Node $node)
@@ -310,6 +326,7 @@ class ReflectionVisitor extends NameContextVisitor
                 foreach ($node->consts as $constNode) {
                     $const = new ClassConst();
                     $this->init($const, $constNode, $node);
+                    $const->valueExpression = mb_convert_encoding($this->prettyPrinter->prettyPrintExpr($constNode->value), 'UTF-8', 'UTF-8');
                     $this->processMember($const, $node);
                     $class->consts[] = $const;
                 }
@@ -344,6 +361,7 @@ class ReflectionVisitor extends NameContextVisitor
             foreach ($node->consts as $constNode) {
                 $const = new Const_();
                 $this->init($const, $constNode, $node);
+                $const->valueExpression = mb_convert_encoding($this->prettyPrinter->prettyPrintExpr($constNode->value), 'UTF-8', 'UTF-8');
                 $this->consts[] = $const;
             }
 

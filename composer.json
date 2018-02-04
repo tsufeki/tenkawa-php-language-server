@@ -28,7 +28,10 @@
     "autoload": {
         "psr-4": {
             "Tsufeki\\Tenkawa\\": "src/Tsufeki/Tenkawa/"
-        }
+        },
+        "files": [
+            "src/Tsufeki/Tenkawa/Php/PhpStan/patch.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
