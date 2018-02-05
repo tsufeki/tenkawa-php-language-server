@@ -30,8 +30,8 @@ class ReactProcessRunner implements ProcessRunner
             $result->stderr
         ) = yield [
             Event::first($process, 'exit'),
-            buffer($process->stdout),
-            buffer($process->stderr),
+            buffer($process->stdout)->then(null, function () { return ''; }),
+            buffer($process->stderr)->then(null, function () { return ''; }),
         ];
 
         return $result;
