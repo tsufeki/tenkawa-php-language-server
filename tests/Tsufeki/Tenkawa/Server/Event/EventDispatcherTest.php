@@ -39,6 +39,7 @@ class EventDispatcherTest extends TestCase
             yield $dispatcher->dispatch('OnEvent', $data);
             yield;
             yield;
+            yield;
 
             $this->assertSame($data, $listener->data);
         });

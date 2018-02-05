@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Server;
 
 use Psr\Log\LoggerInterface;
+use Recoil\Recoil;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Language\CompletionAggregator;
 use Tsufeki\Tenkawa\Server\Language\DocumentSymbolsAggregator;
@@ -54,6 +55,11 @@ class Server extends LanguageServer
      */
     private $logger;
 
+    /**
+     * @var float
+     */
+    private $timeout;
+
     public function __construct(
         DocumentStore $documentStore,
         CompletionAggregator $completionAggregator,
@@ -68,6 +74,7 @@ class Server extends LanguageServer
         $this->goToDefinitionAggregator = $goToDefinitionAggregator;
         $this->documentSymbolsAggregator = $documentSymbolsAggregator;
         $this->logger = $logger;
+        $this->timeout = 30.0;
     }
 
     /**
@@ -86,7 +93,7 @@ class Server extends LanguageServer
         $rootUri = $rootUri ?? ($rootPath ? Uri::fromFilesystemPath($rootPath) : null);
 
         if ($rootUri !== null) {
-            yield $this->documentStore->openProject($rootUri);
+            yield Recoil::timeout($this->timeout, $this->documentStore->openProject($rootUri));
         }
 
         $serverCapabilities = new ServerCapabilities();
@@ -113,7 +120,7 @@ class Server extends LanguageServer
     {
         $time = new Stopwatch();
 
-        yield $this->documentStore->closeAll();
+        yield Recoil::timeout($this->timeout, $this->documentStore->closeAll());
 
         $this->logger->debug(__FUNCTION__ . " [$time]");
     }
@@ -130,12 +137,12 @@ class Server extends LanguageServer
     {
         $time = new Stopwatch();
 
-        yield $this->documentStore->open(
+        yield Recoil::timeout($this->timeout, $this->documentStore->open(
             $textDocument->uri,
             $textDocument->languageId,
             $textDocument->text,
             $textDocument->version
-        );
+        ));
 
         $this->logger->debug(__FUNCTION__ . " $textDocument->uri [$time]");
     }
@@ -145,7 +152,11 @@ class Server extends LanguageServer
         $time = new Stopwatch();
 
         $document = $this->documentStore->get($textDocument->uri);
-        yield $this->documentStore->update($document, $contentChanges[0]->text, $textDocument->version);
+        yield Recoil::timeout($this->timeout, $this->documentStore->update(
+            $document,
+            $contentChanges[0]->text,
+            $textDocument->version
+        ));
 
         $this->logger->debug(__FUNCTION__ . " $textDocument->uri [$time]");
     }
@@ -164,7 +175,7 @@ class Server extends LanguageServer
         $time = new Stopwatch();
 
         $document = $this->documentStore->get($textDocument->uri);
-        yield $this->documentStore->close($document);
+        yield Recoil::timeout($this->timeout, $this->documentStore->close($document));
 
         $this->logger->debug(__FUNCTION__ . " $textDocument->uri [$time]");
     }
@@ -177,7 +188,7 @@ class Server extends LanguageServer
         $time = new Stopwatch();
 
         $document = $this->documentStore->get($textDocument->uri);
-        $completions = yield $this->completionAggregator->getCompletions($document, $position, $context);
+        $completions = yield Recoil::timeout($this->timeout, $this->completionAggregator->getCompletions($document, $position, $context));
         $count = count($completions->items);
 
         $this->logger->debug(__FUNCTION__ . " $textDocument->uri$position [$time, $count items]");
@@ -190,7 +201,7 @@ class Server extends LanguageServer
         $time = new Stopwatch();
 
         $document = $this->documentStore->get($textDocument->uri);
-        $hover = yield $this->hoverAggregator->getHover($document, $position);
+        $hover = yield Recoil::timeout($this->timeout, $this->hoverAggregator->getHover($document, $position));
         $found = $hover ? 'found' : 'not found';
 
         $this->logger->debug(__FUNCTION__ . " $textDocument->uri$position [$time, $found]");
@@ -203,7 +214,7 @@ class Server extends LanguageServer
         $time = new Stopwatch();
 
         $document = $this->documentStore->get($textDocument->uri);
-        $locations = yield $this->goToDefinitionAggregator->getLocations($document, $position);
+        $locations = yield Recoil::timeout($this->timeout, $this->goToDefinitionAggregator->getLocations($document, $position));
         $count = count($locations);
 
         $this->logger->debug(__FUNCTION__ . " $textDocument->uri$position [$time, $count items]");
@@ -224,7 +235,7 @@ class Server extends LanguageServer
         $time = new Stopwatch();
 
         $document = $this->documentStore->get($textDocument->uri);
-        $symbols = yield $this->documentSymbolsAggregator->getSymbols($document);
+        $symbols = yield Recoil::timeout($this->timeout, $this->documentSymbolsAggregator->getSymbols($document));
         $count = count($symbols);
 
         $this->logger->debug(__FUNCTION__ . " $textDocument->uri [$time, $count items]");

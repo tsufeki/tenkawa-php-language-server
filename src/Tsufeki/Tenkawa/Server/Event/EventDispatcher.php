@@ -12,9 +12,15 @@ class EventDispatcher
      */
     private $container;
 
+    /**
+     * @var float
+     */
+    private $timeout;
+
     public function __construct(Container $container)
     {
         $this->container = $container;
+        $this->timeout = 30.0;
     }
 
     /**
@@ -22,7 +28,7 @@ class EventDispatcher
      */
     public function dispatch(string $event, ...$args): \Generator
     {
-        yield Recoil::execute($this->dispatchAndWait($event, ...$args));
+        yield Recoil::execute(Recoil::timeout($this->timeout, $this->dispatchAndWait($event, ...$args)));
     }
 
     /**
