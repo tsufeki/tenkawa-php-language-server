@@ -26,7 +26,7 @@ class IntegrationTest extends TestCase
 {
     public function test()
     {
-        $kernel = new SyncAsyncKernel(ReactKernel::create());
+        $kernel = new SyncAsyncKernel([ReactKernel::class, 'create']);
         $kernel->execute(function () use ($kernel) {
             $tenkawa = new Tenkawa(new NullLogger(), $kernel, [new ServerPlugin(), new PhpPlugin()]);
             $transport = new DummyTransport();

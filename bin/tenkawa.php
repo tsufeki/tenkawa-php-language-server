@@ -37,7 +37,7 @@ set_exception_handler(function (\Throwable $e) use ($logger) {
 });
 
 $plugins = (new PluginFinder())->findPlugins();
-$kernel = new SyncAsyncKernel(ReactKernel::create());
+$kernel = new SyncAsyncKernel([ReactKernel::class, 'create']);
 
 $kernel->setExceptionHandler(function (\Throwable $e) use ($logger) {
     if (!($e instanceof StrandException)) {

@@ -10,7 +10,6 @@ use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
-use React\Promise\Deferred;
 use Tsufeki\Tenkawa\Server\Document\Document;
 
 class PhpParserAdapter implements Parser
@@ -46,13 +45,10 @@ class PhpParserAdapter implements Parser
             throw new \LogicException('Can only parse PHP documents');
         }
 
-        $astPromise = $document->get('parser.ast');
-        if ($astPromise !== null) {
-            return yield $astPromise;
+        $ast = $document->get('parser.ast');
+        if ($ast) {
+            return $ast;
         }
-
-        $deferred = new Deferred();
-        $document->set('parser.ast', $deferred->promise());
 
         $ast = new Ast();
         $errorHandler = new ErrorHandler\Collecting();
@@ -66,9 +62,10 @@ class PhpParserAdapter implements Parser
         $nodeTraverser->traverse($ast->nodes);
 
         $ast->errors = $errorHandler->getErrors();
-        $deferred->resolve($ast);
+        $document->set('parser.ast', $ast);
 
         return $ast;
+        yield;
     }
 
     public function parseExpr(string $expr): \Generator

@@ -5,11 +5,6 @@ namespace Tsufeki\Tenkawa\Server\Utils;
 class SyncCallContext
 {
     /**
-     * @var callable
-     */
-    public $callable;
-
-    /**
      * @var callable|null
      */
     public $resumeCallback;

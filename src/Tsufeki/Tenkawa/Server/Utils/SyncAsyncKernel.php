@@ -3,11 +3,15 @@
 namespace Tsufeki\Tenkawa\Server\Utils;
 
 use Recoil\Kernel;
-use Recoil\Recoil;
 use Recoil\Strand;
 
 class SyncAsyncKernel implements Kernel
 {
+    /**
+     * @var callable () -> Kernel
+     */
+    private $kernelFactory;
+
     /**
      * @var Kernel
      */
@@ -21,16 +25,12 @@ class SyncAsyncKernel implements Kernel
     /**
      * @var SyncCallContext[]
      */
-    private $syncNext = [];
-
-    /**
-     * @var SyncCallContext[]
-     */
     private $syncStack = [];
 
-    public function __construct(Kernel $kernel)
+    public function __construct(callable $kernelFactory)
     {
-        $this->kernel = $kernel;
+        $this->kernelFactory = $kernelFactory;
+        $this->kernel = $kernelFactory();
     }
 
     public function callSync(
@@ -43,25 +43,24 @@ class SyncAsyncKernel implements Kernel
             throw new \RuntimeException("Can't call SyncAsyncKernel::callSync in sync mode");
         }
 
-        $strand = yield Recoil::strand();
         $context = new SyncCallContext();
         $context->resumeCallback = $resumeCallback;
         $context->pauseCallback = $pauseCallback;
 
-        $context->callable = function () use ($syncCallable, $args, $strand) {
-            try {
-                $strand->send($syncCallable(...$args));
-            } catch (\Throwable $e) {
-                $strand->throw($e);
-            }
-        };
+        $this->sync = true;
+        $this->syncStack[] = $context;
+        $context->resume();
 
-        $result = yield Recoil::suspend(function () use ($context) {
-            $this->syncNext[] = $context;
-            $this->kernel->stop();
-        });
+        try {
+            $result = $syncCallable(...$args);
+        } finally {
+            $this->sync = false;
+            $context->pause();
+            array_pop($this->syncStack);
+        }
 
         return $result;
+        yield;
     }
 
     /**
@@ -73,27 +72,23 @@ class SyncAsyncKernel implements Kernel
             throw new \RuntimeException("Can't call SyncAsyncKernel::callAsync in async mode");
         }
 
-        $done = false;
-        $result = null;
-        $exception = null;
+        $oldKernel = $this->kernel;
+        $this->kernel = ($this->kernelFactory)();
 
-        $this->kernel->execute(function () use ($coroutine, &$done, &$result, &$exception) {
-            try {
-                $result = yield $coroutine;
-            } catch (\Throwable $e) {
-                $exception = $e;
-            }
-
-            $done = true;
-            yield Recoil::execute(Recoil::stop());
-        });
-
-        while (!$done) {
-            $this->run();
+        $this->sync = false;
+        $context = !empty($this->syncStack) ? $this->syncStack[count($this->syncStack) - 1] : null;
+        if ($context) {
+            $context->pause();
         }
 
-        if ($exception !== null) {
-            throw $exception;
+        try {
+            $result = $this->kernel->start($coroutine);
+        } finally {
+            $this->sync = true;
+            if ($context) {
+                $context->resume();
+            }
+            $this->kernel = $oldKernel;
         }
 
         return $result;
@@ -105,36 +100,8 @@ class SyncAsyncKernel implements Kernel
             throw new \RuntimeException("Can't call SyncAsyncKernel::run in async mode");
         }
 
-        $callerContext = null;
-        if (!empty($this->syncStack)) {
-            $callerContext = $this->syncStack[count($this->syncStack) - 1];
-            $callerContext->pause();
-        }
-
-        while (true) {
-            $this->sync = false;
-
-            try {
-                $this->kernel->run();
-            } finally {
-                $this->sync = true;
-            }
-
-            if (!empty($this->syncNext)) {
-                $context = array_shift($this->syncNext);
-                $this->syncStack[] = $context;
-                $context->resume();
-                ($context->callable)();
-                $context->pause();
-                array_pop($this->syncStack);
-            } else {
-                break;
-            }
-        }
-
-        if ($callerContext !== null) {
-            $callerContext->resume();
-        }
+        $this->sync = false;
+        $this->kernel->run();
     }
 
     public function stop()

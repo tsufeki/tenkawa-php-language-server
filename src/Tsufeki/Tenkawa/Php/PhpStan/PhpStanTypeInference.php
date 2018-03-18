@@ -10,7 +10,6 @@ use PHPStan\Type\IntersectionType as PhpStanIntersectionType;
 use PHPStan\Type\Type as PhpStanType;
 use PHPStan\Type\TypeWithClassName;
 use PHPStan\Type\UnionType as PhpStanUnionType;
-use React\Promise\Deferred;
 use Tsufeki\Tenkawa\Php\TypeInference\BasicType;
 use Tsufeki\Tenkawa\Php\TypeInference\IntersectionType;
 use Tsufeki\Tenkawa\Php\TypeInference\ObjectType;
@@ -42,13 +41,11 @@ class PhpStanTypeInference implements TypeInference
             return;
         }
 
-        $promise = $document->get('type_inference');
-        if ($promise !== null) {
-            return yield $promise;
+        $inferred = $document->get('type_inference');
+        if ($inferred) {
+            return;
         }
 
-        $deferred = new Deferred();
-        $document->set('type_inference', $deferred->promise());
         yield $this->analyser->analyse(
             $document,
             function (Node $node, Scope $scope) {
@@ -59,7 +56,7 @@ class PhpStanTypeInference implements TypeInference
             }
         );
 
-        $deferred->resolve();
+        $document->set('type_inference', true);
     }
 
     private function processType(PhpStanType $phpStanType): Type
