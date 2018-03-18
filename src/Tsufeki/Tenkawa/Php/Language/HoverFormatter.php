@@ -13,12 +13,17 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Type;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Variable;
+use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 
 class HoverFormatter
 {
     public function format(Element $element): string
     {
         $s = "```php\n<?php\n";
+
+        if ($element->docComment) {
+            $s .= $this->formatDocComment($element->docComment);
+        }
 
         if ($element instanceof ClassLike) {
             $s .= $this->formatClass($element);
@@ -38,20 +43,14 @@ class HoverFormatter
 
         $s .= "\n```";
 
-        if ($element->docComment) {
-            $s .= $this->formatDocComment($element->docComment);
-        }
-
         return $s;
     }
 
     private function formatDocComment(string $doc): string
     {
         $doc = (new Comment\Doc($doc))->getReformattedText();
-        $doc = preg_replace('~\A/\*\*|\*/\z~', '', $doc);
-        $doc = preg_replace('~^ \*( |$)~m', '', $doc);
 
-        return "\n" . trim($doc);
+        return trim($doc) . "\n";
     }
 
     /**
@@ -77,7 +76,7 @@ class HoverFormatter
 
     private function formatVariable(Variable $variable, string $class = null): string
     {
-        return ($class ? $class . '::' : '') . '$' . $variable->name;
+        return ($class ? StringUtils::getShortName($class) . '::' : '') . '$' . $variable->name;
     }
 
     private function formatProperty(Property $property): string
@@ -87,7 +86,12 @@ class HoverFormatter
 
     private function formatConst(Const_ $const, string $class = null): string
     {
-        return 'const ' . ($class ? $class . '::' : '') . $const->name;
+        $s = 'const ' . ($class ? StringUtils::getShortName($class) . '::' : '') . $const->name;
+        if ($const->valueExpression !== null) {
+            $s .= ' = ' . $const->valueExpression;
+        }
+
+        return $s;
     }
 
     private function formatClassConst(ClassConst $const): string
@@ -109,13 +113,18 @@ class HoverFormatter
             $s .= '&';
         }
 
-        $s .= ($class ? $class . '::' : '') . $function->name . '(';
+        $s .= ($class ? StringUtils::getShortName($class) . '::' : '') . $function->name;
+
         $params = array_map([$this, 'formatParam'], $function->params);
         if ($function->callsFuncGetArgs) {
             $params[] = '...';
         }
-        $s .= implode(', ', $params);
-        $s .= ')';
+        if (empty($params)) {
+            $s .= '()';
+        } else {
+            $s .= "(\n  " . implode(",\n  ", $params) . "\n)";
+        }
+
         if ($function->returnType !== null) {
             $s .= ': ' . $this->formatType($function->returnType);
         }
@@ -138,6 +147,8 @@ class HoverFormatter
         $s .= '$' . $param->name;
         if ($param->defaultNull) {
             $s .= ' = null';
+        } elseif ($param->defaultExpression) {
+            $s .= ' = ' . $param->defaultExpression;
         } elseif ($param->optional) {
             $s .= ' = ...';
         }
@@ -147,7 +158,7 @@ class HoverFormatter
 
     private function formatType(Type $type): string
     {
-        return $type->type;
+        return StringUtils::getShortName($type->type);
     }
 
     private function formatMethod(Method $method): string
@@ -177,20 +188,26 @@ class HoverFormatter
         }
 
         if ($class->isClass) {
-            $s .= 'class ' . $class->name;
+            $s .= 'class ' . StringUtils::getShortName($class->name);
             if ($class->parentClass !== null) {
-                $s .= ' extends ' . $class->parentClass;
+                $s .= ' extends ' . StringUtils::getShortName($class->parentClass);
             }
             if (!empty($class->intefaces)) {
-                $s .= ' implements ' . implode(', ', $class->interfaces);
+                $s .= ' implements ' . implode(', ', array_map(
+                    [StringUtils::class, 'getShortName'],
+                    $class->interfaces
+                ));
             }
         } elseif ($class->isInterface) {
-            $s .= 'interface ' . $class->name;
+            $s .= 'interface ' . StringUtils::getShortName($class->name);
             if (!empty($class->intefaces)) {
-                $s .= ' extends ' . implode(', ', $class->interfaces);
+                $s .= ' extends ' . implode(', ', array_map(
+                    [StringUtils::class, 'getShortName'],
+                    $class->interfaces
+                ));
             }
         } elseif ($class->isTrait) {
-            $s .= 'trait ' . $class->name;
+            $s .= 'trait ' . StringUtils::getShortName($class->name);
         }
 
         return $s;
