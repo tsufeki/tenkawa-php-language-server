@@ -36,6 +36,7 @@ use PHPStan\Type\Php\CallbackBasedArrayFunctionReturnTypeExtension;
 use PHPStan\Type\Php\CallbackBasedFunctionReturnTypeExtension;
 use Tsufeki\HmContainer\Container;
 use Tsufeki\HmContainer\Definition\Value;
+use Tsufeki\Tenkawa\Php\Index\ComposerFileFilterFactory;
 use Tsufeki\Tenkawa\Php\Index\StubsIndexer;
 use Tsufeki\Tenkawa\Php\Language\DocCommentHelper;
 use Tsufeki\Tenkawa\Php\Language\ExpressionTypeHoverProvider;
@@ -71,6 +72,7 @@ use Tsufeki\Tenkawa\Php\Reflection\ReflectionIndexDataProvider;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\Server\Event\OnStart;
+use Tsufeki\Tenkawa\Server\Index\FileFilterFactory;
 use Tsufeki\Tenkawa\Server\Index\GlobalIndexer;
 use Tsufeki\Tenkawa\Server\Index\IndexDataProvider;
 use Tsufeki\Tenkawa\Server\Io\FileLister\FileFilter;
@@ -99,6 +101,7 @@ class PhpPlugin extends Plugin
 
         $container->setValue(FileFilter::class, new GlobFileFilter('**/*.php', 'php'), true);
         $container->setValue(FileFilter::class, new GlobRejectDirectoryFilter('{var,app/cache,cache,.git}'), true);
+        $container->setClass(FileFilterFactory::class, ComposerFileFilterFactory::class, true);
         $container->setClass(IndexDataProvider::class, ReflectionIndexDataProvider::class, true);
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
         $container->setClass(ClassResolver::class);

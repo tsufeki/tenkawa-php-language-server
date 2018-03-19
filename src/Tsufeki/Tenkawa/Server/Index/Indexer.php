@@ -60,6 +60,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
     private $fileFilters;
 
     /**
+     * @var FileFilterFactory[]
+     */
+    private $fileFilterFactories;
+
+    /**
      * @var WritableIndexStorage
      */
     private $globalIndex;
@@ -78,6 +83,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
      * @param IndexDataProvider[] $indexDataProviders
      * @param GlobalIndexer[]     $globalIndexers
      * @param FileFilter[]        $fileFilters
+     * @param FileFilterFactory[] $fileFilterFactories
      */
     public function __construct(
         array $indexDataProviders,
@@ -87,6 +93,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         FileReader $fileReader,
         FileLister $fileLister,
         array $fileFilters,
+        array $fileFilterFactories,
         LoggerInterface $logger
     ) {
         $this->indexDataProviders = $indexDataProviders;
@@ -96,6 +103,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         $this->fileReader = $fileReader;
         $this->fileLister = $fileLister;
         $this->fileFilters = $fileFilters;
+        $this->fileFilterFactories = $fileFilterFactories;
         $this->logger = $logger;
 
         $versions = array_map(function (IndexDataProvider $provider) {
@@ -129,7 +137,14 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
 
     public function indexProject(Project $project, WritableIndexStorage $indexStorage): \Generator
     {
-        if (empty($this->indexDataProviders) || empty($this->fileFilters)) {
+        $fileFilters = array_merge(
+            $this->fileFilters,
+            yield array_map(function (FileFilterFactory $factory) use ($project) {
+                return $factory->getFilter($project);
+            }, $this->fileFilterFactories)
+        );
+
+        if (empty($this->indexDataProviders) || empty($fileFilters)) {
             return;
         }
 
@@ -140,7 +155,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
         $indexedFiles = yield $indexStorage->getFileTimestamps();
         $processedFilesCount = 0;
 
-        foreach (yield $this->fileLister->list($rootUri, $this->fileFilters) as $uriString => list($language, $timestamp)) {
+        foreach (yield $this->fileLister->list($rootUri, $fileFilters) as $uriString => list($language, $timestamp)) {
             yield;
             if (array_key_exists($uriString, $indexedFiles) && $indexedFiles[$uriString] === $timestamp) {
                 unset($indexedFiles[$uriString]);
