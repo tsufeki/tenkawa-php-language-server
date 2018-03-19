@@ -76,7 +76,7 @@ class DocCommentHelper
                 $coroutines[] = $this->reflectionProvider->getClass($document, $className);
             }
 
-            $elements = array_merge(...yield $coroutines);
+            $elements = $coroutines ? array_merge(...yield $coroutines) : [];
         }
 
         return $elements;

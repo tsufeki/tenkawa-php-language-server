@@ -139,7 +139,7 @@ class GlobalsHelper
                 $coroutines[] = $this->reflectionProvider->getConst($document, $constName);
             }
 
-            $elements = array_merge(...yield $coroutines);
+            $elements = $coroutines ? array_merge(...yield $coroutines) : [];
         }
 
         return $elements;
