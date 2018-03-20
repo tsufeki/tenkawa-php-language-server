@@ -17,12 +17,17 @@ foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../autoload.php', __DI
     }
 }
 
+$opts = getopt('', ['log:', 'socket:']);
+
 // --log=null|stderr|<filepath>
 $logger = new CompositeLogger();
-$log = (getopt('', ['log:'])['log'] ?? false) ?: 'stderr';
+$log = ($opts['log'] ?? false) ?: 'stderr';
 if ($log !== 'null') {
     $logger->add(new StreamLogger($log === 'stderr' ? STDERR : fopen($log, 'a')));
 }
+
+// --socket=<unix socket or windows named pipe>
+$socketPath = $opts['socket'] ?? null;
 
 set_error_handler(function (int $severity, string $message, string $file, int $line) {
     if (!(error_reporting() & $severity)) {
@@ -47,9 +52,15 @@ $kernel->setExceptionHandler(function (\Throwable $e) use ($logger) {
     $logger->error($e->getMessage(), ['exception' => $e->getPrevious()]);
 });
 
-stream_set_blocking(STDIN, false);
-stream_set_blocking(STDOUT, false);
-$transport = new StreamTransport(STDIN, STDOUT);
+if ($socketPath) {
+    $socket = DIRECTORY_SEPARATOR === '/' ? stream_socket_client("unix://$socketPath") : fopen($socketPath, 'r+');
+    stream_set_blocking($socket, false);
+    $transport = new StreamTransport($socket, $socket);
+} else {
+    stream_set_blocking(STDIN, false);
+    stream_set_blocking(STDOUT, false);
+    $transport = new StreamTransport(STDIN, STDOUT);
+}
 $server = new Tenkawa($logger, $kernel, $plugins);
 
 $kernel->start($server->run($transport));
