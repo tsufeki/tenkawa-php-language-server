@@ -42,6 +42,18 @@ class ConstExprEvaluator
      */
     public function evaluate(string $expr, NameContext $nameContext, Document $document): \Generator
     {
+        //TODO infinite recursion guard
+        switch (strtolower($expr)) {
+            case 'true':
+            case '\\true':
+                return true;
+            case 'false':
+            case '\\false':
+                return false;
+            case 'null':
+            case '\\null':
+                return null;
+        }
         $node = yield $this->parser->parseExpr($expr);
 
         return yield $this->evaluateNode($node, $nameContext, $document);
@@ -49,7 +61,6 @@ class ConstExprEvaluator
 
     public function getConstValue(Element\Const_ $const, Document $document): \Generator
     {
-        //TODO infinite recursion guard
         return yield $this->evaluate($const->valueExpression ?? '', $const->nameContext, $document);
     }
 
