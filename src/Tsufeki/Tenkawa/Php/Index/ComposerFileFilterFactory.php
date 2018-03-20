@@ -102,11 +102,16 @@ class ComposerFileFilterFactory implements FileFilterFactory
 
         foreach (['psr-0', 'psr-4'] as $psr) {
             if (is_object($autoload->$psr ?? null)) {
-                foreach (get_object_vars($autoload->$psr) as $ns => $dir) {
-                    if (is_string($dir)) {
-                        $dir = trim($dir, '/');
-                        $dir = ($dir === '' ? '' : '/') . $dir;
-                        $acceptGlobs[] = "$packageRoot$dir/**/*";
+                foreach (get_object_vars($autoload->$psr) as $ns => $dirs) {
+                    if (!is_array($dirs)) {
+                        $dirs = [$dirs];
+                    }
+                    foreach ($dirs as $dir) {
+                        if (is_string($dir)) {
+                            $dir = trim($dir, '/');
+                            $dir = ($dir === '' ? '' : '/') . $dir;
+                            $acceptGlobs[] = "$packageRoot$dir/**/*";
+                        }
                     }
                 }
             }
