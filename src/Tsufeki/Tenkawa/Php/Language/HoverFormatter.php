@@ -86,7 +86,7 @@ class HoverFormatter
 
     private function formatConst(Const_ $const, string $class = null): string
     {
-        $s = 'const ' . ($class ? StringUtils::getShortName($class) . '::' : '') . $const->name;
+        $s = 'const ' . ($class ? StringUtils::getShortName($class) . '::' : '') . StringUtils::getShortName($const->name);
         if ($const->valueExpression !== null) {
             $s .= ' = ' . $const->valueExpression;
         }
@@ -113,7 +113,7 @@ class HoverFormatter
             $s .= '&';
         }
 
-        $s .= ($class ? StringUtils::getShortName($class) . '::' : '') . $function->name;
+        $s .= ($class ? StringUtils::getShortName($class) . '::' : '') . StringUtils::getShortName($function->name);
 
         $params = array_map([$this, 'formatParam'], $function->params);
         if ($function->callsFuncGetArgs) {
