@@ -63,7 +63,9 @@ class MemoryStorage implements WritableIndexStorage
             $this->entries[$uriString][] = $entry;
         }
 
-        $this->timestamps[$uriString] = $timestamp;
+        if (!empty($entries)) {
+            $this->timestamps[$uriString] = $timestamp;
+        }
 
         return;
         yield;
