@@ -93,7 +93,7 @@ class PhpPlugin extends Plugin
 
         $container->setClass(Parser::class, PhpParserAdapter::class);
         $container->setClass(DiagnosticsProvider::class, ParserDiagnosticsProvider::class, true);
-        $container->setClass(DiagnosticsProvider::class, PhplDiagnosticsProvider::class, true);
+        //$container->setClass(DiagnosticsProvider::class, PhplDiagnosticsProvider::class, true);
 
         if ($options['index.stubs'] ?? true) {
             $container->setClass(GlobalIndexer::class, StubsIndexer::class, true);

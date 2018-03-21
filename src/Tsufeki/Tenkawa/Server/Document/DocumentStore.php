@@ -40,7 +40,7 @@ class DocumentStore
     public function get(Uri $uri): Document
     {
         $uriString = (string)$uri;
-        if (!isset($this->documents[$uriString])) {
+        if (!isset($this->documents[$uriString])) { // TODO: windows support
             throw new DocumentNotOpenException();
         }
 
@@ -107,7 +107,7 @@ class DocumentStore
     public function getProject(Uri $rootUri): Project
     {
         $uriString = (string)$rootUri;
-        if (!isset($this->projects[$uriString])) {
+        if (!isset($this->projects[$uriString])) { // TODO: windows support
             throw new ProjectNotOpenException();
         }
 

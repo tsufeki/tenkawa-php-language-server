@@ -73,7 +73,7 @@ class PhpDocResolver extends FileTypeMapper
         $uri = Uri::fromFilesystemPath($filename);
 
         $nameContext = null;
-        if ((string)$uri === (string)$this->document->getUri()) {
+        if ((string)$uri === (string)$this->document->getUri()) { // TODO: windows support
             $nodes = $this->phpParser->parseFile($filename);
             $visitor = new PhpDocResolverVisitor($docComment);
             $nodeTraverser = new NodeTraverser();

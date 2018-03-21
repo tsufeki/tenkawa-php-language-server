@@ -35,7 +35,7 @@ class ChainedStorage implements IndexStorage
 
         /** @var IndexEntry $entry */
         foreach (yield $this->secondaryStorage->search($query) as $entry) {
-            if (!array_key_exists((string)$entry->sourceUri, $primaryFiles)) {
+            if (!array_key_exists((string)$entry->sourceUri, $primaryFiles)) { // TODO: windows support
                 $result[] = $entry;
             }
         }

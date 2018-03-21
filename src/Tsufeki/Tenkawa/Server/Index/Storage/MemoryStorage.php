@@ -22,7 +22,7 @@ class MemoryStorage implements WritableIndexStorage
     public function search(Query $query): \Generator
     {
         $result = [];
-        $entries = $query->uri === null ? $this->entries : [$this->entries[(string)$query->uri] ?? []];
+        $entries = $query->uri === null ? $this->entries : [$this->entries[(string)$query->uri] ?? []]; // TODO: windows support
 
         foreach ($entries as $fileEntries) {
             foreach ($fileEntries as $entry) {
@@ -54,7 +54,7 @@ class MemoryStorage implements WritableIndexStorage
 
     public function replaceFile(Uri $uri, array $entries, int $timestamp = null): \Generator
     {
-        $uriString = (string)$uri;
+        $uriString = (string)$uri; // TODO: windows support
         unset($this->entries[$uriString]);
         unset($this->timestamps[$uriString]);
 

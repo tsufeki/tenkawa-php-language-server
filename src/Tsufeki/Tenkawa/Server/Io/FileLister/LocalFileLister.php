@@ -31,7 +31,7 @@ class LocalFileLister implements FileLister
     {
         try {
             foreach ($iterator as $path => $info) {
-                $uri = (string)Uri::fromFilesystemPath($path);
+                $uri = (string)Uri::fromFilesystemPath($path); // TODO: windows support
                 if ($info->isDir()) {
                     if ($this->voteOnEnterDirectory($uri, $filters, $baseUri) && $iterator->hasChildren()) {
                         yield from $this->iterate($iterator->getChildren(), $filters, $baseUri);

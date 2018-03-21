@@ -56,7 +56,7 @@ class ComposerFileFilter implements FileFilter
     private function matchArray(array $globs, string $uri): bool
     {
         foreach ($globs as $glob) {
-            if (Glob::match($uri, $glob)) {
+            if (Glob::match($uri, $glob)) { // TODO: windows support
                 return true;
             }
         }

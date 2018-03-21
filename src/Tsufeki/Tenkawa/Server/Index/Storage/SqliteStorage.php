@@ -115,7 +115,7 @@ class SqliteStorage implements WritableIndexStorage
 
         if ($query->uri !== null) {
             $conditions[] = 'source_uri = :uri';
-            $params['uri'] = (string)$query->uri;
+            $params['uri'] = (string)$query->uri; // TODO: windows support
         }
 
         $fields = ['source_uri', 'category', 'key'];
@@ -169,7 +169,7 @@ class SqliteStorage implements WritableIndexStorage
 
             foreach ($entries as $entry) {
                 $stmt->execute([
-                    'sourceUri' => $uriString,
+                    'sourceUri' => $uriString, // TODO: windows support
                     'category' => $entry->category,
                     'key' => $entry->key,
                     'data' => Json::encode($entry->data),

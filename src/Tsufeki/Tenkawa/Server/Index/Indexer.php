@@ -157,7 +157,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
 
         foreach (yield $this->fileLister->list($rootUri, $fileFilters) as $uriString => list($language, $timestamp)) {
             yield;
-            if (array_key_exists($uriString, $indexedFiles) && $indexedFiles[$uriString] === $timestamp) {
+            if (array_key_exists($uriString, $indexedFiles) && $indexedFiles[$uriString] === $timestamp) { // TODO: windows support
                 unset($indexedFiles[$uriString]);
                 continue;
             }

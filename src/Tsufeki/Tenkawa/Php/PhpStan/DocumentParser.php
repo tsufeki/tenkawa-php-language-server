@@ -43,7 +43,7 @@ class DocumentParser implements Parser
             throw new ShouldNotHappenException();
         }
 
-        if ($file !== $this->document->getUri()->getFilesystemPath()) {
+        if ($file !== $this->document->getUri()->getFilesystemPath()) { // TODO: windows support
             throw new ShouldNotHappenException();
         }
 

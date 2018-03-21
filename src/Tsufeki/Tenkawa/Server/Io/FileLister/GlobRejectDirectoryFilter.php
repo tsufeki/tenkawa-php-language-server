@@ -29,7 +29,7 @@ class GlobRejectDirectoryFilter implements FileFilter
 
     public function enterDirectory(string $uri, string $baseUri): int
     {
-        if (Glob::match($uri, Path::join($baseUri, $this->glob))) {
+        if (Glob::match($uri, Path::join($baseUri, $this->glob))) { // TODO: windows support
             return self::REJECT;
         }
 

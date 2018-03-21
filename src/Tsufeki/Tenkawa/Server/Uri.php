@@ -170,7 +170,7 @@ class Uri
         if ($path === '' || $path[0] !== '/') {
             $path = '/' . $path;
         }
-        $uri->path = $path;
+        $uri->path = $path; // TODO: windows support
 
         return $uri;
     }
