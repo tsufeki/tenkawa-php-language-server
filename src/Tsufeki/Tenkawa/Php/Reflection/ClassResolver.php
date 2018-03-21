@@ -44,12 +44,25 @@ class ClassResolver
 
         if ($class->parentClass !== null) {
             $resolved->parentClass = yield $this->resolve($class->parentClass, $document);
+            $resolved->interfaces = array_merge($resolved->interfaces, $resolved->parentClass->interfaces);
         }
 
         foreach ($class->interfaces as $interfaceName) {
-            $resolved->interfaces[] = yield $this->resolve($interfaceName, $document);
+            $iface = yield $this->resolve($interfaceName, $document);
+            $resolved->interfaces[] = $iface;
+            $resolved->interfaces = array_merge($resolved->interfaces, $iface->interfaces);
         }
         $resolved->interfaces = array_filter($resolved->interfaces);
+        $interfaceNames = [];
+        $resolved->interfaces = array_values(array_filter($resolved->interfaces, function (ResolvedClassLike $iface) use (&$interfaceNames) {
+            $name = strtolower($iface->name);
+            if (isset($interfaceNames[$name])) {
+                return false;
+            }
+            $interfaceNames[$name] = 1;
+
+            return true;
+        }));
 
         foreach ($class->traits as $traitName) {
             $resolved->traits[] = yield $this->resolve($traitName, $document);
@@ -75,10 +88,6 @@ class ClassResolver
         $resolved->methods = array_replace($resolved->methods, $this->indexMembers($class->methods, true));
         $resolved->properties = array_replace($resolved->properties, $this->indexMembers($class->properties));
         $resolved->consts = array_replace($resolved->consts, $this->indexMembers($class->consts));
-
-        if ($resolved->parentClass !== null) {
-            $resolved->interfaces = array_merge($resolved->interfaces, $resolved->parentClass->interfaces);
-        }
 
         return $resolved;
     }
