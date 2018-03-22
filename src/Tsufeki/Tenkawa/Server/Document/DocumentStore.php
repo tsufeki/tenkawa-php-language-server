@@ -11,6 +11,7 @@ use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Exception\DocumentNotOpenException;
 use Tsufeki\Tenkawa\Server\Exception\ProjectNotOpenException;
 use Tsufeki\Tenkawa\Server\Uri;
+use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 
 class DocumentStore
 {
@@ -121,12 +122,15 @@ class DocumentStore
      */
     private function getProjectForUri(Uri $uri): \Generator
     {
-        if (empty($this->projects)) {
-            throw new ProjectNotOpenException();
+        $uriString = (string)$uri;
+        foreach ($this->projects as $project) {
+            $projectUriString = rtrim((string)$project->getRootUri(), '/') . '/';
+            if (StringUtils::startsWith($uriString, $projectUriString)) {
+                return $project;
+            }
         }
 
-        // TODO: multi-root workspace
-        return array_values($this->projects)[0];
+        throw new ProjectNotOpenException();
         yield;
     }
 

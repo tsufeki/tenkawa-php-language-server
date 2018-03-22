@@ -20,7 +20,11 @@ use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\InitializeResult;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ServerCapabilities;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\TextDocumentSyncKind;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\TextDocumentSyncOptions;
+use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\WorkspaceFoldersServerCapabilities;
+use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\WorkspaceServerCapabilities;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\CompletionContext;
+use Tsufeki\Tenkawa\Server\Protocol\Server\Workspace\WorkspaceFolder;
+use Tsufeki\Tenkawa\Server\Protocol\Server\Workspace\WorkspaceFoldersChangeEvent;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
 class Server extends LanguageServer
@@ -78,6 +82,8 @@ class Server extends LanguageServer
     }
 
     /**
+     * @var WorkspaceFolder[]|null
+     *
      * @resolve InitializeResult
      */
     public function initialize(
@@ -86,20 +92,37 @@ class Server extends LanguageServer
         Uri $rootUri = null,
         $initializationOptions = null,
         ClientCapabilities $capabilities = null,
-        string $trace = 'off'
+        string $trace = 'off',
+        array $workspaceFolders = null
     ): \Generator {
         $time = new Stopwatch();
 
-        $rootUri = $rootUri ?? ($rootPath ? Uri::fromFilesystemPath($rootPath) : null);
-
-        if ($rootUri !== null) {
-            yield Recoil::timeout($this->timeout, $this->documentStore->openProject($rootUri));
-        }
+        /** @var Uri[] $rootUris */
+        $rootUris = [];
 
         $serverCapabilities = new ServerCapabilities();
+
+        if ($capabilities && $capabilities->workspace && $capabilities->workspace->workspaceFolders) {
+            $serverCapabilities->workspace = new WorkspaceServerCapabilities();
+            $serverCapabilities->workspace->workspaceFolders = new WorkspaceFoldersServerCapabilities();
+            $serverCapabilities->workspace->workspaceFolders->supported = true;
+            $serverCapabilities->workspace->workspaceFolders->changeNotifications = true;
+
+            /** @var WorkspaceFolder $workspaceFolder */
+            foreach ((array)$workspaceFolders as $workspaceFolder) {
+                $rootUris[] = $workspaceFolder->uri;
+            }
+        } else {
+            $rootUri = $rootUri ?? ($rootPath ? Uri::fromFilesystemPath($rootPath) : null);
+            if ($rootUri !== null) {
+                $rootUris[] = $rootUri;
+            }
+        }
+
         $serverCapabilities->textDocumentSync = new TextDocumentSyncOptions();
         $serverCapabilities->textDocumentSync->openClose = true;
         $serverCapabilities->textDocumentSync->change = TextDocumentSyncKind::FULL;
+
         $serverCapabilities->hoverProvider = $this->hoverAggregator->hasProviders();
         if ($this->completionAggregator->hasProviders()) {
             $serverCapabilities->completionProvider = new CompletionOptions();
@@ -110,6 +133,12 @@ class Server extends LanguageServer
 
         $result = new InitializeResult();
         $result->capabilities = $serverCapabilities;
+
+        yield Recoil::timeout($this->timeout, array_map(function (Uri $uri) {
+            $this->logger->debug("Opening project $uri");
+
+            return $this->documentStore->openProject($uri);
+        }, $rootUris));
 
         $this->logger->debug(__FUNCTION__ . " [$time]");
 
@@ -131,6 +160,26 @@ class Server extends LanguageServer
 
         exit(0);
         yield;
+    }
+
+    public function didChangeWorkspaceFolders(WorkspaceFoldersChangeEvent $event): \Generator
+    {
+        $time = new Stopwatch();
+
+        $coroutines = [];
+        foreach ($event->added as $workspaceFolder) {
+            $this->logger->debug("Opening project $workspaceFolder->uri");
+            $coroutines[] = $this->documentStore->openProject($workspaceFolder->uri);
+        }
+        foreach ($event->removed as $workspaceFolder) {
+            $this->logger->debug("Closing project $workspaceFolder->uri");
+            $project = $this->documentStore->getProject($workspaceFolder->uri);
+            $coroutines[] = $this->documentStore->closeProject($project);
+        }
+
+        yield Recoil::timeout($this->timeout, $coroutines);
+
+        $this->logger->debug(__FUNCTION__ . " [$time]");
     }
 
     public function didOpenTextDocument(TextDocumentItem $textDocument): \Generator

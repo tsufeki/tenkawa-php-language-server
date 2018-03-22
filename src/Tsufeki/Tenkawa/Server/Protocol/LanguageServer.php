@@ -16,6 +16,8 @@ use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\CompletionList;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\Hover;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\SymbolInformation;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\TextDocumentContentChangeEvent;
+use Tsufeki\Tenkawa\Server\Protocol\Server\Workspace\WorkspaceFolder;
+use Tsufeki\Tenkawa\Server\Protocol\Server\Workspace\WorkspaceFoldersChangeEvent;
 use Tsufeki\Tenkawa\Server\Uri;
 
 abstract class LanguageServer implements MethodProvider
@@ -36,6 +38,7 @@ abstract class LanguageServer implements MethodProvider
     {
         return [
             'exit' => 'exit',
+            'workspace/didChangeWorkspaceFolders' => 'didChangeWorkspaceFolders',
             'textDocument/didOpen' => 'didOpenTextDocument',
             'textDocument/didChange' => 'didChangeTextDocument',
             'textDocument/didSave' => 'didSaveTextDocument',
@@ -44,6 +47,8 @@ abstract class LanguageServer implements MethodProvider
     }
 
     /**
+     * @var WorkspaceFolder[]|null
+     *
      * @resolve InitializeResult
      */
     abstract public function initialize(
@@ -52,7 +57,8 @@ abstract class LanguageServer implements MethodProvider
         Uri $rootUri = null,
         $initializationOptions = null,
         ClientCapabilities $capabilities = null,
-        string $trace = 'off'
+        string $trace = 'off',
+        array $workspaceFolders = null
     ): \Generator;
 
     /**
@@ -70,6 +76,18 @@ abstract class LanguageServer implements MethodProvider
      * been received before; otherwise with error code 1.
      */
     abstract public function exit(): \Generator;
+
+    /**
+     * The workspace/didChangeWorkspaceFolders notification is sent from the
+     * client to the server to inform the server about workspace folder
+     * configuration changes.
+     *
+     * The notification is sent by default if both
+     * ServerCapabilities/workspace/workspaceFolders and
+     * ClientCapabilities/workapce/workspaceFolders are true; or if the server
+     * has registered to receive this notification first.
+     */
+    abstract public function didChangeWorkspaceFolders(WorkspaceFoldersChangeEvent $event): \Generator;
 
     /**
      * The document open notification is sent from the client to the server to

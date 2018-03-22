@@ -38,4 +38,11 @@ class ServerCapabilities
      * @var bool
      */
     public $documentSymbolProvider = false;
+
+    /**
+     * Workspace specific server capabilities.
+     *
+     * @var WorkspaceServerCapabilities|null
+     */
+    public $workspace;
 }
