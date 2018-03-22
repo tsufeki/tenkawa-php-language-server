@@ -93,7 +93,7 @@ class Server extends LanguageServer
         $initializationOptions = null,
         ClientCapabilities $capabilities = null,
         string $trace = 'off',
-        array $workspaceFolders = null
+        $workspaceFolders = null
     ): \Generator {
         $time = new Stopwatch();
 

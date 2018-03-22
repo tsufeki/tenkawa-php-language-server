@@ -58,7 +58,7 @@ abstract class LanguageServer implements MethodProvider
         $initializationOptions = null,
         ClientCapabilities $capabilities = null,
         string $trace = 'off',
-        array $workspaceFolders = null
+        $workspaceFolders = null
     ): \Generator;
 
     /**
