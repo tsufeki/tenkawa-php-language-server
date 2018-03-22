@@ -82,7 +82,7 @@ class Server extends LanguageServer
     }
 
     /**
-     * @var WorkspaceFolder[]|null
+     * @param WorkspaceFolder[]|null $workspaceFolders
      *
      * @resolve InitializeResult
      */

@@ -47,7 +47,7 @@ abstract class LanguageServer implements MethodProvider
     }
 
     /**
-     * @var WorkspaceFolder[]|null
+     * @param WorkspaceFolder[]|null $workspaceFolders
      *
      * @resolve InitializeResult
      */
