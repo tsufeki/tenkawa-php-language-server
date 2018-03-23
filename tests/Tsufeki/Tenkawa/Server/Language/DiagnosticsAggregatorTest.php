@@ -5,7 +5,6 @@ namespace Tests\Tsufeki\Tenkawa\Server\Language;
 use PHPUnit\Framework\TestCase;
 use Recoil\React\ReactKernel;
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Document\Project;
 use Tsufeki\Tenkawa\Server\Language\DiagnosticsAggregator;
 use Tsufeki\Tenkawa\Server\Language\DiagnosticsProvider;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Diagnostic;
@@ -19,8 +18,7 @@ class DiagnosticsAggregatorTest extends TestCase
 {
     public function test()
     {
-        $project = new Project(Uri::fromString('file:///'));
-        $document = new Document(Uri::fromString('file:///foo'), 'php', $project);
+        $document = new Document(Uri::fromString('file:///foo'), 'php');
 
         $diags = [];
         $providers = [];

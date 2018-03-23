@@ -13,11 +13,6 @@ class Project
      */
     private $rootUri;
 
-    /**
-     * @var Document[]
-     */
-    private $documents = [];
-
     public function __construct(Uri $rootUri)
     {
         $this->rootUri = $rootUri;
@@ -26,32 +21,5 @@ class Project
     public function getRootUri(): Uri
     {
         return $this->rootUri;
-    }
-
-    /**
-     * @return Document[]
-     */
-    public function getDocuments(): array
-    {
-        return $this->documents;
-    }
-
-    public function addDocument(Document $document): self
-    {
-        $this->documents[] = $document;
-
-        return $this;
-    }
-
-    public function removeDocument(Document $document): self
-    {
-        foreach ($this->documents as $i => $d) {
-            if ($d === $document) {
-                unset($this->documents[$i]);
-                break;
-            }
-        }
-
-        return $this;
     }
 }

@@ -166,7 +166,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
                 unset($indexedFiles[$uriString]);
                 $uri = Uri::fromString($uriString);
                 $text = yield $this->fileReader->read($uri);
-                $document = yield $this->documentStore->load($uri, $language, $text, $project);
+                $document = yield $this->documentStore->load($uri, $language, $text);
                 $processedFilesCount++;
 
                 yield $this->indexDocument($document, $indexStorage, $timestamp);
@@ -226,15 +226,23 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
 
     public function onChange(Document $document): \Generator
     {
+        /** @var Project $project */
+        $project = yield $this->documentStore->getProjectForDocument($document);
+
         /** @var WritableIndexStorage $openFilesIndex */
-        $openFilesIndex = $document->getProject()->get('index.open_files');
+        $openFilesIndex = $project->get('index.open_files');
+
         yield $this->indexDocument($document, $openFilesIndex, $document->getVersion());
     }
 
     public function onClose(Document $document): \Generator
     {
+        /** @var Project $project */
+        $project = yield $this->documentStore->getProjectForDocument($document);
+
         /** @var WritableIndexStorage $openFilesIndex */
-        $openFilesIndex = $document->getProject()->get('index.open_files');
+        $openFilesIndex = $project->get('index.open_files');
+
         yield $this->clearDocument($document->getUri(), $openFilesIndex);
     }
 }

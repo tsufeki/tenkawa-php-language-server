@@ -28,16 +28,10 @@ class Document
      */
     private $text = '';
 
-    /**
-     * @var Project
-     */
-    private $project;
-
-    public function __construct(Uri $uri, string $language, Project $project)
+    public function __construct(Uri $uri, string $language)
     {
         $this->uri = $uri;
         $this->language = $language;
-        $this->project = $project;
     }
 
     public function getUri(): Uri
@@ -61,11 +55,6 @@ class Document
     public function getText(): string
     {
         return $this->text;
-    }
-
-    public function getProject(): Project
-    {
-        return $this->project;
     }
 
     public function update(string $text, int $version = null): self

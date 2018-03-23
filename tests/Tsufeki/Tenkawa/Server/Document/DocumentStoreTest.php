@@ -48,7 +48,6 @@ class DocumentStoreTest extends TestCase
             $this->assertSame('php', $document->getLanguage());
             $this->assertSame('<?php', $document->getText());
             $this->assertSame(42, $document->getVersion());
-            $this->assertSame($project, $document->getProject());
 
             $this->assertSame($document, $store->get($uri));
 
@@ -129,21 +128,6 @@ class DocumentStoreTest extends TestCase
             $this->assertSame('php', $document->getLanguage());
             $this->assertSame('<?php', $document->getText());
             $this->assertNull($document->getVersion());
-            $this->assertSame($project, $document->getProject());
-        });
-    }
-
-    public function test_document_open_without_project()
-    {
-        $this->expectException(ProjectNotOpenException::class);
-
-        ReactKernel::start(function () {
-            $dispatcher = $this->createMock(EventDispatcher::class);
-
-            $uri = Uri::fromString('file:///foo');
-            $store = new DocumentStore($dispatcher);
-
-            $document = yield $store->open($uri, 'php', '<?php', 42);
         });
     }
 

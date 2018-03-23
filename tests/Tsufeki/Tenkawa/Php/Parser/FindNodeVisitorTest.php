@@ -13,7 +13,6 @@ use PhpParser\NodeTraverser;
 use PHPUnit\Framework\TestCase;
 use Tsufeki\Tenkawa\Php\Parser\FindNodeVisitor;
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Document\Project;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Position;
 use Tsufeki\Tenkawa\Server\Uri;
 
@@ -37,8 +36,7 @@ class FindNodeVisitorTest extends TestCase
         $parser = (new LenientParserFactory())->create(LenientParserFactory::ONLY_PHP7, $lexer);
         $nodes = $parser->parse($source) ?? [];
 
-        $project = new Project(Uri::fromString('file:///'));
-        $document = new Document(Uri::fromString('file:///foo'), 'php', $project);
+        $document = new Document(Uri::fromString('file:///foo'), 'php');
         $document->update($source);
 
         $visitor = new FindNodeVisitor($document, new Position($line, $col), $stickToRightEnd);

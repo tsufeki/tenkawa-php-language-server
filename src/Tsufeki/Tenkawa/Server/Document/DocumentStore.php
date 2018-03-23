@@ -53,10 +53,8 @@ class DocumentStore
      */
     public function open(Uri $uri, string $language, string $text, int $version = null): \Generator
     {
-        $project = yield $this->getProjectForUri($uri);
-        $document = new Document($uri, $language, $project);
+        $document = new Document($uri, $language);
         $document->update($text, $version);
-        $project->addDocument($document);
         $uriString = (string)$document->getUri();
         $this->documents[$uriString] = $document;
 
@@ -70,13 +68,13 @@ class DocumentStore
      *
      * @resolve Document
      */
-    public function load(Uri $uri, string $language, string $text, Project $project = null): \Generator
+    public function load(Uri $uri, string $language, string $text): \Generator
     {
-        $project = $project ?? yield $this->getProjectForUri($uri);
-        $document = new Document($uri, $language, $project);
+        $document = new Document($uri, $language);
         $document->update($text);
 
         return $document;
+        yield;
     }
 
     public function update(Document $document, string $text, int $version = null): \Generator
@@ -96,7 +94,6 @@ class DocumentStore
 
         $uriString = (string)$document->getUri();
         unset($this->documents[$uriString]);
-        $document->getProject()->removeDocument($document);
         $document->close();
 
         yield $this->eventDispatcher->dispatch(OnClose::class, $document);
@@ -120,9 +117,9 @@ class DocumentStore
      *
      * @throws ProjectNotOpenException
      */
-    private function getProjectForUri(Uri $uri): \Generator
+    public function getProjectForDocument(Document $document): \Generator
     {
-        $uriString = (string)$uri;
+        $uriString = (string)$document->getUri();
         foreach ($this->projects as $project) {
             $projectUriString = rtrim((string)$project->getRootUri(), '/') . '/';
             if (StringUtils::startsWith($uriString, $projectUriString)) {

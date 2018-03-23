@@ -6,7 +6,6 @@ use PHPUnit\Framework\TestCase;
 use Recoil\React\ReactKernel;
 use Tsufeki\Tenkawa\Php\Language\PhplDiagnosticsProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Document\Project;
 use Tsufeki\Tenkawa\Server\ProcessRunner\ReactProcessRunner;
 use Tsufeki\Tenkawa\Server\Protocol\Common\DiagnosticSeverity;
 use Tsufeki\Tenkawa\Server\Uri;
@@ -18,8 +17,7 @@ class PhplDiagnosticsProviderTest extends TestCase
 {
     public function test()
     {
-        $project = new Project(Uri::fromString('file:///'));
-        $document = new Document(Uri::fromString('file:///foo'), 'php', $project);
+        $document = new Document(Uri::fromString('file:///foo'), 'php');
         $document->update('<?php foo(');
         $processRunner = new ReactProcessRunner();
         $provider = new PhplDiagnosticsProvider($processRunner);

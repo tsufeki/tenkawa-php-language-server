@@ -11,7 +11,6 @@ use PHPUnit\Framework\TestCase;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionVisitor;
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Document\Project;
 use Tsufeki\Tenkawa\Server\Uri;
 
 /**
@@ -55,8 +54,7 @@ class ReflectionVisitorTest extends TestCase
         $nodeTraverser->addVisitor(new NameResolver());
         $nodeTraverser->traverse($nodes);
 
-        $project = new Project(Uri::fromString('file:///'));
-        $document = new Document(Uri::fromString('file:///foo'), 'php', $project);
+        $document = new Document(Uri::fromString('file:///foo'), 'php');
         $document->update($source);
 
         $prettyPrinter = new Standard();

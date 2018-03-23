@@ -4,7 +4,6 @@ namespace Tests\Tsufeki\Tenkawa\Server\Utils;
 
 use PHPUnit\Framework\TestCase;
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Document\Project;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Position;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Range;
 use Tsufeki\Tenkawa\Server\Uri;
@@ -20,8 +19,7 @@ class PositionUtilsTest extends TestCase
      */
     public function test_position_from_offset($line, $column, $text, $offset)
     {
-        $project = new Project(Uri::fromString('file:///'));
-        $document = new Document(Uri::fromString('file:///foo'), 'php', $project);
+        $document = new Document(Uri::fromString('file:///foo'), 'php');
         $document->update($text);
 
         $pos = PositionUtils::positionFromOffset($offset, $document);
@@ -74,8 +72,7 @@ class PositionUtilsTest extends TestCase
      */
     public function test_offset_from_position($line, $column, $text, $expectedOffset)
     {
-        $project = new Project(Uri::fromString('file:///'));
-        $document = new Document(Uri::fromString('file:///foo'), 'php', $project);
+        $document = new Document(Uri::fromString('file:///foo'), 'php');
         $document->update($text);
 
         $offset = PositionUtils::offsetFromPosition(new Position($line, $column), $document);
@@ -121,8 +118,7 @@ class PositionUtilsTest extends TestCase
 
     public function test_range_from_node_attrs()
     {
-        $project = new Project(Uri::fromString('file:///'));
-        $document = new Document(Uri::fromString('file:///foo'), 'php', $project);
+        $document = new Document(Uri::fromString('file:///foo'), 'php');
         $document->update("foo\nbar");
 
         $range = PositionUtils::rangeFromNodeAttrs([
