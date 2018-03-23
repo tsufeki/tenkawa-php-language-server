@@ -137,6 +137,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
 
     public function indexProject(Project $project, WritableIndexStorage $indexStorage): \Generator
     {
+        $rootUri = $project->getRootUri();
+        if ($rootUri->getScheme() !== 'file' || empty($this->indexDataProviders)) {
+            return;
+        }
+
         $fileFilters = array_merge(
             $this->fileFilters,
             yield array_map(function (FileFilterFactory $factory) use ($project) {
@@ -144,11 +149,10 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnPr
             }, $this->fileFilterFactories)
         );
 
-        if (empty($this->indexDataProviders) || empty($fileFilters)) {
+        if (empty($fileFilters)) {
             return;
         }
 
-        $rootUri = $project->getRootUri();
         $stopwatch = new Stopwatch();
         $this->logger->info("Project indexing started: $rootUri");
 

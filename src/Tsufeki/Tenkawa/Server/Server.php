@@ -134,6 +134,7 @@ class Server extends LanguageServer
         $result = new InitializeResult();
         $result->capabilities = $serverCapabilities;
 
+        yield $this->documentStore->openDefaultProject();
         yield Recoil::timeout($this->timeout, array_map(function (Uri $uri) {
             $this->logger->debug("Opening project $uri");
 

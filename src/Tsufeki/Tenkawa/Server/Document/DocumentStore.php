@@ -26,6 +26,11 @@ class DocumentStore
     private $projects = [];
 
     /**
+     * @var Project|null
+     */
+    private $defaultProject;
+
+    /**
      * @var EventDispatcher
      */
     private $eventDispatcher;
@@ -122,15 +127,22 @@ class DocumentStore
         $uriString = (string)$document->getUri();
         foreach ($this->projects as $project) {
             $projectUriString = rtrim((string)$project->getRootUri(), '/') . '/';
-            if (StringUtils::startsWith($uriString, $projectUriString)) {
+            if (StringUtils::startsWith($uriString, $projectUriString)) { // TODO: windows support
                 return $project;
             }
         }
 
-        throw new ProjectNotOpenException();
+        if ($this->defaultProject === null) {
+            throw new ProjectNotOpenException();
+        }
+
+        return $this->defaultProject;
         yield;
     }
 
+    /**
+     * @resolve Project
+     */
     public function openProject(Uri $rootUri): \Generator
     {
         $project = new Project($rootUri);
@@ -140,6 +152,14 @@ class DocumentStore
         yield $this->eventDispatcher->dispatch(OnProjectOpen::class, $project);
 
         return $project;
+    }
+
+    /**
+     * @resolve Project
+     */
+    public function openDefaultProject(): \Generator
+    {
+        return $this->defaultProject = yield $this->openProject(Uri::fromString('about:default-project'));
     }
 
     public function closeProject(Project $project): \Generator
