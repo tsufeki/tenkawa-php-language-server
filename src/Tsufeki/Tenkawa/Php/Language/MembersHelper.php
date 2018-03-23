@@ -242,6 +242,7 @@ class MembersHelper
      */
     private function filterAccesibleMembers(array $members, NameContext $nameContext, Document $document): \Generator
     {
+        /** @var string[] $parentClassNames */
         $parentClassNames = [];
         if ($nameContext->class !== null) {
             /** @var ResolvedClassLike $resolveClass */
@@ -250,7 +251,7 @@ class MembersHelper
                 $parentClassNames[] = strtolower($resolvedClass->name);
                 $resolvedClass = $resolvedClass->parentClass;
             }
-            $parentClassNames[] = $parentClassNames ?: [strtolower($nameContext->class)];
+            $parentClassNames = $parentClassNames ?: [strtolower($nameContext->class)];
         }
 
         return array_values(array_filter($members, function ($element) use ($parentClassNames) {
