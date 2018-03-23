@@ -74,6 +74,8 @@ class MembersCompletionProvider implements CompletionProvider
                 $item->insertText .= '(';
             }
             if ($element instanceof Property) {
+                $item->filterText = $item->label;
+                $item->sortText = $item->label;
                 $item->label = '$' . $item->label;
                 if ($element->static) {
                     if ($nodes[0] instanceof Expr\ClassConstFetch) {
