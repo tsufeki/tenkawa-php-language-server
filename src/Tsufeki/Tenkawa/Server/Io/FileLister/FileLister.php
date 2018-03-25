@@ -8,8 +8,9 @@ interface FileLister
 {
     /**
      * @param FileFilter[] $filters
+     * @param Uri|null     $baseUri Base directory, passed to filters.
      *
      * @resolve \Iterator string $uri => [string $fileType, int $mtime]
      */
-    public function list(Uri $uri, array $filters): \Generator;
+    public function list(Uri $uri, array $filters, Uri $baseUri = null): \Generator;
 }

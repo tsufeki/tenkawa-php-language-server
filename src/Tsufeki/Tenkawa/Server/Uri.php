@@ -3,6 +3,8 @@
 namespace Tsufeki\Tenkawa\Server;
 
 use Tsufeki\Tenkawa\Server\Exception\UriException;
+use Tsufeki\Tenkawa\Server\Utils\Platform;
+use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 
 class Uri
 {
@@ -124,6 +126,13 @@ class Uri
             throw new UriException("Unsupported authority in a file URI: $this->authority");
         }
 
+        if (Platform::isWindows()) {
+            $path = ltrim((string)$this->path, '/');
+            $path = str_replace('/', '\\', $path);
+
+            return $path;
+        }
+
         return $this->path ?? '/';
     }
 
@@ -167,11 +176,60 @@ class Uri
         $uri = new self();
         $uri->scheme = 'file';
 
+        if (Platform::isWindows()) {
+            $path = str_replace('\\', '/', $path);
+        }
+
         if ($path === '' || $path[0] !== '/') {
             $path = '/' . $path;
         }
-        $uri->path = $path; // TODO: windows support
+        $uri->path = $path;
 
         return $uri;
+    }
+
+    public function equals(self $other): bool
+    {
+        return $this->getNormalized() === $other->getNormalized();
+    }
+
+    /**
+     * Return normalized form of the URI, which should be suitable to use as array key.
+     */
+    public function getNormalized(): string
+    {
+        $normalized = clone $this;
+
+        if ($normalized->scheme === 'file') {
+            if ($normalized->authority !== null && strtolower($normalized->authority) === 'localhost') {
+                $normalized->authority = null;
+            }
+
+            if ($normalized->path !== null) {
+                $normalized->path = rtrim($normalized->path, '/');
+            } else {
+                $normalized->path = '/';
+            }
+
+            if (Platform::isWindows()) {
+                $normalized->path = strtolower(ltrim($normalized->path, '/'));
+            }
+        }
+
+        return (string)$normalized;
+    }
+
+    public function isParentOf(self $other): bool
+    {
+        if (!in_array($this->scheme, ['file', null], true) || !in_array($other->scheme, ['file', null], true)) {
+            return $this->equals($other);
+        }
+
+        $thisNormalized = $this->getNormalized();
+        $otherNormalized = $other->getNormalized();
+
+        $thisNormalized .= '/';
+
+        return StringUtils::startsWith($otherNormalized, $thisNormalized);
     }
 }

@@ -25,7 +25,7 @@ class GlobFileFilter implements FileFilter
 
     public function filter(string $uri, string $baseUri): int
     {
-        if (Glob::match($uri, Path::join($baseUri, $this->glob))) { // TODO: windows support
+        if (Glob::match($uri, Path::join($baseUri, $this->glob))) {
             return self::ACCEPT;
         }
 

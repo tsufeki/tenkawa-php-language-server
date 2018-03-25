@@ -5,6 +5,9 @@ namespace Tsufeki\Tenkawa\Server;
 use Psr\Log\LoggerInterface;
 use Recoil\Recoil;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
+use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
+use Tsufeki\Tenkawa\Server\Event\OnInit;
+use Tsufeki\Tenkawa\Server\Event\OnShutdown;
 use Tsufeki\Tenkawa\Server\Language\CompletionAggregator;
 use Tsufeki\Tenkawa\Server\Language\DocumentSymbolsAggregator;
 use Tsufeki\Tenkawa\Server\Language\GoToDefinitionAggregator;
@@ -29,6 +32,11 @@ use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
 class Server extends LanguageServer
 {
+    /**
+     * @var EventDispatcher
+     */
+    private $eventDispatcher;
+
     /**
      * @var DocumentStore
      */
@@ -65,6 +73,7 @@ class Server extends LanguageServer
     private $timeout;
 
     public function __construct(
+        EventDispatcher $eventDispatcher,
         DocumentStore $documentStore,
         CompletionAggregator $completionAggregator,
         HoverAggregator $hoverAggregator,
@@ -72,6 +81,7 @@ class Server extends LanguageServer
         DocumentSymbolsAggregator $documentSymbolsAggregator,
         LoggerInterface $logger
     ) {
+        $this->eventDispatcher = $eventDispatcher;
         $this->documentStore = $documentStore;
         $this->completionAggregator = $completionAggregator;
         $this->hoverAggregator = $hoverAggregator;
@@ -141,6 +151,8 @@ class Server extends LanguageServer
             return $this->documentStore->openProject($uri);
         }, $rootUris));
 
+        yield $this->eventDispatcher->dispatch(OnInit::class, $capabilities);
+
         $this->logger->debug(__FUNCTION__ . " [$time]");
 
         return $result;
@@ -150,6 +162,7 @@ class Server extends LanguageServer
     {
         $time = new Stopwatch();
 
+        yield $this->eventDispatcher->dispatch(OnShutdown::class);
         yield Recoil::timeout($this->timeout, $this->documentStore->closeAll());
 
         $this->logger->debug(__FUNCTION__ . " [$time]");

@@ -14,7 +14,9 @@ interface IndexStorage
     public function search(Query $query): \Generator;
 
     /**
+     * @param Uri $filterUri Filter results to this file/directory.
+     *
      * @resolve array<string,int|null> string URI => int timestamp
      */
-    public function getFileTimestamps(): \Generator;
+    public function getFileTimestamps(Uri $filterUri = null): \Generator;
 }

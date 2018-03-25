@@ -7,6 +7,7 @@ use PHPStan\ShouldNotHappenException;
 use Tsufeki\Tenkawa\Php\Parser\Ast;
 use Tsufeki\Tenkawa\Php\Parser\Parser as TenkawaParser;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
 
 class DocumentParser implements Parser
@@ -43,7 +44,7 @@ class DocumentParser implements Parser
             throw new ShouldNotHappenException();
         }
 
-        if ($file !== $this->document->getUri()->getFilesystemPath()) { // TODO: windows support
+        if (!$this->document->getUri()->equals(Uri::fromFilesystemPath($file))) {
             throw new ShouldNotHappenException();
         }
 

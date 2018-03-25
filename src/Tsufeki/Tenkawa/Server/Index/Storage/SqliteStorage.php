@@ -6,6 +6,7 @@ use Tsufeki\BlancheJsonRpc\Json;
 use Tsufeki\Tenkawa\Server\Index\IndexEntry;
 use Tsufeki\Tenkawa\Server\Index\Query;
 use Tsufeki\Tenkawa\Server\Uri;
+use Tsufeki\Tenkawa\Server\Utils\Platform;
 use Webmozart\PathUtil\Path;
 
 class SqliteStorage implements WritableIndexStorage
@@ -114,8 +115,12 @@ class SqliteStorage implements WritableIndexStorage
         }
 
         if ($query->uri !== null) {
-            $conditions[] = 'source_uri = :uri';
-            $params['uri'] = (string)$query->uri; // TODO: windows support
+            if (Platform::isWindows()) {
+                $conditions[] = 'lower(source_uri) = :uri';
+            } else {
+                $conditions[] = 'source_uri = :uri';
+            }
+            $params['uri'] = $query->uri->getNormalized();
         }
 
         $fields = ['source_uri', 'category', 'key'];
@@ -151,15 +156,18 @@ class SqliteStorage implements WritableIndexStorage
         $this->getPdo()->beginTransaction();
 
         try {
-            $uriString = (string)$uri;
-
-            $stmt = $this->getPdo()->prepare('
+            if (Platform::isWindows()) {
+                $condition = 'lower(source_uri) = :sourceUri';
+            } else {
+                $condition = 'source_uri = :sourceUri';
+            }
+            $stmt = $this->getPdo()->prepare("
                 delete
                     from tenkawa_index
-                    where source_uri = :sourceUri
-            ');
+                    where $condition
+            ");
 
-            $stmt->execute(['sourceUri' => $uriString]);
+            $stmt->execute(['sourceUri' => $uri->getNormalized()]);
 
             $stmt = $this->getPdo()->prepare('
                 insert
@@ -169,7 +177,7 @@ class SqliteStorage implements WritableIndexStorage
 
             foreach ($entries as $entry) {
                 $stmt->execute([
-                    'sourceUri' => $uriString, // TODO: windows support
+                    'sourceUri' => (string)$uri,
                     'category' => $entry->category,
                     'key' => $entry->key,
                     'data' => Json::encode($entry->data),
@@ -188,18 +196,33 @@ class SqliteStorage implements WritableIndexStorage
         yield;
     }
 
-    public function getFileTimestamps(): \Generator
+    public function getFileTimestamps(Uri $filterUri = null): \Generator
     {
-        $stmt = $this->getPdo()->prepare('
-            select source_uri, min(timestamp) as timestamp
-                from tenkawa_index
-                group by source_uri
-        ');
+        $params = [];
 
-        $stmt->execute();
+        if (Platform::isWindows()) {
+            $uriColumn = 'lower(source_uri)';
+        } else {
+            $uriColumn = 'source_uri';
+        }
+
+        $sql = "
+            select $uriColumn as uri, min(timestamp) as timestamp
+                from tenkawa_index
+                group by uri
+        ";
+
+        if ($filterUri !== null) {
+            $sql .= " having uri = :filterUri or uri glob :filterUri||'/*'";
+            $params['filterUri'] = $filterUri->getNormalized();
+        }
+
+        $stmt = $this->getPdo()->prepare($sql);
+        $stmt->execute($params);
+
         $result = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $result[$row['source_uri']] = (int)$row['timestamp'] ?: null;
+            $result[$row['uri']] = (int)$row['timestamp'] ?: null;
         }
 
         return $result;

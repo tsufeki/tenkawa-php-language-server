@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Server\Index\Storage;
 
 use Tsufeki\Tenkawa\Server\Index\Query;
+use Tsufeki\Tenkawa\Server\Uri;
 
 /**
  * Index data merged from other storage objects.
@@ -33,12 +34,12 @@ class MergedStorage implements IndexStorage
         return $result;
     }
 
-    public function getFileTimestamps(): \Generator
+    public function getFileTimestamps(Uri $filterUri = null): \Generator
     {
         $result = [];
 
         foreach ($this->innerStorage as $storage) {
-            $result = array_merge($result, yield $storage->getFileTimestamps());
+            $result = array_merge($result, yield $storage->getFileTimestamps($filterUri));
         }
 
         return $result;

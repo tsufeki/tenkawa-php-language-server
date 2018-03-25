@@ -8,6 +8,7 @@ use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
 use Tsufeki\Tenkawa\Server\PluginFinder;
 use Tsufeki\Tenkawa\Server\Tenkawa;
 use Tsufeki\Tenkawa\Server\Transport\StreamTransport;
+use Tsufeki\Tenkawa\Server\Utils\Platform;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
 
 foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
@@ -53,7 +54,7 @@ $kernel->setExceptionHandler(function (\Throwable $e) use ($logger) {
 });
 
 if ($socketPath) {
-    $socket = DIRECTORY_SEPARATOR === '/' ? stream_socket_client("unix://$socketPath") : fopen($socketPath, 'r+');
+    $socket = !Platform::isWindows() ? stream_socket_client("unix://$socketPath") : fopen($socketPath, 'r+');
     stream_set_blocking($socket, false);
     $transport = new StreamTransport($socket, $socket);
 } else {

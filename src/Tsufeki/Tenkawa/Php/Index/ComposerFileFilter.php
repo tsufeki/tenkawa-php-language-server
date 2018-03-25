@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Php\Index;
 
 use Tsufeki\Tenkawa\Server\Io\FileLister\FileFilter;
+use Tsufeki\Tenkawa\Server\Uri;
 use Webmozart\Glob\Glob;
 
 class ComposerFileFilter implements FileFilter
@@ -29,9 +30,16 @@ class ComposerFileFilter implements FileFilter
      */
     public function __construct(array $rejectGlobs, array $acceptGlobs, array $forceRejectGlobs)
     {
-        $this->rejectGlobs = array_unique($rejectGlobs);
-        $this->acceptGlobs = array_unique($acceptGlobs);
-        $this->forceRejectGlobs = array_unique($forceRejectGlobs);
+        $this->rejectGlobs = $this->normalize($rejectGlobs);
+        $this->acceptGlobs = $this->normalize($acceptGlobs);
+        $this->forceRejectGlobs = $this->normalize($forceRejectGlobs);
+    }
+
+    private function normalize(array $globs): array
+    {
+        return array_map(function ($glob) {
+            return Uri::fromString($glob)->getNormalized();
+        }, array_unique($globs));
     }
 
     public function filter(string $uri, string $baseUri): int
@@ -56,7 +64,7 @@ class ComposerFileFilter implements FileFilter
     private function matchArray(array $globs, string $uri): bool
     {
         foreach ($globs as $glob) {
-            if (Glob::match($uri, $glob)) { // TODO: windows support
+            if (Glob::match($uri, $glob)) {
                 return true;
             }
         }

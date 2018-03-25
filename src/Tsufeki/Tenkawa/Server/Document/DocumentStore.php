@@ -11,7 +11,6 @@ use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Exception\DocumentNotOpenException;
 use Tsufeki\Tenkawa\Server\Exception\ProjectNotOpenException;
 use Tsufeki\Tenkawa\Server\Uri;
-use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 
 class DocumentStore
 {
@@ -45,8 +44,8 @@ class DocumentStore
      */
     public function get(Uri $uri): Document
     {
-        $uriString = (string)$uri;
-        if (!isset($this->documents[$uriString])) { // TODO: windows support
+        $uriString = $uri->getNormalized();
+        if (!isset($this->documents[$uriString])) {
             throw new DocumentNotOpenException();
         }
 
@@ -60,7 +59,7 @@ class DocumentStore
     {
         $document = new Document($uri, $language);
         $document->update($text, $version);
-        $uriString = (string)$document->getUri();
+        $uriString = $document->getUri()->getNormalized();
         $this->documents[$uriString] = $document;
 
         yield $this->eventDispatcher->dispatch(OnOpen::class, $document);
@@ -97,7 +96,7 @@ class DocumentStore
         // Check if open
         $this->get($document->getUri());
 
-        $uriString = (string)$document->getUri();
+        $uriString = $document->getUri()->getNormalized();
         unset($this->documents[$uriString]);
         $document->close();
 
@@ -109,8 +108,8 @@ class DocumentStore
      */
     public function getProject(Uri $rootUri): Project
     {
-        $uriString = (string)$rootUri;
-        if (!isset($this->projects[$uriString])) { // TODO: windows support
+        $uriString = $rootUri->getNormalized();
+        if (!isset($this->projects[$uriString])) {
             throw new ProjectNotOpenException();
         }
 
@@ -124,19 +123,45 @@ class DocumentStore
      */
     public function getProjectForDocument(Document $document): \Generator
     {
-        $uriString = (string)$document->getUri();
-        foreach ($this->projects as $project) {
-            $projectUriString = rtrim((string)$project->getRootUri(), '/') . '/';
-            if (StringUtils::startsWith($uriString, $projectUriString)) { // TODO: windows support
-                return $project;
-            }
-        }
+        $projects = yield $this->getProjectsForUri($document->getUri());
+        $project = $projects[0] ?? $this->defaultProject;
 
-        if ($this->defaultProject === null) {
+        if ($project === null) {
             throw new ProjectNotOpenException();
         }
 
-        return $this->defaultProject;
+        return $project;
+    }
+
+    /**
+     * @resolve Project[]
+     */
+    public function getProjectsForUri(Uri $uri): \Generator
+    {
+        $projects = [];
+        foreach ($this->projects as $project) {
+            if ($project->getRootUri()->equals($uri) || $project->getRootUri()->isParentOf($uri)) {
+                $projects[] = $project;
+            }
+        }
+
+        return $projects;
+        yield;
+    }
+
+    /**
+     * @resolve Document[]
+     */
+    public function getDocumentsForProject(Project $project): \Generator
+    {
+        $documents = [];
+        foreach ($this->documents as $document) {
+            if ($project->getRootUri()->isParentOf($document->getUri())) {
+                $documents[] = $document;
+            }
+        }
+
+        return $documents;
         yield;
     }
 
@@ -146,7 +171,7 @@ class DocumentStore
     public function openProject(Uri $rootUri): \Generator
     {
         $project = new Project($rootUri);
-        $uriString = (string)$project->getRootUri();
+        $uriString = $project->getRootUri()->getNormalized();
         $this->projects[$uriString] = $project;
 
         yield $this->eventDispatcher->dispatch(OnProjectOpen::class, $project);
@@ -164,7 +189,7 @@ class DocumentStore
 
     public function closeProject(Project $project): \Generator
     {
-        $uriString = (string)$project->getRootUri();
+        $uriString = $project->getRootUri()->getNormalized();
         unset($this->projects[$uriString]);
         $project->close();
 

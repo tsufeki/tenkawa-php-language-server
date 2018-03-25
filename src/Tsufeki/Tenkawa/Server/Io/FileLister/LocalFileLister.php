@@ -6,8 +6,25 @@ use Tsufeki\Tenkawa\Server\Uri;
 
 class LocalFileLister implements FileLister
 {
-    public function list(Uri $uri, array $filters): \Generator
+    public function list(Uri $uri, array $filters, Uri $baseUri = null): \Generator
     {
+        $baseUri = $baseUri ?? $uri;
+        $path = $uri->getFilesystemPath();
+
+        if (!file_exists($path)) {
+            return new \ArrayIterator([]);
+        }
+
+        if (!is_dir($path)) {
+            $uriString = $uri->getNormalized();
+            list($accept, $fileType) = $this->voteOnAcceptFile($uriString, $filters, $baseUri->getNormalized());
+            if ($accept) {
+                return new \ArrayIterator([$uriString => [$fileType, filemtime($path)]]);
+            }
+
+            return new \ArrayIterator([]);
+        }
+
         try {
             $iterator = new \RecursiveDirectoryIterator(
                 $uri->getFilesystemPath(),
@@ -19,7 +36,7 @@ class LocalFileLister implements FileLister
             return new \ArrayIterator([]);
         }
 
-        return $this->iterate($iterator, $filters, (string)$uri);
+        return $this->iterate($iterator, $filters, $baseUri->getNormalized());
         yield;
     }
 
@@ -31,7 +48,7 @@ class LocalFileLister implements FileLister
     {
         try {
             foreach ($iterator as $path => $info) {
-                $uri = (string)Uri::fromFilesystemPath($path); // TODO: windows support
+                $uri = Uri::fromFilesystemPath($path)->getNormalized();
                 if ($info->isDir()) {
                     if ($this->voteOnEnterDirectory($uri, $filters, $baseUri) && $iterator->hasChildren()) {
                         yield from $this->iterate($iterator->getChildren(), $filters, $baseUri);
