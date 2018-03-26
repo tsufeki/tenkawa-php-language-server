@@ -74,13 +74,19 @@ class OpenDocumentsStorage implements WritableIndexStorage
 
     public function replaceFile(Uri $uri, array $entries, int $timestamp = null): \Generator
     {
-        $document = $this->documentStore->get($uri);
+        try {
+            $document = $this->documentStore->get($uri);
 
-        foreach ($entries as $entry) {
-            $entry->sourceUri = $uri;
+            foreach ($entries as $entry) {
+                $entry->sourceUri = $uri;
+            }
+
+            $document->set(self::KEY, $entries ?: null);
+        } catch (DocumentNotOpenException $e) {
+            if (!empty($entries)) {
+                throw $e;
+            }
         }
-
-        $document->set(self::KEY, $entries ?: null);
 
         return;
         yield;
