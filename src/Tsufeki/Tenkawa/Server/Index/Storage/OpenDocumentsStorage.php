@@ -83,6 +83,7 @@ class OpenDocumentsStorage implements WritableIndexStorage
 
             $document->set(self::KEY, $entries ?: null);
         } catch (DocumentNotOpenException $e) {
+            // TODO ignore completely?
             if (!empty($entries)) {
                 throw $e;
             }

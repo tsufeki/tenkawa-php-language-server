@@ -2,7 +2,6 @@
 
 namespace Tsufeki\Tenkawa\Server\Protocol;
 
-use Tsufeki\Tenkawa\Server\Protocol\Client\DidChangeWatchedFilesRegistrationOptions;
 use Tsufeki\Tenkawa\Server\Protocol\Client\FileSystemWatcher;
 use Tsufeki\Tenkawa\Server\Protocol\Client\Registration;
 use Tsufeki\Tenkawa\Server\Protocol\Client\Unregistration;
@@ -45,21 +44,7 @@ abstract class LanguageClient
      *
      * @resolve Unregistration
      */
-    public function registerFileSystemWatchers(array $watchers): \Generator
-    {
-        $registration = new Registration();
-        $unregistration = new Unregistration();
-
-        $registration->id = $unregistration->id = $this->generateId();
-        $registration->method = $unregistration->method = 'workspace/didChangeWatchedFiles';
-        $options = new DidChangeWatchedFilesRegistrationOptions();
-        $options->watchers = $watchers;
-        $registration->registerOptions = $options;
-
-        yield $this->registerCapability([$registration]);
-
-        return $unregistration;
-    }
+    abstract public function registerFileSystemWatchers(array $watchers): \Generator;
 
     /**
      * Diagnostics notification are sent from the server to the client to
@@ -98,9 +83,4 @@ abstract class LanguageClient
      * @param string $message The actual message
      */
     abstract public function logMessage(int $type, string $message): \Generator;
-
-    private function generateId(): string
-    {
-        return uniqid('', true);
-    }
 }
