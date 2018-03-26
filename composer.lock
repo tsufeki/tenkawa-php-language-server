@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "2387d4c41be0ce701ee26aefe334c341",
+    "content-hash": "aa5305004b02735feff04bcc3b6290d8",
     "packages": [
         {
             "name": "evenement/evenement",
@@ -1927,6 +1927,83 @@
                 "php"
             ],
             "time": "2018-01-31T20:32:11+00:00"
+        },
+        {
+            "name": "tsufeki/react-filesystem-monitor",
+            "version": "0.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tsufeki/react-filesystem-monitor.git",
+                "reference": "b624c87bbead5c729839ada84f70ecf0430ddacc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tsufeki/react-filesystem-monitor/zipball/b624c87bbead5c729839ada84f70ecf0430ddacc",
+                "reference": "b624c87bbead5c729839ada84f70ecf0430ddacc",
+                "shasum": ""
+            },
+            "require": {
+                "evenement/evenement": "^3.0 || ^2.0",
+                "react/child-process": "^0.5.2",
+                "react/event-loop": "^0.4.3",
+                "react/stream": "^0.7",
+                "tsufeki/react-line-stream": "^0.2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ReactFilesystemMonitor\\": "src/ReactFilesystemMonitor/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "tsufeki",
+                    "email": "tsufeki@ymail.com"
+                }
+            ],
+            "description": "Asynchronous filesystem monitor based on React PHP",
+            "time": "2018-03-26T21:30:49+00:00"
+        },
+        {
+            "name": "tsufeki/react-line-stream",
+            "version": "0.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tsufeki/react-line-stream.git",
+                "reference": "69c6c45153ab15c673b699004fa45d09aca0fe63"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tsufeki/react-line-stream/zipball/69c6c45153ab15c673b699004fa45d09aca0fe63",
+                "reference": "69c6c45153ab15c673b699004fa45d09aca0fe63",
+                "shasum": ""
+            },
+            "require": {
+                "evenement/evenement": "^3.0 || ^2.0",
+                "react/stream": "^0.7"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ReactLineStream\\": "src/ReactLineStream/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "tsufeki",
+                    "email": "tsufeki@ymail.com"
+                }
+            ],
+            "description": "Line-by-line stream reading for React PHP",
+            "time": "2018-03-26T21:29:19+00:00"
         },
         {
             "name": "webmozart/assert",

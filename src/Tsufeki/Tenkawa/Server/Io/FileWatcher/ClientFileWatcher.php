@@ -51,6 +51,13 @@ class ClientFileWatcher implements FileWatcher
 
     public function addDirectory(Uri $uri): \Generator
     {
+        return;
+        yield;
+    }
+
+    public function removeDirectory(Uri $uri): \Generator
+    {
+        return;
         yield;
     }
 }

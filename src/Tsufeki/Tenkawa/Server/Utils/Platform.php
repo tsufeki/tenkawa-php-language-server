@@ -8,4 +8,9 @@ class Platform
     {
         return DIRECTORY_SEPARATOR === '\\';
     }
+
+    public static function isLinux(): bool
+    {
+        return PHP_OS === 'Linux';
+    }
 }

@@ -2,6 +2,8 @@
 
 namespace Tsufeki\Tenkawa\Server;
 
+use ReactFilesystemMonitor\FilesystemMonitorFactory;
+use ReactFilesystemMonitor\FilesystemMonitorFactoryInterface;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodRegistry;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
@@ -15,6 +17,7 @@ use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Event\Document\OnChange;
 use Tsufeki\Tenkawa\Server\Event\Document\OnClose;
 use Tsufeki\Tenkawa\Server\Event\Document\OnOpen;
+use Tsufeki\Tenkawa\Server\Event\Document\OnProjectClose;
 use Tsufeki\Tenkawa\Server\Event\Document\OnProjectOpen;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
@@ -33,6 +36,7 @@ use Tsufeki\Tenkawa\Server\Io\FileReader;
 use Tsufeki\Tenkawa\Server\Io\FileWatcher\ClientFileWatcher;
 use Tsufeki\Tenkawa\Server\Io\FileWatcher\FileWatcher;
 use Tsufeki\Tenkawa\Server\Io\FileWatcher\FileWatcherHandler;
+use Tsufeki\Tenkawa\Server\Io\FileWatcher\InotifyWaitFileWatcher;
 use Tsufeki\Tenkawa\Server\Io\LocalFileReader;
 use Tsufeki\Tenkawa\Server\Language\CompletionAggregator;
 use Tsufeki\Tenkawa\Server\Language\DiagnosticsAggregator;
@@ -93,11 +97,14 @@ class ServerPlugin extends Plugin
         $container->setClass(Index::class);
 
         $container->setClass(ClientFileWatcher::class);
+        $container->setClass(InotifyWaitFileWatcher::class);
+        $container->setClass(FilesystemMonitorFactoryInterface::class, FilesystemMonitorFactory::class);
         $container->setCallable(FileWatcher::class, [$this, 'createFileWatchers']);
         $container->setClass(FileWatcherHandler::class);
         $container->setAlias(OnInit::class, FileWatcherHandler::class, true);
         $container->setAlias(OnShutdown::class, FileWatcherHandler::class, true);
         $container->setAlias(OnProjectOpen::class, FileWatcherHandler::class, true);
+        $container->setAlias(OnProjectClose::class, FileWatcherHandler::class, true);
 
         $container->setClass(HoverAggregator::class);
         $container->setClass(GoToDefinitionAggregator::class);
@@ -127,8 +134,10 @@ class ServerPlugin extends Plugin
             ->getMapper();
     }
 
-    public function createFileWatchers(ClientFileWatcher $clientFileWatcher): array
-    {
-        return [$clientFileWatcher];
+    public function createFileWatchers(
+        ClientFileWatcher $clientFileWatcher,
+        InotifyWaitFileWatcher $inotifyWaitFileWatcher
+    ): array {
+        return [$clientFileWatcher, $inotifyWaitFileWatcher];
     }
 }

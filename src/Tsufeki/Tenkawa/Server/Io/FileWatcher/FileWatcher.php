@@ -14,4 +14,6 @@ interface FileWatcher
     public function stop(): \Generator;
 
     public function addDirectory(Uri $uri): \Generator;
+
+    public function removeDirectory(Uri $uri): \Generator;
 }

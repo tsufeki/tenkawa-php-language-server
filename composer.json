@@ -19,6 +19,7 @@
         "tsufeki/hmcontainer": "^0.3",
         "tsufeki/kayo-json-mapper": "^0.2.3",
         "tsufeki/php-lenient-parser": "^0.1",
+        "tsufeki/react-filesystem-monitor": "^0.3.0",
         "webmozart/glob": "^4.1"
     },
     "require-dev": {

@@ -2,7 +2,9 @@
 
 namespace Tsufeki\Tenkawa\Server\Io\FileWatcher;
 
+use Recoil\Recoil;
 use Tsufeki\Tenkawa\Server\Document\Project;
+use Tsufeki\Tenkawa\Server\Event\Document\OnProjectClose;
 use Tsufeki\Tenkawa\Server\Event\Document\OnProjectOpen;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
@@ -10,7 +12,7 @@ use Tsufeki\Tenkawa\Server\Event\OnInit;
 use Tsufeki\Tenkawa\Server\Event\OnShutdown;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ClientCapabilities;
 
-class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen
+class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen, OnProjectClose
 {
     /**
      * @var FileWatcher[]
@@ -62,7 +64,7 @@ class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen
 
         $this->started = true;
         foreach ($this->pendingProjects as $project) {
-            yield $this->initProject($project);
+            yield Recoil::execute($this->initProject($project));
         }
         $this->pendingProjects = [];
     }
@@ -70,9 +72,16 @@ class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen
     public function onProjectOpen(Project $project): \Generator
     {
         if ($this->started) {
-            yield $this->initProject($project);
+            yield Recoil::execute($this->initProject($project));
         } else {
             $this->pendingProjects[] = $project;
+        }
+    }
+
+    public function onProjectClose(Project $project): \Generator
+    {
+        if ($this->activeFileWatcher !== null) {
+            yield $this->activeFileWatcher->removeDirectory($project->getRootUri());
         }
     }
 
