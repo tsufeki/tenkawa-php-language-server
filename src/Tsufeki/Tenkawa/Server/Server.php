@@ -201,7 +201,7 @@ class Server extends LanguageServer
     /**
      * @param FileEvent[] $events
      */
-    public function didChangeWatchedFiles(array $events): \Generator
+    public function didChangeWatchedFiles($events): \Generator
     {
         $uris = array_map(function (FileEvent $event) {
             return $event->uri;

@@ -101,7 +101,7 @@ abstract class LanguageServer implements MethodProvider
      *
      * @param FileEvent[] $events
      */
-    abstract public function didChangeWatchedFiles(array $events): \Generator;
+    abstract public function didChangeWatchedFiles($events): \Generator;
 
     /**
      * The document open notification is sent from the client to the server to
