@@ -199,13 +199,13 @@ class Server extends LanguageServer
     }
 
     /**
-     * @param FileEvent[] $events
+     * @param FileEvent[] $changes
      */
-    public function didChangeWatchedFiles($events): \Generator
+    public function didChangeWatchedFiles($changes): \Generator
     {
         $uris = array_map(function (FileEvent $event) {
             return $event->uri;
-        }, $events);
+        }, $changes);
 
         yield $this->eventDispatcher->dispatch(OnFileChange::class, $uris);
         $this->logger->debug(__FUNCTION__);

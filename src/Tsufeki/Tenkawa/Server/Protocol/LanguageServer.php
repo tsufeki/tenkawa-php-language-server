@@ -99,9 +99,9 @@ abstract class LanguageServer implements MethodProvider
      * registration mechanism. In former implementations clients pushed file
      * events without the server actively asking for it.
      *
-     * @param FileEvent[] $events
+     * @param FileEvent[] $changes
      */
-    abstract public function didChangeWatchedFiles($events): \Generator;
+    abstract public function didChangeWatchedFiles($changes): \Generator;
 
     /**
      * The document open notification is sent from the client to the server to
