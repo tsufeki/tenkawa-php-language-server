@@ -149,7 +149,7 @@ class HoverFormatter
             $s .= ' = null';
         } elseif ($param->defaultExpression) {
             $s .= ' = ' . $param->defaultExpression;
-        } elseif ($param->optional) {
+        } elseif ($param->optional && !$param->variadic) {
             $s .= ' = ...';
         }
 

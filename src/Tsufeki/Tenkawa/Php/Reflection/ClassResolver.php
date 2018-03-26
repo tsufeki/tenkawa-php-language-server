@@ -49,8 +49,10 @@ class ClassResolver
 
         foreach ($class->interfaces as $interfaceName) {
             $iface = yield $this->resolve($interfaceName, $document);
-            $resolved->interfaces[] = $iface;
-            $resolved->interfaces = array_merge($resolved->interfaces, $iface->interfaces);
+            if ($iface !== null) {
+                $resolved->interfaces[] = $iface;
+                $resolved->interfaces = array_merge($resolved->interfaces, $iface->interfaces);
+            }
         }
         $resolved->interfaces = array_filter($resolved->interfaces);
         $interfaceNames = [];
