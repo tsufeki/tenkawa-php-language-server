@@ -30,6 +30,8 @@ use Tsufeki\Tenkawa\Server\Io\Directories;
 use Tsufeki\Tenkawa\Server\Io\FileLister\FileLister;
 use Tsufeki\Tenkawa\Server\Io\FileLister\LocalFileLister;
 use Tsufeki\Tenkawa\Server\Io\FileReader;
+use Tsufeki\Tenkawa\Server\Io\FileWatcher\ClientFileWatcher;
+use Tsufeki\Tenkawa\Server\Io\FileWatcher\FileWatcher;
 use Tsufeki\Tenkawa\Server\Io\FileWatcher\FileWatcherHandler;
 use Tsufeki\Tenkawa\Server\Io\LocalFileReader;
 use Tsufeki\Tenkawa\Server\Language\CompletionAggregator;
@@ -88,11 +90,14 @@ class ServerPlugin extends Plugin
         $container->setAlias(OnClose::class, Indexer::class, true);
         $container->setAlias(OnProjectOpen::class, Indexer::class, true);
         $container->setAlias(OnFileChange::class, Indexer::class, true);
+        $container->setClass(Index::class);
+
+        $container->setClass(ClientFileWatcher::class);
+        $container->setCallable(FileWatcher::class, [$this, 'createFileWatchers']);
         $container->setClass(FileWatcherHandler::class);
         $container->setAlias(OnInit::class, FileWatcherHandler::class, true);
         $container->setAlias(OnShutdown::class, FileWatcherHandler::class, true);
         $container->setAlias(OnProjectOpen::class, FileWatcherHandler::class, true);
-        $container->setClass(Index::class);
 
         $container->setClass(HoverAggregator::class);
         $container->setClass(GoToDefinitionAggregator::class);
@@ -120,5 +125,10 @@ class ServerPlugin extends Plugin
             ->addLoader($uriMapper)
             ->addDumper($uriMapper)
             ->getMapper();
+    }
+
+    public function createFileWatchers(ClientFileWatcher $clientFileWatcher): array
+    {
+        return [$clientFileWatcher];
     }
 }

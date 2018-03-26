@@ -16,6 +16,7 @@ use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\CompletionList;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\Hover;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\SymbolInformation;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\TextDocumentContentChangeEvent;
+use Tsufeki\Tenkawa\Server\Protocol\Server\Workspace\FileEvent;
 use Tsufeki\Tenkawa\Server\Protocol\Server\Workspace\WorkspaceFolder;
 use Tsufeki\Tenkawa\Server\Protocol\Server\Workspace\WorkspaceFoldersChangeEvent;
 use Tsufeki\Tenkawa\Server\Uri;
@@ -39,6 +40,7 @@ abstract class LanguageServer implements MethodProvider
         return [
             'exit' => 'exit',
             'workspace/didChangeWorkspaceFolders' => 'didChangeWorkspaceFolders',
+            'workspace/didChangeWatchedFiles' => 'didChangeWatchedFiles',
             'textDocument/didOpen' => 'didOpenTextDocument',
             'textDocument/didChange' => 'didChangeTextDocument',
             'textDocument/didSave' => 'didSaveTextDocument',
@@ -88,6 +90,18 @@ abstract class LanguageServer implements MethodProvider
      * has registered to receive this notification first.
      */
     abstract public function didChangeWorkspaceFolders(WorkspaceFoldersChangeEvent $event): \Generator;
+
+    /**
+     * The watched files notification is sent from the client to the server
+     * when the client detects changes to files watched by the language client.
+     *
+     * It is recommended that servers register for these file events using the
+     * registration mechanism. In former implementations clients pushed file
+     * events without the server actively asking for it.
+     *
+     * @param FileEvent[] $events
+     */
+    abstract public function didChangeWatchedFiles(array $events): \Generator;
 
     /**
      * The document open notification is sent from the client to the server to

@@ -6,6 +6,7 @@ use Psr\Log\LoggerInterface;
 use Recoil\Recoil;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
+use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Event\OnInit;
 use Tsufeki\Tenkawa\Server\Event\OnShutdown;
 use Tsufeki\Tenkawa\Server\Language\CompletionAggregator;
@@ -26,6 +27,7 @@ use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\TextDocumentSyncOptions;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\WorkspaceFoldersServerCapabilities;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\WorkspaceServerCapabilities;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\CompletionContext;
+use Tsufeki\Tenkawa\Server\Protocol\Server\Workspace\FileEvent;
 use Tsufeki\Tenkawa\Server\Protocol\Server\Workspace\WorkspaceFolder;
 use Tsufeki\Tenkawa\Server\Protocol\Server\Workspace\WorkspaceFoldersChangeEvent;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
@@ -151,7 +153,7 @@ class Server extends LanguageServer
             return $this->documentStore->openProject($uri);
         }, $rootUris));
 
-        yield $this->eventDispatcher->dispatch(OnInit::class, $capabilities);
+        yield Recoil::execute($this->eventDispatcher->dispatch(OnInit::class, $capabilities));
 
         $this->logger->debug(__FUNCTION__ . " [$time]");
 
@@ -162,7 +164,7 @@ class Server extends LanguageServer
     {
         $time = new Stopwatch();
 
-        yield $this->eventDispatcher->dispatch(OnShutdown::class);
+        yield $this->eventDispatcher->dispatchAndWait(OnShutdown::class);
         yield Recoil::timeout($this->timeout, $this->documentStore->closeAll());
 
         $this->logger->debug(__FUNCTION__ . " [$time]");
@@ -194,6 +196,19 @@ class Server extends LanguageServer
         yield Recoil::timeout($this->timeout, $coroutines);
 
         $this->logger->debug(__FUNCTION__ . " [$time]");
+    }
+
+    /**
+     * @param FileEvent[] $events
+     */
+    public function didChangeWatchedFiles(array $events): \Generator
+    {
+        $uris = array_map(function (FileEvent $event) {
+            return $event->uri;
+        }, $events);
+
+        yield $this->eventDispatcher->dispatch(OnFileChange::class, $uris);
+        $this->logger->debug(__FUNCTION__);
     }
 
     public function didOpenTextDocument(TextDocumentItem $textDocument): \Generator

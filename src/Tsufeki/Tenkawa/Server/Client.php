@@ -24,6 +24,18 @@ class Client extends LanguageClient
         $this->logger = $logger;
     }
 
+    public function registerCapability(array $registrations): \Generator
+    {
+        $this->logger->debug('send: ' . __FUNCTION__);
+        yield $this->rpc->notify('', compact('registrations'));
+    }
+
+    public function unregisterCapability(array $unregisterations): \Generator
+    {
+        $this->logger->debug('send: ' . __FUNCTION__);
+        yield $this->rpc->notify('', compact('unregistrations'));
+    }
+
     public function publishDiagnostics(Uri $uri, array $diagnostics): \Generator
     {
         $this->logger->debug('send: ' . __FUNCTION__ . " $uri");

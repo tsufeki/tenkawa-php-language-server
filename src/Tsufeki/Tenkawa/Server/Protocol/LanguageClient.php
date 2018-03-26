@@ -2,11 +2,65 @@
 
 namespace Tsufeki\Tenkawa\Server\Protocol;
 
+use Tsufeki\Tenkawa\Server\Protocol\Client\DidChangeWatchedFilesRegistrationOptions;
+use Tsufeki\Tenkawa\Server\Protocol\Client\FileSystemWatcher;
+use Tsufeki\Tenkawa\Server\Protocol\Client\Registration;
+use Tsufeki\Tenkawa\Server\Protocol\Client\Unregistration;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Diagnostic;
 use Tsufeki\Tenkawa\Server\Uri;
 
 abstract class LanguageClient
 {
+    /**
+     * Undocumented functionThe client/registerCapability request is sent from
+     * the server to the client to register for a new capability on the client
+     * side.
+     *
+     * Not all clients need to support dynamic capability registration. A client
+     * opts in via the dynamicRegistration property on the specific client
+     * capabilities. A client can even provide dynamic registration for
+     * capability A but not for capability B (see
+     * TextDocumentClientCapabilities as an example).
+     *
+     * method: client/registerCapability
+     *
+     * @param Registration[] $registrations
+     */
+    abstract public function registerCapability(array $registrations): \Generator;
+
+    /**
+     * The client/unregisterCapability request is sent from the server to the
+     * client to unregister a previously registered capability.
+     *
+     * method: client/unregisterCapability
+     *
+     * @param Unregistration[] $unregisterations
+     */
+    abstract public function unregisterCapability(array $unregisterations): \Generator;
+
+    /**
+     * Register for workspace/didChangeWatchedFiles notification.
+     *
+     * @param FileSystemWatcher[] $watchers
+     *
+     * @resolve Unregistration
+     */
+    public function registerFileSystemWatchers(array $watchers): \Generator
+    {
+        $registration = new Registration();
+        $unregistration = new Unregistration();
+
+        $registration->id = $unregistration->id = $this->generateId();
+        $registration->method = $unregistration->method = 'workspace/didChangeWatchedFiles';
+        $options = new DidChangeWatchedFilesRegistrationOptions();
+        $options->watchers = $watchers;
+        $registration->registerOptions = $options;
+
+        yield $this->registerCapability([$registration]);
+
+        return $unregistration;
+    }
+
     /**
      * Diagnostics notification are sent from the server to the client to
      * signal results of validation runs.
@@ -44,4 +98,9 @@ abstract class LanguageClient
      * @param string $message The actual message
      */
     abstract public function logMessage(int $type, string $message): \Generator;
+
+    private function generateId(): string
+    {
+        return uniqid('', true);
+    }
 }
