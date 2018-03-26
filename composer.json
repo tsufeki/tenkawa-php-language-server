@@ -38,5 +38,7 @@
         "psr-4": {
             "Tests\\Tsufeki\\Tenkawa\\": "tests/Tsufeki/Tenkawa/"
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

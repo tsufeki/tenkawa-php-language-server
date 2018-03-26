@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "e51453bb125ad9433973809a448d5807",
+    "content-hash": "2387d4c41be0ce701ee26aefe334c341",
     "packages": [
         {
             "name": "evenement/evenement",
@@ -3915,11 +3915,11 @@
             "package": "phpdocumentor/type-resolver"
         }
     ],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "stability-flags": {
         "jetbrains/phpstorm-stubs": 20
     },
-    "prefer-stable": false,
+    "prefer-stable": true,
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": []
