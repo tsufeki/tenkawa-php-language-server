@@ -159,6 +159,9 @@ class GlobalsCompletionProvider implements CompletionProvider
                 CompletionItemKind::CLASS_,
             ];
         }
+        if (isset(GlobalsHelper::NAMESPACE_REFERENCING_NODES[get_class($node)])) {
+            return [CompletionItemKind::MODULE];
+        }
         if ($node instanceof Stmt\UseUse) {
             assert($parentNode instanceof Stmt\Use_ || $parentNode instanceof Stmt\GroupUse);
 
@@ -195,7 +198,8 @@ class GlobalsCompletionProvider implements CompletionProvider
     {
         return $name->getAttribute('originalName', $name) instanceof Name\FullyQualified
             || $node instanceof Stmt\UseUse
-            || $node instanceof Stmt\GroupUse;
+            || $node instanceof Stmt\GroupUse
+            || $node instanceof Stmt\Namespace_;
     }
 
     /**
@@ -203,15 +207,36 @@ class GlobalsCompletionProvider implements CompletionProvider
      */
     private function searchNamespace(string $namespace, $kind, Document $document): \Generator
     {
+        // TODO search case insensitive
+
         if ($kind === CompletionItemKind::CONSTANT) {
-            $category = ReflectionIndexDataProvider::CATEGORY_CONST;
+            $names = yield $this->query($namespace, ReflectionIndexDataProvider::CATEGORY_CONST, $document);
         } elseif ($kind === CompletionItemKind::FUNCTION_) {
-            $category = ReflectionIndexDataProvider::CATEGORY_FUNCTION;
+            $names = yield $this->query($namespace, ReflectionIndexDataProvider::CATEGORY_FUNCTION, $document);
+        } elseif ($kind === CompletionItemKind::CLASS_) {
+            $names = yield $this->query($namespace, ReflectionIndexDataProvider::CATEGORY_CLASS, $document);
         } else {
-            $category = ReflectionIndexDataProvider::CATEGORY_CLASS;
+            $names = array_merge(
+                yield $this->query($namespace, ReflectionIndexDataProvider::CATEGORY_CONST, $document, true),
+                yield $this->query($namespace, ReflectionIndexDataProvider::CATEGORY_FUNCTION, $document, true),
+                yield $this->query($namespace, ReflectionIndexDataProvider::CATEGORY_CLASS, $document, true)
+            );
         }
 
-        // TODO search case insensitive
+        $items = [];
+        foreach ($names as $name => $isNamespace) {
+            $items[] = $this->makeItem($name, $isNamespace ? CompletionItemKind::MODULE : $kind);
+        }
+
+        return $items;
+    }
+
+    private function query(
+        string $namespace,
+        string $category,
+        Document $document,
+        bool $namespaceOnly = false
+    ): \Generator {
         $namespace = rtrim($namespace, '\\') . '\\';
 
         $query = new Query();
@@ -228,17 +253,12 @@ class GlobalsCompletionProvider implements CompletionProvider
             $backslashPos = strpos($entry->key, '\\', $namespaceLength);
             if ($backslashPos !== false) {
                 $names[substr($entry->key, 0, $backslashPos)] = true;
-            } else {
+            } elseif (!$namespaceOnly) {
                 $names[$entry->key] = false;
             }
         }
 
-        $items = [];
-        foreach ($names as $name => $isNamespace) {
-            $items[] = $this->makeItem($name, $isNamespace ? CompletionItemKind::MODULE : $kind);
-        }
-
-        return $items;
+        return $names;
     }
 
     /**

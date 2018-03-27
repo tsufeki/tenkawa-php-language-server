@@ -42,6 +42,10 @@ class GlobalsHelper
         Expr\ConstFetch::class => true,
     ];
 
+    const NAMESPACE_REFERENCING_NODES = [
+        Stmt\Namespace_::class => true,
+    ];
+
     /**
      * @var ReflectionProvider
      */
