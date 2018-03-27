@@ -70,6 +70,8 @@ use Tsufeki\Tenkawa\Php\Reflection\ConstExprEvaluator;
 use Tsufeki\Tenkawa\Php\Reflection\IndexReflectionProvider;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionIndexDataProvider;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
+use Tsufeki\Tenkawa\Php\Reflection\ReflectionTransformer;
+use Tsufeki\Tenkawa\Php\Reflection\StubsReflectionTransformer;
 use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\Server\Event\OnStart;
 use Tsufeki\Tenkawa\Server\Index\FileFilterFactory;
@@ -103,6 +105,7 @@ class PhpPlugin extends Plugin
         $container->setValue(FileFilter::class, new GlobRejectDirectoryFilter('{var,app/cache,cache,.git}'), true);
         $container->setClass(FileFilterFactory::class, ComposerFileFilterFactory::class, true);
         $container->setClass(IndexDataProvider::class, ReflectionIndexDataProvider::class, true);
+        $container->setClass(ReflectionTransformer::class, StubsReflectionTransformer::class, true);
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
         $container->setClass(ClassResolver::class);
         $container->setClass(ConstExprEvaluator::class);

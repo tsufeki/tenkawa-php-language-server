@@ -24,10 +24,19 @@ class IndexReflectionProvider implements ReflectionProvider
      */
     private $mapper;
 
-    public function __construct(Index $index, Mapper $mapper)
+    /**
+     * @var ReflectionTransformer[]
+     */
+    private $transformers;
+
+    /**
+     * @param ReflectionTransformer[] $transformers
+     */
+    public function __construct(Index $index, Mapper $mapper, array $transformers)
     {
         $this->index = $index;
         $this->mapper = $mapper;
+        $this->transformers = $transformers;
     }
 
     private function getFromIndex(
@@ -46,9 +55,16 @@ class IndexReflectionProvider implements ReflectionProvider
         /** @var IndexEntry[] $entries */
         $entries = yield $this->index->search($document, $query);
 
-        return array_map(function (IndexEntry $entry) use ($itemClass) {
-            return $this->mapper->load($entry->data, $itemClass);
-        }, $entries);
+        $elements = [];
+        foreach ($entries as $entry) {
+            $element = $this->mapper->load($entry->data, $itemClass);
+            foreach ($this->transformers as $transformer) {
+                $element = yield $transformer->transform($element, $entry);
+            }
+            $elements[] = $element;
+        }
+
+        return $elements;
     }
 
     public function getClass(Document $document, string $fullyQualifiedName): \Generator
