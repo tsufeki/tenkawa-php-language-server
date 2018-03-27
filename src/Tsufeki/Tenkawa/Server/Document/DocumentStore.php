@@ -62,7 +62,7 @@ class DocumentStore
         $uriString = $document->getUri()->getNormalized();
         $this->documents[$uriString] = $document;
 
-        yield $this->eventDispatcher->dispatch(OnOpen::class, $document);
+        yield $this->eventDispatcher->dispatchAndWait(OnOpen::class, $document);
 
         return $document;
     }
@@ -88,7 +88,7 @@ class DocumentStore
 
         $document->update($text, $version);
 
-        yield $this->eventDispatcher->dispatch(OnChange::class, $document);
+        yield $this->eventDispatcher->dispatchAndWait(OnChange::class, $document);
     }
 
     public function close(Document $document): \Generator
@@ -96,11 +96,11 @@ class DocumentStore
         // Check if open
         $this->get($document->getUri());
 
+        yield $this->eventDispatcher->dispatchAndWait(OnClose::class, $document);
+
         $uriString = $document->getUri()->getNormalized();
         unset($this->documents[$uriString]);
         $document->close();
-
-        yield $this->eventDispatcher->dispatch(OnClose::class, $document);
     }
 
     /**
@@ -174,7 +174,7 @@ class DocumentStore
         $uriString = $project->getRootUri()->getNormalized();
         $this->projects[$uriString] = $project;
 
-        yield $this->eventDispatcher->dispatch(OnProjectOpen::class, $project);
+        yield $this->eventDispatcher->dispatchAndWait(OnProjectOpen::class, $project);
 
         return $project;
     }
@@ -189,11 +189,11 @@ class DocumentStore
 
     public function closeProject(Project $project): \Generator
     {
+        yield $this->eventDispatcher->dispatchAndWait(OnProjectClose::class, $project);
+
         $uriString = $project->getRootUri()->getNormalized();
         unset($this->projects[$uriString]);
         $project->close();
-
-        yield $this->eventDispatcher->dispatch(OnProjectClose::class, $project);
     }
 
     public function closeAll(): \Generator

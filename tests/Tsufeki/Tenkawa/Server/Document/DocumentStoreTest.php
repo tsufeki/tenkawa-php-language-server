@@ -30,7 +30,7 @@ class DocumentStoreTest extends TestCase
             $dispatcher = $this->createMock(EventDispatcher::class);
             $dispatcher
                 ->expects($this->exactly(4))
-                ->method('dispatch')
+                ->method('dispatchAndWait')
                 ->withConsecutive(
                     [$this->identicalTo(OnProjectOpen::class), $this->isInstanceOf(Project::class)],
                     [$this->identicalTo(OnOpen::class), $this->isInstanceOf(Document::class)],
@@ -68,7 +68,7 @@ class DocumentStoreTest extends TestCase
             $dispatcher = $this->createMock(EventDispatcher::class);
             $dispatcher
                 ->expects($this->exactly(2))
-                ->method('dispatch')
+                ->method('dispatchAndWait')
                 ->withConsecutive(
                     [$this->identicalTo(OnProjectOpen::class), $this->isInstanceOf(Project::class)],
                     [$this->identicalTo(OnProjectClose::class), $this->isInstanceOf(Project::class)]
@@ -93,7 +93,7 @@ class DocumentStoreTest extends TestCase
             $dispatcher = $this->createMock(EventDispatcher::class);
             $dispatcher
                 ->expects($this->exactly(4))
-                ->method('dispatch')
+                ->method('dispatchAndWait')
                 ->withConsecutive(
                     [$this->identicalTo(OnProjectOpen::class), $this->isInstanceOf(Project::class)],
                     [$this->identicalTo(OnOpen::class), $this->isInstanceOf(Document::class)],
@@ -115,7 +115,7 @@ class DocumentStoreTest extends TestCase
             $dispatcher = $this->createMock(EventDispatcher::class);
             $dispatcher
                 ->expects($this->once())
-                ->method('dispatch')
+                ->method('dispatchAndWait')
                 ->with($this->identicalTo(OnProjectOpen::class), $this->isInstanceOf(Project::class));
 
             $uri = Uri::fromString('file:///foo');
