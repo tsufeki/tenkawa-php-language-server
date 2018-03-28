@@ -12,6 +12,7 @@ use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Event;
 use Tsufeki\Tenkawa\Server\Utils\Platform;
+use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
 class InotifyWaitFileWatcher implements FileWatcher
 {
@@ -102,13 +103,14 @@ class InotifyWaitFileWatcher implements FileWatcher
         }));
 
         $this->monitors[$uri->getNormalized()] = $monitor;
+        $time = new Stopwatch();
         $loop = yield Recoil::eventLoop();
         $monitor->start($loop);
 
         // Wait until watches are set up
         try {
             yield Event::first($monitor, ['start'], ['error']);
-            $this->logger->debug('inotifywait set up');
+            $this->logger->debug("inotifywait set up [$time]");
         } catch (\Throwable $e) {
             // Logged in 'error' event handler above.
         }
