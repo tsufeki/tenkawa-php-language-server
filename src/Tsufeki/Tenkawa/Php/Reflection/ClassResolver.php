@@ -14,9 +14,18 @@ class ClassResolver
      */
     private $reflectionProvider;
 
-    public function __construct(ReflectionProvider $reflectionProvider)
+    /**
+     * @var ClassResolverExtension[]
+     */
+    private $classResolverExtensions;
+
+    /**
+     * @param ClassResolverExtension[] $classResolverExtensions
+     */
+    public function __construct(ReflectionProvider $reflectionProvider, array $classResolverExtensions)
     {
         $this->reflectionProvider = $reflectionProvider;
+        $this->classResolverExtensions = $classResolverExtensions;
     }
 
     /**
@@ -90,6 +99,10 @@ class ClassResolver
         $resolved->methods = array_replace($resolved->methods, $this->indexMembers($class->methods, true));
         $resolved->properties = array_replace($resolved->properties, $this->indexMembers($class->properties));
         $resolved->consts = array_replace($resolved->consts, $this->indexMembers($class->consts));
+
+        foreach ($this->classResolverExtensions as $extension) {
+            yield $extension->resolve($resolved, $document);
+        }
 
         return $resolved;
     }
