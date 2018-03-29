@@ -18,7 +18,7 @@ abstract class Element
     public $location;
 
     /**
-     * @var string|null
+     * @var DocComment|null
      */
     public $docComment;
 

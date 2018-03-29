@@ -85,7 +85,7 @@ class ReflectionVisitorTest extends TestCase
                 const FOO = 1;',
                 ['consts' => [[
                     'name' => '\\FOO',
-                    'docComment' => '/** doc comment */',
+                    'docComment' => ['text' => '/** doc comment */'],
                     'location' => [
                         'range' => [
                             'start' => ['line' => 2, 'character' => 22],

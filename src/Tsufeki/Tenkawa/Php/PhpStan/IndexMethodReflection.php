@@ -113,7 +113,7 @@ class IndexMethodReflection extends PhpMethodReflection
      */
     public function getDocComment()
     {
-        return $this->method->docComment ?? false;
+        return $this->method->docComment->text ?? false;
     }
 
     public function getPrototype(): MethodReflection

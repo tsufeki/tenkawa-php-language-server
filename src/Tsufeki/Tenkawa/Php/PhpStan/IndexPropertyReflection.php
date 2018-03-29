@@ -56,7 +56,7 @@ class IndexPropertyReflection extends PhpPropertyReflection
      */
     public function getDocComment()
     {
-        return $this->property->docComment ?? false;
+        return $this->property->docComment->text ?? false;
     }
 
     public function isStatic(): bool

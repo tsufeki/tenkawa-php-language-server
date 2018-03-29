@@ -105,12 +105,12 @@ class PhpDocResolver extends FileTypeMapper
         );
 
         foreach ($classes as $class) {
-            if ($class->docComment === $docComment) {
+            if (($class->docComment->text ?? null) === $docComment) {
                 return $class->nameContext;
             }
 
             foreach (array_merge($class->methods, $class->properties, $class->consts) as $member) {
-                if ($member->docComment === $docComment) {
+                if (($member->docComment ?? null) === $docComment) {
                     return $member->nameContext;
                 }
             }
@@ -122,7 +122,7 @@ class PhpDocResolver extends FileTypeMapper
         );
 
         foreach ($functions as $function) {
-            if ($function->docComment === $docComment) {
+            if (($function->docComment->text ?? null) === $docComment) {
                 return $function->nameContext;
             }
         }
@@ -133,7 +133,7 @@ class PhpDocResolver extends FileTypeMapper
         );
 
         foreach ($consts as $const) {
-            if ($const->docComment === $docComment) {
+            if (($const->docComment->text ?? null) === $docComment) {
                 return $const->nameContext;
             }
         }
@@ -143,7 +143,10 @@ class PhpDocResolver extends FileTypeMapper
 
     public function getResolvedPhpDocForReflectionElement(Element $element): ResolvedPhpDocBlock
     {
-        return $this->getResolvedPhpDocForNameContext($element->docComment ?: '/** */', $element->nameContext);
+        return $this->getResolvedPhpDocForNameContext(
+            $element->docComment->text ?? '/** */',
+            $element->docComment->nameContext ?? $element->nameContext
+        );
     }
 
     public function getResolvedPhpDocForNameContext(string $docComment, NameContext $context): ResolvedPhpDocBlock

@@ -6,6 +6,7 @@ use PhpParser\Comment;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
+use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
@@ -46,9 +47,9 @@ class HoverFormatter
         return $s;
     }
 
-    private function formatDocComment(string $doc): string
+    private function formatDocComment(DocComment $doc): string
     {
-        $doc = (new Comment\Doc($doc))->getReformattedText();
+        $doc = (new Comment\Doc($doc->text))->getReformattedText();
 
         return trim($doc) . "\n";
     }

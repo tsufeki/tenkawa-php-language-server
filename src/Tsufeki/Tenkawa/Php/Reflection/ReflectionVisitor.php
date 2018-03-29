@@ -16,6 +16,7 @@ use PhpParser\PrettyPrinter\Standard;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
+use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
@@ -150,9 +151,10 @@ class ReflectionVisitor extends NameContextVisitor
             $phpDoc = $docCommentFallback->getDocComment();
         }
         if ($phpDoc !== null) {
+            $element->docComment = new DocComment();
             // We don't know the actual encoding, so here we replace invalid
             // UTF-8 bytes with '?'.
-            $element->docComment = mb_convert_encoding($phpDoc->getText(), 'UTF-8', 'UTF-8');
+            $element->docComment->text = mb_convert_encoding($phpDoc->getText(), 'UTF-8', 'UTF-8');
         }
 
         $element->nameContext = clone $this->nameContext;

@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Php\Reflection;
 
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassConst;
+use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Location;
@@ -20,7 +21,7 @@ class ResolvedClassLike
     public $location;
 
     /**
-     * @var string|null
+     * @var DocComment|null
      */
     public $docComment;
 

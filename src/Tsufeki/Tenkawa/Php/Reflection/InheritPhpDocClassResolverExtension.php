@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\Reflection;
 
+use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
 use Tsufeki\Tenkawa\Server\Document\Document;
@@ -22,10 +23,10 @@ class InheritPhpDocClassResolverExtension implements ClassResolverExtension
         /** @var Property|Method $member */
         foreach ($class->$kind as $name => $member) {
             if ($member->docComment === null ||
-                preg_match('~\{@inheritDoc\}~i', $member->docComment)
+                preg_match('~\{@inheritDoc\}~i', $member->docComment->text)
             ) {
                 $inheritedDocComment = $this->findDocComment($class, $kind, $name);
-                if ($member->docComment !== $inheritedDocComment) {
+                if (($member->docComment->text ?? null) !== ($inheritedDocComment->text ?? null)) {
                     $newMember = clone $member;
                     $newMember->docComment = $inheritedDocComment;
                     $class->$kind[$name] = $newMember;
@@ -35,7 +36,7 @@ class InheritPhpDocClassResolverExtension implements ClassResolverExtension
     }
 
     /**
-     * @return string|null
+     * @return DocComment|null
      */
     private function findDocComment(ResolvedClassLike $class, string $kind, string $name)
     {
@@ -43,7 +44,7 @@ class InheritPhpDocClassResolverExtension implements ClassResolverExtension
         foreach (array_merge($class->parentClass ? [$class->parentClass] : [], $class->interfaces) as $parent) {
             /** @var Property|Method|null $member */
             $member = $parent->$kind[$name] ?? null;
-            if ($member !== null && !empty($member->docComment)) {
+            if ($member !== null && $member->docComment !== null) {
                 return $member->docComment;
             }
         }

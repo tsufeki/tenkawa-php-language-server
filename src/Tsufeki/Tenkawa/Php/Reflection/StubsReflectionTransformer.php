@@ -36,7 +36,7 @@ class StubsReflectionTransformer
 
         $optionalParams = [];
 
-        $function->docComment = preg_replace_callback(
+        $function->docComment->text = preg_replace_callback(
             '~@param' .
             '([ \t]+([^$]\S*))?' .
             '([ \t]+\$([a-zA-Z0-9_]+))?' .
@@ -52,7 +52,7 @@ class StubsReflectionTransformer
 
                 return '@param' . ($matches[1] ?? '') . ($matches[3] ?? '') . ($matches[5] ?? '');
             },
-            $function->docComment
+            $function->docComment->text
         );
 
         foreach ($function->params as $param) {
