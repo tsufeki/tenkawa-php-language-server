@@ -81,11 +81,11 @@ class IndexPropertyReflection extends PhpPropertyReflection
 
     public function isReadable(): bool
     {
-        return true;
+        return $this->property->readable;
     }
 
     public function isWritable(): bool
     {
-        return true;
+        return $this->property->writable;
     }
 }

@@ -72,6 +72,7 @@ use Tsufeki\Tenkawa\Php\Reflection\ClassResolverExtension;
 use Tsufeki\Tenkawa\Php\Reflection\ConstExprEvaluator;
 use Tsufeki\Tenkawa\Php\Reflection\IndexReflectionProvider;
 use Tsufeki\Tenkawa\Php\Reflection\InheritPhpDocClassResolverExtension;
+use Tsufeki\Tenkawa\Php\Reflection\MembersFromAnnotationClassResolverExtension;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionIndexDataProvider;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionTransformer;
@@ -113,6 +114,7 @@ class PhpPlugin extends Plugin
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
         $container->setClass(ClassResolver::class);
         $container->setClass(ClassResolverExtension::class, InheritPhpDocClassResolverExtension::class, true);
+        $container->setClass(ClassResolverExtension::class, MembersFromAnnotationClassResolverExtension::class, true);
         $container->setClass(ConstExprEvaluator::class);
 
         $container->setClass(HoverFormatter::class);
