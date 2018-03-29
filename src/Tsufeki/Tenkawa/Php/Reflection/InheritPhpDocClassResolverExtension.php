@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\Reflection;
 
+use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
@@ -44,7 +45,7 @@ class InheritPhpDocClassResolverExtension implements ClassResolverExtension
         foreach (array_merge($class->parentClass ? [$class->parentClass] : [], $class->interfaces) as $parent) {
             /** @var Property|Method|null $member */
             $member = $parent->$kind[$name] ?? null;
-            if ($member !== null && $member->docComment !== null) {
+            if ($member !== null && $member->accessibility !== ClassLike::M_PRIVATE && $member->docComment !== null) {
                 return $member->docComment;
             }
         }
