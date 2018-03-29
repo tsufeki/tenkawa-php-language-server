@@ -53,6 +53,9 @@ class ClassResolver
 
         if ($class->parentClass !== null) {
             $resolved->parentClass = yield $this->resolve($class->parentClass, $document);
+        }
+
+        if ($resolved->parentClass !== null) {
             $resolved->interfaces = array_merge($resolved->interfaces, $resolved->parentClass->interfaces);
         }
 
