@@ -26,4 +26,9 @@ abstract class Element
      * @var NameContext
      */
     public $nameContext;
+
+    /**
+     * @var string|null
+     */
+    public $origin;
 }

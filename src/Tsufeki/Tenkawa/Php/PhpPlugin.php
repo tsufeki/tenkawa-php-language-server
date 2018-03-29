@@ -15,6 +15,8 @@ use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TypeParser;
+use PHPStan\Reflection\Php\UniversalObjectCratesClassReflectionExtension;
+use PHPStan\Reflection\PropertiesClassReflectionExtension;
 use PHPStan\Rules;
 use PHPStan\Rules\ClassCaseSensitivityCheck;
 use PHPStan\Rules\FunctionCallParametersCheck;
@@ -163,6 +165,7 @@ class PhpPlugin extends Plugin
         $container->setClass(DocumentSymbolsProvider::class, ReflectionDocumentSymbolsProvider::class, true);
 
         $container->setClass(DiagnosticsProvider::class, PhpStanDiagnosticsProvider::class, true);
+        $container->setClass(PropertiesClassReflectionExtension::class, UniversalObjectCratesClassReflectionExtension::class, true, [new Value(['stdClass'])]);
         $container->setClass(Registry::class);
         $container->setClass(RuleLevelHelper::class, null, false, [null, new Value(true), new Value(false), new Value(true)]);
         $container->setClass(ClassCaseSensitivityCheck::class);

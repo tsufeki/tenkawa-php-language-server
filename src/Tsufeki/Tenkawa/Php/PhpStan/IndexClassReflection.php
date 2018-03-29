@@ -16,7 +16,6 @@ use PHPStan\Reflection\PropertyReflection;
 use PHPStan\ShouldNotHappenException;
 use Tsufeki\Tenkawa\Php\Reflection\ResolvedClassLike;
 
-//TODO annotation property/method and universal crate extension
 class IndexClassReflection extends ClassReflection
 {
     /**
@@ -45,14 +44,24 @@ class IndexClassReflection extends ClassReflection
     private $methodsClassReflectionExtensions;
 
     /**
-     * @var PhpMethodReflection[]
+     * @var MethodReflection[][]
      */
     private $methods = [];
 
     /**
-     * @var PhpPropertyReflection[]
+     * @var PhpMethodReflection[]
+     */
+    private $nativeMethods = [];
+
+    /**
+     * @var PropertyReflection[][]
      */
     private $properties = [];
+
+    /**
+     * @var PhpPropertyReflection[]
+     */
+    private $nativeProperties = [];
 
     /**
      * @var ClassConstantReflection[]
@@ -121,87 +130,145 @@ class IndexClassReflection extends ClassReflection
      */
     public function getClassHierarchyDistances(): array
     {
-        //TODO
         throw new ShouldNotHappenException();
-    }
-
-    public function hasProperty(string $propertyName): bool
-    {
-        //TODO extensions & scope
-
-        return $this->hasNativeProperty($propertyName);
     }
 
     public function hasMethod(string $methodName): bool
     {
-        //TODO extensions & scope
+        $methodName = strtolower($methodName);
+        $this->createMethods($methodName);
 
-        return $this->hasNativeMethod($methodName);
+        return !empty($this->methods[$methodName]);
     }
 
     public function getMethod(string $methodName, Scope $scope): MethodReflection
     {
-        //TODO extensions & scope
+        $methodName = strtolower($methodName);
+        $this->createMethods($methodName);
 
-        return $this->getNativeMethod($methodName);
+        $method = null;
+        foreach ($this->methods[$methodName] ?? [] as $method) {
+            if ($scope->canCallMethod($method)) {
+                return $method;
+            }
+        }
+
+        if ($method === null) {
+            throw new MissingMethodFromReflectionException($this->getName(), $methodName);
+        }
+
+        return $method;
     }
 
     public function hasNativeMethod(string $methodName): bool
     {
         $methodName = strtolower($methodName);
+        $this->createMethods($methodName);
 
-        return isset($this->class->methods[$methodName]);
+        return !empty($this->nativeMethods[$methodName]);
     }
 
     public function getNativeMethod(string $methodName): PhpMethodReflection
     {
         $methodName = strtolower($methodName);
-        if (!$this->hasNativeMethod($methodName)) {
+        $this->createMethods($methodName);
+
+        $method = $this->nativeMethods[$methodName] ?? null;
+        if ($method === null) {
             throw new MissingMethodFromReflectionException($this->getName(), $methodName);
         }
 
-        if (isset($this->methods[$methodName])) {
-            return $this->methods[$methodName];
+        return $method;
+    }
+
+    private function createMethods(string $methodName)
+    {
+        if (isset($this->class->methods[$methodName])) {
+            $method = $this->class->methods[$methodName];
+            $indexMethod = new IndexMethodReflection(
+                $this->broker->getClass((string)$method->nameContext->class),
+                $method,
+                $this->phpDocResolver
+            );
+
+            $this->methods[$methodName][] = $indexMethod;
+            if ($method->origin === null) {
+                $this->nativeMethods[$methodName] = $indexMethod;
+            }
         }
 
-        $method = $this->class->methods[$methodName];
+        foreach ($this->methodsClassReflectionExtensions as $extension) {
+            if ($extension->hasMethod($this, $methodName)) {
+                $this->methods[$methodName][] = $extension->getMethod($this, $methodName);
+            }
+        }
+    }
 
-        return $this->methods[$methodName] = new IndexMethodReflection(
-            $this->broker->getClass((string)$method->nameContext->class),
-            $method,
-            $this->phpDocResolver
-        );
+    public function hasProperty(string $propertyName): bool
+    {
+        $this->createProperties($propertyName);
+
+        return !empty($this->properties[$propertyName]);
     }
 
     public function getProperty(string $propertyName, Scope $scope): PropertyReflection
     {
-        //TODO extensions & scope
+        $this->createProperties($propertyName);
 
-        return $this->getNativeProperty($propertyName);
+        $property = null;
+        foreach ($this->properties[$propertyName] ?? [] as $property) {
+            if ($scope->canAccessProperty($property)) {
+                return $property;
+            }
+        }
+
+        if ($property === null) {
+            throw new MissingPropertyFromReflectionException($this->getName(), $propertyName);
+        }
+
+        return $property;
     }
 
     public function hasNativeProperty(string $propertyName): bool
     {
-        return isset($this->class->properties[$propertyName]);
+        $this->createProperties($propertyName);
+
+        return !empty($this->nativeProperties[$propertyName]);
     }
 
     public function getNativeProperty(string $propertyName): PhpPropertyReflection
     {
-        if (!$this->hasNativeProperty($propertyName)) {
+        $this->createProperties($propertyName);
+
+        $property = $this->nativeProperties[$propertyName] ?? null;
+        if ($property === null) {
             throw new MissingPropertyFromReflectionException($this->getName(), $propertyName);
         }
 
-        if (isset($this->properties[$propertyName])) {
-            return $this->properties[$propertyName];
+        return $property;
+    }
+
+    private function createProperties(string $propertyName)
+    {
+        if (isset($this->class->properties[$propertyName])) {
+            $property = $this->class->properties[$propertyName];
+            $indexProperty = new IndexPropertyReflection(
+                $this->broker->getClass((string)$property->nameContext->class),
+                $property,
+                $this->phpDocResolver
+            );
+
+            $this->properties[$propertyName][] = $indexProperty;
+            if ($property->origin === null) {
+                $this->nativeProperties[$propertyName] = $indexProperty;
+            }
         }
 
-        $property = $this->class->properties[$propertyName];
-
-        return $this->properties[$propertyName] = new IndexPropertyReflection(
-            $this->broker->getClass((string)$property->nameContext->class),
-            $property,
-            $this->phpDocResolver
-        );
+        foreach ($this->propertiesClassReflectionExtensions as $extension) {
+            if ($extension->hasProperty($this, $propertyName)) {
+                $this->properties[$propertyName][] = $extension->getProperty($this, $propertyName);
+            }
+        }
     }
 
     public function isAbstract(): bool
