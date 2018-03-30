@@ -38,7 +38,7 @@ class ComposerFileFilter implements FileFilter
     private function normalize(array $globs): array
     {
         return array_map(function ($glob) {
-            return Uri::fromString($glob)->getNormalized();
+            return Uri::fromString($glob)->getNormalizedGlob();
         }, array_unique($globs));
     }
 

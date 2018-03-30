@@ -219,6 +219,14 @@ class Uri
         return (string)$normalized;
     }
 
+    public function getNormalizedGlob(): string
+    {
+        $normalized = $this->getNormalized();
+        $normalized = str_replace(['%2a', '%2A'], '*', $normalized);
+
+        return $normalized;
+    }
+
     public function isParentOf(self $other): bool
     {
         if (!in_array($this->scheme, ['file', null], true) || !in_array($other->scheme, ['file', null], true)) {

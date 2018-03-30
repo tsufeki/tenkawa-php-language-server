@@ -1,5 +1,4 @@
 
-* Transform only stubs reflections
 * Fix formatting of doc comments in hover: markdown inside markdown
 * @method annotations
 * vscode: Check if php executable exists
