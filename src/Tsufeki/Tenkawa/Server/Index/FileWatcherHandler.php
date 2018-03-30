@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Server\Io\FileWatcher;
+namespace Tsufeki\Tenkawa\Server\Index;
 
 use Recoil\Recoil;
 use Tsufeki\Tenkawa\Server\Document\Project;
@@ -10,6 +10,7 @@ use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Event\OnInit;
 use Tsufeki\Tenkawa\Server\Event\OnShutdown;
+use Tsufeki\Tenkawa\Server\Io\FileWatcher\FileWatcher;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ClientCapabilities;
 
 class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen, OnProjectClose
