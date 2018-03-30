@@ -2,6 +2,8 @@
 
 namespace Tsufeki\Tenkawa\Php\Reflection;
 
+use PHPStan\PhpDocParser\Ast\ConstExpr\ConstExprNullNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\MethodTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PropertyTagValueNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ParserException;
@@ -9,6 +11,8 @@ use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TokenIterator;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
+use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
+use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
 use Tsufeki\Tenkawa\Server\Document\Document;
 
@@ -52,6 +56,10 @@ class MembersFromAnnotationClassResolverExtension implements ClassResolverExtens
                 foreach ($phpDocNode->getPropertyWriteTagValues() as $tag) {
                     $this->createProperty($class, $tag, false, true);
                 }
+
+                foreach ($phpDocNode->getMethodTagValues() as $tag) {
+                    $this->createMethod($class, $tag);
+                }
             } catch (ParserException $e) {
             }
         }
@@ -76,6 +84,49 @@ class MembersFromAnnotationClassResolverExtension implements ClassResolverExtens
 
         if (!isset($class->properties[$property->name]) || $class->properties[$property->name]->nameContext->class !== $class->name) {
             $class->properties[$property->name] = $property;
+        }
+    }
+
+    private function createMethod(ResolvedClassLike $class, MethodTagValueNode $tag)
+    {
+        $method = new Method();
+        $method->name = $tag->methodName;
+        $method->accessibility = ClassLike::M_PUBLIC;
+        $method->location = $class->location; // TODO be more precise
+        $method->static = $tag->isStatic;
+        $method->nameContext = $class->nameContext;
+        $method->origin = self::ORIGIN;
+
+        $docComment = "/**\n";
+        if ($tag->description) {
+            $docComment .= " * $tag->description\n";
+        }
+
+        $method->params = [];
+        foreach ($tag->parameters as $tagParam) {
+            $param = new Param();
+            $param->name = substr($tagParam->parameterName, 1);
+            $param->byRef = $tagParam->isReference;
+            $param->variadic = $tagParam->isVariadic;
+            $param->defaultNull = $tagParam->defaultValue instanceof ConstExprNullNode;
+            $param->defaultExpression = $tagParam->defaultValue !== null ? (string)$tagParam->defaultValue : null;
+            $param->optional = $param->defaultNull || $param->defaultExpression;
+            $method->params[] = $param;
+
+            $type = $tagParam->type ? " $tagParam->type" : '';
+            $docComment .= " * @param$type \$$param->name\n";
+        }
+
+        if ($tag->returnType) {
+            $docComment .= " * @return $tag->returnType\n";
+        }
+
+        $docComment .= '*/';
+        $method->docComment = new DocComment();
+        $method->docComment->text = $docComment;
+
+        if (!isset($class->methods[$method->name]) || $class->methods[$method->name]->nameContext->class !== $class->name) {
+            $class->methods[$method->name] = $method;
         }
     }
 }
