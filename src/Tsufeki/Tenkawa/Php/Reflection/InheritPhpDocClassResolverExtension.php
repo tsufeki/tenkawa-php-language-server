@@ -46,7 +46,10 @@ class InheritPhpDocClassResolverExtension implements ClassResolverExtension
             /** @var Property|Method|null $member */
             $member = $parent->$kind[$name] ?? null;
             if ($member !== null && $member->accessibility !== ClassLike::M_PRIVATE && $member->docComment !== null) {
-                return $member->docComment;
+                $docComment = clone $member->docComment;
+                $docComment->nameContext = $docComment->nameContext ?? $member->nameContext;
+
+                return $docComment;
             }
         }
 
