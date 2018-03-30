@@ -7,6 +7,8 @@ use PhpParser\PrettyPrinter\Standard;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\Scope;
 use PHPStan\Analyser\TypeSpecifier;
+use PHPStan\Reflection\MissingMethodFromReflectionException;
+use PHPStan\Reflection\MissingPropertyFromReflectionException;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
 
@@ -78,11 +80,18 @@ class Analyser
 
         yield $this->syncAsync->callSync(
             function () use ($path, $nodeCallback) {
-                $this->nodeScopeResolver->processNodes(
-                    $this->parser->parseFile($path),
-                    new Scope($this->broker, $this->printer, $this->typeSpecifier, $path),
-                    $nodeCallback
-                );
+                try {
+                    $this->nodeScopeResolver->processNodes(
+                        $this->parser->parseFile($path),
+                        new Scope($this->broker, $this->printer, $this->typeSpecifier, $path),
+                        $nodeCallback
+                    );
+                } catch (MissingPropertyFromReflectionException $e) {
+                    // These exceptions are thrown when analysis begins before
+                    // new property/method is indexed.
+                    // TODO: find better way of handling such situation.
+                } catch (MissingMethodFromReflectionException $e) {
+                }
             },
             [],
             function () use ($document, $path) {
