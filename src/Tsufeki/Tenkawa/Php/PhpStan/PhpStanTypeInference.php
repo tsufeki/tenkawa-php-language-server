@@ -41,11 +41,6 @@ class PhpStanTypeInference implements TypeInference
             return;
         }
 
-        $inferred = $document->get('type_inference');
-        if ($inferred) {
-            return;
-        }
-
         yield $this->analyser->analyse(
             $document,
             function (Node $node, Scope $scope) {
@@ -55,8 +50,6 @@ class PhpStanTypeInference implements TypeInference
                 }
             }
         );
-
-        $document->set('type_inference', true);
     }
 
     private function processType(PhpStanType $phpStanType): Type
