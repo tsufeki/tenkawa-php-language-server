@@ -113,8 +113,12 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
         $this->indexDataVersion = implode(';', $versions);
     }
 
-    private function indexDocument(Document $document, WritableIndexStorage $indexStorage, int $timestamp = null): \Generator
-    {
+    private function indexDocument(
+        Document $document,
+        WritableIndexStorage $indexStorage,
+        int $timestamp = null,
+        string $origin = null
+    ): \Generator {
         $entries = [];
 
         $fileEntry = new IndexEntry();
@@ -124,7 +128,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
         $entries[] = $fileEntry;
 
         foreach ($this->indexDataProviders as $provider) {
-            $entries = array_merge($entries, yield $provider->getEntries($document));
+            $entries = array_merge($entries, yield $provider->getEntries($document, $origin));
         }
 
         yield $indexStorage->replaceFile($document->getUri(), $entries, $timestamp);
@@ -135,8 +139,12 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
         yield $indexStorage->replaceFile($uri, []);
     }
 
-    public function indexProject(Project $project, WritableIndexStorage $indexStorage, Uri $subpath = null): \Generator
-    {
+    public function indexProject(
+        Project $project,
+        WritableIndexStorage $indexStorage,
+        Uri $subpath = null,
+        string $origin = null
+    ): \Generator {
         $rootUri = $project->getRootUri();
         $subpath = $subpath ?? $rootUri;
         if ($rootUri->getScheme() !== 'file'
@@ -176,7 +184,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
                 $document = yield $this->documentStore->load($uri, $language, $text);
                 $processedFilesCount++;
 
-                yield $this->indexDocument($document, $indexStorage, $timestamp);
+                yield $this->indexDocument($document, $indexStorage, $timestamp, $origin);
             } catch (\Throwable $e) {
                 $this->logger->warning("Can't index $uriString", ['exception' => $e]);
             }

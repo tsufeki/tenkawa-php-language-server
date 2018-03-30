@@ -40,13 +40,13 @@ class ReflectionIndexDataProvider implements IndexDataProvider
 
     public function getVersion(): int
     {
-        return 11;
+        return 12;
     }
 
     /**
      * @resolve IndexEntry[]
      */
-    public function getEntries(Document $document): \Generator
+    public function getEntries(Document $document, string $origin = null): \Generator
     {
         if ($document->getLanguage() !== 'php') {
             return [];
@@ -60,9 +60,9 @@ class ReflectionIndexDataProvider implements IndexDataProvider
         $nodeTraverser->traverse($ast->nodes);
 
         $entries = array_merge(
-            $this->makeEntries($visitor->getClasses(), self::CATEGORY_CLASS, $document, true),
-            $this->makeEntries($visitor->getFunctions(), self::CATEGORY_FUNCTION, $document, true),
-            $this->makeEntries($visitor->getConsts(), self::CATEGORY_CONST, $document, true)
+            $this->makeEntries($visitor->getClasses(), self::CATEGORY_CLASS, $document, $origin),
+            $this->makeEntries($visitor->getFunctions(), self::CATEGORY_FUNCTION, $document, $origin),
+            $this->makeEntries($visitor->getConsts(), self::CATEGORY_CONST, $document, $origin)
         );
 
         return $entries;
@@ -73,9 +73,15 @@ class ReflectionIndexDataProvider implements IndexDataProvider
      *
      * @return IndexEntry[]
      */
-    private function makeEntries(array $elements, string $category, Document $document, bool $caseSensitive = false): array
-    {
-        return array_map(function ($elem) use ($category, $document, $caseSensitive) {
+    private function makeEntries(
+        array $elements,
+        string $category,
+        Document $document,
+        string $origin = null,
+        bool $caseSensitive = true
+    ): array {
+        return array_map(function (Element\Element $elem) use ($category, $document, $caseSensitive, $origin) {
+            $elem->origin = $origin;
             $entry = new IndexEntry();
             $entry->sourceUri = $document->getUri();
             $entry->category = $category;

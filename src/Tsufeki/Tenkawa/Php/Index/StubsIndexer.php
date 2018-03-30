@@ -16,6 +16,8 @@ class StubsIndexer implements GlobalIndexer
      */
     private $stubsUri;
 
+    const ORIGIN = 'stubs';
+
     public function __construct()
     {
         foreach (['../../../../../vendor', '../../../../../../..'] as $path) {
@@ -31,7 +33,7 @@ class StubsIndexer implements GlobalIndexer
     {
         if ($this->stubsUri !== null) {
             $project = new Project($this->stubsUri);
-            yield $indexer->indexProject($project, $globalIndexStorage);
+            yield $indexer->indexProject($project, $globalIndexStorage, null, self::ORIGIN);
         }
     }
 }

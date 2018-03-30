@@ -3,12 +3,11 @@
 namespace Tsufeki\Tenkawa\Php\Reflection;
 
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
-use Tsufeki\Tenkawa\Server\Index\IndexEntry;
 
 interface ReflectionTransformer
 {
     /**
      * @resolve Element
      */
-    public function transform(Element $element, IndexEntry $entry): \Generator;
+    public function transform(Element $element): \Generator;
 }

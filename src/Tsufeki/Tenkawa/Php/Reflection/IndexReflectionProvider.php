@@ -59,7 +59,7 @@ class IndexReflectionProvider implements ReflectionProvider
         foreach ($entries as $entry) {
             $element = $this->mapper->load($entry->data, $itemClass);
             foreach ($this->transformers as $transformer) {
-                $element = yield $transformer->transform($element, $entry);
+                $element = yield $transformer->transform($element);
             }
             $elements[] = $element;
         }

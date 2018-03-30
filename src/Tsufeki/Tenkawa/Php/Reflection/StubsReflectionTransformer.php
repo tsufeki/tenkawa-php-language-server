@@ -2,18 +2,22 @@
 
 namespace Tsufeki\Tenkawa\Php\Reflection;
 
+use Tsufeki\Tenkawa\Php\Index\StubsIndexer;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
-use Tsufeki\Tenkawa\Server\Index\IndexEntry;
 
 class StubsReflectionTransformer
 {
     /**
      * @resolve Element
      */
-    public function transform(Element $element, IndexEntry $entry): \Generator
+    public function transform(Element $element): \Generator
     {
+        if ($element->origin !== StubsIndexer::ORIGIN) {
+            return $element;
+        }
+
         if ($element instanceof Function_) {
             $this->transformFunction($element);
         }
