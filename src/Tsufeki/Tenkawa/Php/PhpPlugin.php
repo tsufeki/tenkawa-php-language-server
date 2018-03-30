@@ -54,7 +54,6 @@ use Tsufeki\Tenkawa\Php\Language\HoverMembersProvider;
 use Tsufeki\Tenkawa\Php\Language\MembersCompletionProvider;
 use Tsufeki\Tenkawa\Php\Language\MembersHelper;
 use Tsufeki\Tenkawa\Php\Language\NodeFinder;
-use Tsufeki\Tenkawa\Php\Language\PhplDiagnosticsProvider;
 use Tsufeki\Tenkawa\Php\Language\ReflectionDocumentSymbolsProvider;
 use Tsufeki\Tenkawa\Php\Language\VariableCompletionProvider;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
@@ -100,7 +99,6 @@ class PhpPlugin extends Plugin
 
         $container->setClass(Parser::class, PhpParserAdapter::class);
         $container->setClass(DiagnosticsProvider::class, ParserDiagnosticsProvider::class, true);
-        //$container->setClass(DiagnosticsProvider::class, PhplDiagnosticsProvider::class, true);
 
         if ($options['index.stubs'] ?? true) {
             $container->setClass(GlobalIndexer::class, StubsIndexer::class, true);

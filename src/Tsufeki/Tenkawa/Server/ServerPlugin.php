@@ -9,7 +9,6 @@ use Tsufeki\BlancheJsonRpc\Dispatcher\MethodRegistry;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
 use Tsufeki\BlancheJsonRpc\MappedJsonRpc;
 use Tsufeki\HmContainer\Container;
-use Tsufeki\HmContainer\Definition\Value;
 use Tsufeki\KayoJsonMapper\Mapper;
 use Tsufeki\KayoJsonMapper\MapperBuilder;
 use Tsufeki\KayoJsonMapper\NameMangler\NullNameMangler;
@@ -45,11 +44,7 @@ use Tsufeki\Tenkawa\Server\Language\GoToDefinitionAggregator;
 use Tsufeki\Tenkawa\Server\Language\HoverAggregator;
 use Tsufeki\Tenkawa\Server\Logger\ClientLogger;
 use Tsufeki\Tenkawa\Server\Mapper\UriMapper;
-use Tsufeki\Tenkawa\Server\ProcessRunner\ProcessRunner;
-use Tsufeki\Tenkawa\Server\ProcessRunner\ReactProcessRunner;
-use Tsufeki\Tenkawa\Server\ProcessRunner\ThrottledProcessRunner;
 use Tsufeki\Tenkawa\Server\Protocol\LanguageClient;
-use Tsufeki\Tenkawa\Server\Utils\Throttler;
 
 class ServerPlugin extends Plugin
 {
@@ -66,12 +61,6 @@ class ServerPlugin extends Plugin
         $container->setClass(Directories::class);
         $container->setClass(FileReader::class, LocalFileReader::class);
         $container->setClass(FileLister::class, LocalFileLister::class);
-
-        $container->setClass(ReactProcessRunner::class);
-        $container->setClass(ProcessRunner::class, ThrottledProcessRunner::class, false, [
-            ReactProcessRunner::class,
-            new Value(new Throttler(8)),
-        ]);
 
         $container->setClass(MethodProvider::class, Server::class, true);
         $container->setClass(LanguageClient::class, Client::class);
