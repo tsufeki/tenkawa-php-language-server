@@ -6,8 +6,6 @@
 * vscode: Check if php executable exists
 * Recalculate diagnostics when indexing finished.
 * Fix phpstan diagnostics in traits.
-* Move FileWatcherHandler to Index namespace.
-* Accumulate and deduplicate events in inotify watcher.
 * "Import" code action
 * Test on Windows.
 
@@ -15,3 +13,4 @@
 ---
 * Completion of closure `use`s.
 * Signature help.
+* Completion inside doc comments

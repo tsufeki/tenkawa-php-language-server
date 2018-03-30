@@ -7,7 +7,6 @@ use ReactFilesystemMonitor\FilesystemMonitorFactoryInterface;
 use ReactFilesystemMonitor\FilesystemMonitorInterface;
 use Recoil\Recoil;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
-use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Event;
@@ -89,10 +88,11 @@ class InotifyWaitFileWatcher implements FileWatcher
         }
 
         $monitor = $this->monitorFactory->create($path, self::EVENTS);
+        $deduplicator = new FileChangeDeduplicator($this->eventDispatcher, 1.0);
 
-        $monitor->on('all', yield Recoil::callback(function (string $path) {
+        $monitor->on('all', yield Recoil::callback(function (string $path) use ($deduplicator) {
             $uri = Uri::fromFilesystemPath($path);
-            yield $this->eventDispatcher->dispatch(OnFileChange::class, [$uri]);
+            yield $deduplicator->dispatch([$uri]);
         }));
 
         $monitor->on('error', yield Recoil::callback(function (\Throwable $e) {
