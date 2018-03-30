@@ -2,14 +2,45 @@
 
 namespace Tsufeki\Tenkawa\Server\Protocol;
 
+use Tsufeki\Tenkawa\Server\Protocol\Client\ApplyWorkspaceEditResponse;
 use Tsufeki\Tenkawa\Server\Protocol\Client\FileSystemWatcher;
+use Tsufeki\Tenkawa\Server\Protocol\Client\MessageActionItem;
 use Tsufeki\Tenkawa\Server\Protocol\Client\Registration;
 use Tsufeki\Tenkawa\Server\Protocol\Client\Unregistration;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Diagnostic;
+use Tsufeki\Tenkawa\Server\Protocol\Common\WorkspaceEdit;
 use Tsufeki\Tenkawa\Server\Uri;
 
 abstract class LanguageClient
 {
+    /**
+     * The show message notification is sent from a server to a client to ask
+     * the client to display a particular message in the user interface.
+     *
+     * method: window/showMessage
+     *
+     * @param int    $type    The message type. See MessageType.
+     * @param string $message The actual message.
+     */
+    abstract public function showMessage(int $type, string $message): \Generator;
+
+    /**
+     * The show message request is sent from a server to a client to ask the
+     * client to display a particular message in the user interface.
+     *
+     * In addition to the show message notification the request allows to pass
+     * actions and to wait for an answer from the client.
+     *
+     * method: window/showMessageRequest
+     *
+     * @param int                      $type    The message type. See MessageType.
+     * @param string                   $message The actual message.
+     * @param MessageActionItem[]|null $actions The message action items to present.
+     *
+     * @resolve MessageActionItem|null
+     */
+    abstract public function showMessageRequest(int $type, string $message, array $actions = null): \Generator;
+
     /**
      * Undocumented functionThe client/registerCapability request is sent from
      * the server to the client to register for a new capability on the client
@@ -83,4 +114,19 @@ abstract class LanguageClient
      * @param string $message The actual message
      */
     abstract public function logMessage(int $type, string $message): \Generator;
+
+    /**
+     * The workspace/applyEdit request is sent from the server to the client to
+     * modify resource on the client side.
+     *
+     * method: workspace/applyEdit
+     *
+     * @param string|null   $label An optional label of the workspace edit.
+     *                             This label is presented in the user interface
+     *                             for example on an undo stack to undo the workspace edit.
+     * @param WorkspaceEdit $edit  The edits to apply.
+     *
+     * @resolve ApplyWorkspaceEditResponse
+     */
+    abstract public function applyWorkspaceEdit(string $label = null, WorkspaceEdit $edit): \Generator;
 }

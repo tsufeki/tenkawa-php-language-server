@@ -40,6 +40,20 @@ class ServerCapabilities
     public $documentSymbolProvider = false;
 
     /**
+     * The server provides code actions.
+     *
+     * @var bool
+     */
+    public $codeActionProvider = false;
+
+    /**
+     * The server provides execute command support.
+     *
+     * @var ExecuteCommandOptions|null
+     */
+    public $executeCommandProvider;
+
+    /**
      * Workspace specific server capabilities.
      *
      * @var WorkspaceServerCapabilities|null

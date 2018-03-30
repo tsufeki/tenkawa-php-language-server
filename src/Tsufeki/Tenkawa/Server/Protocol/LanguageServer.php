@@ -3,13 +3,16 @@
 namespace Tsufeki\Tenkawa\Server\Protocol;
 
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
+use Tsufeki\Tenkawa\Server\Protocol\Common\Command;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Location;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Position;
+use Tsufeki\Tenkawa\Server\Protocol\Common\Range;
 use Tsufeki\Tenkawa\Server\Protocol\Common\TextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Protocol\Common\TextDocumentItem;
 use Tsufeki\Tenkawa\Server\Protocol\Common\VersionedTextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\InitializeResult;
+use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\CodeActionContext;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\CompletionContext;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\CompletionItem;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\CompletionList;
@@ -28,10 +31,12 @@ abstract class LanguageServer implements MethodProvider
         return [
             'initialize' => 'initialize',
             'shutdown' => 'shutdown',
+            'workspace/executeCommand' => 'executeCommand',
             'textDocument/completion' => 'completion',
             'textDocument/hover' => 'hover',
             'textDocument/definition' => 'definition',
             'textDocument/documentSymbol' => 'documentSymbol',
+            'textDocument/codeAction' => 'codeAction',
         ];
     }
 
@@ -102,6 +107,19 @@ abstract class LanguageServer implements MethodProvider
      * @param FileEvent[] $changes
      */
     abstract public function didChangeWatchedFiles($changes): \Generator;
+
+    /**
+     * The workspace/executeCommand request is sent from the client to the
+     * server to trigger command execution on the server.
+     *
+     * In most cases the server creates a WorkspaceEdit structure and applies
+     * the changes to the workspace using the request workspace/applyEdit which
+     * is sent from the server to the client.
+     *
+     * @param string $command   The identifier of the actual command handler.
+     * @param array  $arguments Arguments that the command should be invoked with.
+     */
+    abstract public function executeCommand(string $command, array $arguments): \Generator;
 
     /**
      * The document open notification is sent from the client to the server to
@@ -216,4 +234,23 @@ abstract class LanguageServer implements MethodProvider
      * @resolve SymbolInformation[]|null
      */
     abstract public function documentSymbol(TextDocumentIdentifier $textDocument): \Generator;
+
+    /**
+     * The code action request is sent from the client to the server to compute
+     * commands for a given text document and range.
+     *
+     * These commands are typically code fixes to either fix problems or to
+     * beautify/refactor code. The result of a textDocument/codeAction request
+     * is an array of Command literals which are typically presented in the
+     * user interface. When the command is selected the server should be
+     * contacted again (via the workspace/executeCommand) request to execute
+     * the command.
+     *
+     * @param TextDocumentIdentifier $textDocument The document in which the command was invoked.
+     * @param Range                  $range        The range for which the command was invoked.
+     * @param CodeActionContext      $context      Context carrying additional information.
+     *
+     * @resolve Command[]|null
+     */
+    abstract public function codeAction(TextDocumentIdentifier $textDocument, Range $range, CodeActionContext $context): \Generator;
 }

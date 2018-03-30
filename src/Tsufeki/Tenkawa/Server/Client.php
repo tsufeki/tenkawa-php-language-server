@@ -4,9 +4,12 @@ namespace Tsufeki\Tenkawa\Server;
 
 use Psr\Log\LoggerInterface;
 use Tsufeki\BlancheJsonRpc\MappedJsonRpc;
+use Tsufeki\Tenkawa\Server\Protocol\Client\ApplyWorkspaceEditResponse;
 use Tsufeki\Tenkawa\Server\Protocol\Client\DidChangeWatchedFilesRegistrationOptions;
+use Tsufeki\Tenkawa\Server\Protocol\Client\MessageActionItem;
 use Tsufeki\Tenkawa\Server\Protocol\Client\Registration;
 use Tsufeki\Tenkawa\Server\Protocol\Client\Unregistration;
+use Tsufeki\Tenkawa\Server\Protocol\Common\WorkspaceEdit;
 use Tsufeki\Tenkawa\Server\Protocol\LanguageClient;
 
 class Client extends LanguageClient
@@ -25,6 +28,23 @@ class Client extends LanguageClient
     {
         $this->rpc = $rpc;
         $this->logger = $logger;
+    }
+
+    public function showMessage(int $type, string $message): \Generator
+    {
+        $this->logger->debug('send: ' . __FUNCTION__ . " $message");
+        yield $this->rpc->notify('window/showMessage', compact('type', 'message'));
+    }
+
+    public function showMessageRequest(int $type, string $message, array $actions = null): \Generator
+    {
+        $this->logger->debug('send: ' . __FUNCTION__ . " $message");
+
+        return yield $this->rpc->call(
+            'window/showMessageRequest',
+            compact('type', 'message', 'actions'),
+            MessageActionItem::class . '|null'
+        );
     }
 
     public function registerCapability(array $registrations): \Generator
@@ -65,6 +85,13 @@ class Client extends LanguageClient
     {
         $this->logger->debug('send: ' . __FUNCTION__ . " $message");
         yield $this->rpc->notify('window/logMessage', compact('type', 'message'));
+    }
+
+    public function applyWorkspaceEdit(string $label = null, WorkspaceEdit $edit): \Generator
+    {
+        $this->logger->debug('send: ' . __FUNCTION__);
+
+        return yield $this->rpc->call('workspace/applyEdit', compact('label', 'edit'), ApplyWorkspaceEditResponse::class);
     }
 
     private function generateId(): string

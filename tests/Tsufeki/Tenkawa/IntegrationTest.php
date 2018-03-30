@@ -71,6 +71,7 @@ class IntegrationTest extends TestCase
                         ],
                         'definitionProvider' => true,
                         'documentSymbolProvider' => true,
+                        'codeActionProvider' => false,
                     ],
                 ],
             ]), $resp);

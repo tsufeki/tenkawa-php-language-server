@@ -14,6 +14,7 @@ use Tsufeki\Tenkawa\Server\Language\DocumentSymbolsAggregator;
 use Tsufeki\Tenkawa\Server\Language\GoToDefinitionAggregator;
 use Tsufeki\Tenkawa\Server\Language\HoverAggregator;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Position;
+use Tsufeki\Tenkawa\Server\Protocol\Common\Range;
 use Tsufeki\Tenkawa\Server\Protocol\Common\TextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Protocol\Common\TextDocumentItem;
 use Tsufeki\Tenkawa\Server\Protocol\Common\VersionedTextDocumentIdentifier;
@@ -26,6 +27,7 @@ use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\TextDocumentSyncKind;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\TextDocumentSyncOptions;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\WorkspaceFoldersServerCapabilities;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\WorkspaceServerCapabilities;
+use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\CodeActionContext;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\CompletionContext;
 use Tsufeki\Tenkawa\Server\Protocol\Server\Workspace\FileEvent;
 use Tsufeki\Tenkawa\Server\Protocol\Server\Workspace\WorkspaceFolder;
@@ -211,6 +213,15 @@ class Server extends LanguageServer
         $this->logger->debug(__FUNCTION__);
     }
 
+    public function executeCommand(string $command, array $arguments): \Generator
+    {
+        $time = new Stopwatch();
+
+        yield;
+
+        $this->logger->debug(__FUNCTION__ . " $command [$time]");
+    }
+
     public function didOpenTextDocument(TextDocumentItem $textDocument): \Generator
     {
         $time = new Stopwatch();
@@ -319,5 +330,18 @@ class Server extends LanguageServer
         $this->logger->debug(__FUNCTION__ . " $textDocument->uri [$time, $count items]");
 
         return $symbols;
+    }
+
+    public function codeAction(TextDocumentIdentifier $textDocument, Range $range, CodeActionContext $context): \Generator
+    {
+        $time = new Stopwatch();
+
+        yield;
+        $commands = [];
+        $count = count($commands);
+
+        $this->logger->debug(__FUNCTION__ . " $textDocument->uri$range->start$range->end [$time, $count items]");
+
+        return $commands;
     }
 }
