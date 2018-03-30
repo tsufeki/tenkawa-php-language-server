@@ -45,6 +45,8 @@ class ComposerFileFilterFactory implements FileFilterFactory
         }
 
         if (is_array($installed)) {
+            $rejectGlobs[] = "$vendorDir/**/*";
+
             foreach ($installed as $package) {
                 if (!is_object($package) || !($package instanceof \stdClass)) {
                     continue;
@@ -74,7 +76,6 @@ class ComposerFileFilterFactory implements FileFilterFactory
         }
 
         $packageRoot = "$vendorDir/$name";
-        $rejectGlobs[] = "$packageRoot/**/*";
 
         $autoload = $package->autoload ?? null;
         if (!is_object($autoload) || !($autoload instanceof \stdClass)) {
