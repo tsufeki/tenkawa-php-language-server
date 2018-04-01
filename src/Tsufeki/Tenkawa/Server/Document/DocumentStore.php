@@ -46,7 +46,7 @@ class DocumentStore
     {
         $uriString = $uri->getNormalized();
         if (!isset($this->documents[$uriString])) {
-            throw new DocumentNotOpenException();
+            throw new DocumentNotOpenException($uri);
         }
 
         return $this->documents[$uriString];
@@ -110,7 +110,7 @@ class DocumentStore
     {
         $uriString = $rootUri->getNormalized();
         if (!isset($this->projects[$uriString])) {
-            throw new ProjectNotOpenException();
+            throw new ProjectNotOpenException($rootUri);
         }
 
         return $this->projects[$uriString];
@@ -127,7 +127,7 @@ class DocumentStore
         $project = $projects[0] ?? $this->defaultProject;
 
         if ($project === null) {
-            throw new ProjectNotOpenException();
+            throw new ProjectNotOpenException($document->getUri());
         }
 
         return $project;

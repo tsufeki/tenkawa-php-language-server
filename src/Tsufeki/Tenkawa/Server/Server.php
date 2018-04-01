@@ -9,6 +9,8 @@ use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Event\OnInit;
 use Tsufeki\Tenkawa\Server\Event\OnShutdown;
+use Tsufeki\Tenkawa\Server\Language\CodeActionAggregator;
+use Tsufeki\Tenkawa\Server\Language\CommandDispatcher;
 use Tsufeki\Tenkawa\Server\Language\CompletionAggregator;
 use Tsufeki\Tenkawa\Server\Language\DocumentSymbolsAggregator;
 use Tsufeki\Tenkawa\Server\Language\GoToDefinitionAggregator;
@@ -21,6 +23,7 @@ use Tsufeki\Tenkawa\Server\Protocol\Common\VersionedTextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Protocol\LanguageServer;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\CompletionOptions;
+use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ExecuteCommandOptions;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\InitializeResult;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ServerCapabilities;
 use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\TextDocumentSyncKind;
@@ -47,6 +50,11 @@ class Server extends LanguageServer
     private $documentStore;
 
     /**
+     * @var CommandDispatcher
+     */
+    private $commandDispatcher;
+
+    /**
      * @var CompletionAggregator
      */
     private $completionAggregator;
@@ -67,6 +75,11 @@ class Server extends LanguageServer
     private $documentSymbolsAggregator;
 
     /**
+     * @var CodeActionAggregator
+     */
+    private $codeActionAggregator;
+
+    /**
      * @var LoggerInterface
      */
     private $logger;
@@ -79,18 +92,22 @@ class Server extends LanguageServer
     public function __construct(
         EventDispatcher $eventDispatcher,
         DocumentStore $documentStore,
+        CommandDispatcher $commandDispatcher,
         CompletionAggregator $completionAggregator,
         HoverAggregator $hoverAggregator,
         GoToDefinitionAggregator $goToDefinitionAggregator,
         DocumentSymbolsAggregator $documentSymbolsAggregator,
+        CodeActionAggregator $codeActionAggregator,
         LoggerInterface $logger
     ) {
         $this->eventDispatcher = $eventDispatcher;
         $this->documentStore = $documentStore;
+        $this->commandDispatcher = $commandDispatcher;
         $this->completionAggregator = $completionAggregator;
         $this->hoverAggregator = $hoverAggregator;
         $this->goToDefinitionAggregator = $goToDefinitionAggregator;
         $this->documentSymbolsAggregator = $documentSymbolsAggregator;
+        $this->codeActionAggregator = $codeActionAggregator;
         $this->logger = $logger;
         $this->timeout = 30.0;
     }
@@ -144,6 +161,11 @@ class Server extends LanguageServer
         }
         $serverCapabilities->definitionProvider = $this->goToDefinitionAggregator->hasProviders();
         $serverCapabilities->documentSymbolProvider = $this->documentSymbolsAggregator->hasProviders();
+        $serverCapabilities->codeActionProvider = $this->codeActionAggregator->hasProviders();
+        if ($this->commandDispatcher->hasProviders()) {
+            $serverCapabilities->executeCommandProvider = new ExecuteCommandOptions();
+            $serverCapabilities->executeCommandProvider->commands = $this->commandDispatcher->getCommands();
+        }
 
         $result = new InitializeResult();
         $result->capabilities = $serverCapabilities;
@@ -217,7 +239,7 @@ class Server extends LanguageServer
     {
         $time = new Stopwatch();
 
-        yield;
+        yield $this->commandDispatcher->execute($command, $arguments);
 
         $this->logger->debug(__FUNCTION__ . " $command [$time]");
     }
@@ -336,8 +358,8 @@ class Server extends LanguageServer
     {
         $time = new Stopwatch();
 
-        yield;
-        $commands = [];
+        $document = $this->documentStore->get($textDocument->uri);
+        $commands = yield $this->codeActionAggregator->getCodeActions($document, $range, $context);
         $count = count($commands);
 
         $this->logger->debug(__FUNCTION__ . " $textDocument->uri$range->start$range->end [$time, $count items]");

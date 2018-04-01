@@ -37,6 +37,8 @@ use Tsufeki\Tenkawa\Server\Io\FileWatcher\ClientFileWatcher;
 use Tsufeki\Tenkawa\Server\Io\FileWatcher\FileWatcher;
 use Tsufeki\Tenkawa\Server\Io\FileWatcher\InotifyWaitFileWatcher;
 use Tsufeki\Tenkawa\Server\Io\LocalFileReader;
+use Tsufeki\Tenkawa\Server\Language\CodeActionAggregator;
+use Tsufeki\Tenkawa\Server\Language\CommandDispatcher;
 use Tsufeki\Tenkawa\Server\Language\CompletionAggregator;
 use Tsufeki\Tenkawa\Server\Language\DiagnosticsAggregator;
 use Tsufeki\Tenkawa\Server\Language\DocumentSymbolsAggregator;
@@ -95,10 +97,12 @@ class ServerPlugin extends Plugin
         $container->setAlias(OnProjectOpen::class, FileWatcherHandler::class, true);
         $container->setAlias(OnProjectClose::class, FileWatcherHandler::class, true);
 
+        $container->setClass(CommandDispatcher::class);
         $container->setClass(HoverAggregator::class);
         $container->setClass(GoToDefinitionAggregator::class);
         $container->setClass(CompletionAggregator::class);
         $container->setClass(DocumentSymbolsAggregator::class);
+        $container->setClass(CodeActionAggregator::class);
     }
 
     /**
