@@ -165,7 +165,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
         }
 
         $stopwatch = new Stopwatch();
-        $this->logger->debug("Indexing started: $subpath");
+        // $this->logger->debug("Indexing started: $subpath");
 
         $indexedFiles = yield $indexStorage->getFileTimestamps($subpath);
         $processedFilesCount = 0;
@@ -196,7 +196,9 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
             yield $this->clearDocument($uri, $indexStorage);
         }
 
-        $this->logger->debug("Indexing finished: $subpath [$processedFilesCount files, $stopwatch]");
+        if ($processedFilesCount > 0) {
+            $this->logger->debug("Indexing finished: $subpath [$processedFilesCount files, $stopwatch]");
+        }
     }
 
     public function onStart(array $options): \Generator
@@ -266,7 +268,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
     public function onFileChange(array $uris): \Generator
     {
         foreach ($uris as $uri) {
-            $this->logger->debug("File changed: $uri");
+            // $this->logger->debug("File changed: $uri");
             /** @var Project[] $projects */
             $projects = yield $this->documentStore->getProjectsForUri($uri);
 
