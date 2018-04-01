@@ -212,7 +212,7 @@ class Uri
             }
 
             if (Platform::isWindows()) {
-                $normalized->path = strtolower(ltrim($normalized->path, '/'));
+                $normalized->path = strtolower($normalized->path);
             }
         }
 
