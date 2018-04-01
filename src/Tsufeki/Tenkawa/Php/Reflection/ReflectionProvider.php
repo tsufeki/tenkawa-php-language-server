@@ -39,4 +39,19 @@ interface ReflectionProvider
      * @resolve Const_[]
      */
     public function getConstsFromUri(Document $document, Uri $uri): \Generator;
+
+    /**
+     * @resolve ClassLike[]
+     */
+    public function getClassesByShortName(Document $document, string $shortName): \Generator;
+
+    /**
+     * @resolve Function_[]
+     */
+    public function getFunctionsByShortName(Document $document, string $shortName): \Generator;
+
+    /**
+     * @resolve Const_[]
+     */
+    public function getConstsByShortName(Document $document, string $shortName): \Generator;
 }

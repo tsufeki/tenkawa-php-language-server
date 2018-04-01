@@ -39,21 +39,20 @@ class IndexReflectionProvider implements ReflectionProvider
         $this->transformers = $transformers;
     }
 
-    private function getFromIndex(
-        Document $document,
-        string $category,
-        string $itemClass,
-        string $fullyQualifiedName = null,
-        Uri $uri = null
-    ): \Generator {
-        $fullyQualifiedName = $fullyQualifiedName ? '\\' . ltrim($fullyQualifiedName, '\\') : null;
-        $query = new Query();
-        $query->category = $category;
-        $query->key = $fullyQualifiedName;
-        $query->uri = $uri;
-
+    /**
+     * @resolve Element[]
+     */
+    private function search(Query $query, Document $document): \Generator
+    {
         /** @var IndexEntry[] $entries */
         $entries = yield $this->index->search($document, $query);
+
+        $itemClass = ClassLike::class;
+        if ($query->category === ReflectionIndexDataProvider::CATEGORY_FUNCTION) {
+            $itemClass = Function_::class;
+        } elseif ($query->category === ReflectionIndexDataProvider::CATEGORY_CONST) {
+            $itemClass = Const_::class;
+        }
 
         $elements = [];
         foreach ($entries as $entry) {
@@ -69,64 +68,85 @@ class IndexReflectionProvider implements ReflectionProvider
 
     public function getClass(Document $document, string $fullyQualifiedName): \Generator
     {
-        return yield $this->getFromIndex(
-            $document,
-            ReflectionIndexDataProvider::CATEGORY_CLASS,
-            ClassLike::class,
-            $fullyQualifiedName
-        );
+        $query = new Query();
+        $query->category = ReflectionIndexDataProvider::CATEGORY_CLASS;
+        $query->key = '\\' . ltrim($fullyQualifiedName, '\\');
+
+        return yield $this->search($query, $document);
     }
 
     public function getFunction(Document $document, string $fullyQualifiedName): \Generator
     {
-        return yield $this->getFromIndex(
-            $document,
-            ReflectionIndexDataProvider::CATEGORY_FUNCTION,
-            Function_::class,
-            $fullyQualifiedName
-        );
+        $query = new Query();
+        $query->category = ReflectionIndexDataProvider::CATEGORY_FUNCTION;
+        $query->key = '\\' . ltrim($fullyQualifiedName, '\\');
+
+        return yield $this->search($query, $document);
     }
 
     public function getConst(Document $document, string $fullyQualifiedName): \Generator
     {
-        return yield $this->getFromIndex(
-            $document,
-            ReflectionIndexDataProvider::CATEGORY_CONST,
-            Const_::class,
-            $fullyQualifiedName
-        );
+        $query = new Query();
+        $query->category = ReflectionIndexDataProvider::CATEGORY_CONST;
+        $query->key = '\\' . ltrim($fullyQualifiedName, '\\');
+
+        return yield $this->search($query, $document);
     }
 
     public function getClassesFromUri(Document $document, Uri $uri): \Generator
     {
-        return yield $this->getFromIndex(
-            $document,
-            ReflectionIndexDataProvider::CATEGORY_CLASS,
-            ClassLike::class,
-            null,
-            $uri
-        );
+        $query = new Query();
+        $query->category = ReflectionIndexDataProvider::CATEGORY_CLASS;
+        $query->uri = $uri;
+
+        return yield $this->search($query, $document);
     }
 
     public function getFunctionsFromUri(Document $document, Uri $uri): \Generator
     {
-        return yield $this->getFromIndex(
-            $document,
-            ReflectionIndexDataProvider::CATEGORY_FUNCTION,
-            Function_::class,
-            null,
-            $uri
-        );
+        $query = new Query();
+        $query->category = ReflectionIndexDataProvider::CATEGORY_FUNCTION;
+        $query->uri = $uri;
+
+        return yield $this->search($query, $document);
     }
 
     public function getConstsFromUri(Document $document, Uri $uri): \Generator
     {
-        return yield $this->getFromIndex(
-            $document,
-            ReflectionIndexDataProvider::CATEGORY_CONST,
-            Const_::class,
-            null,
-            $uri
-        );
+        $query = new Query();
+        $query->category = ReflectionIndexDataProvider::CATEGORY_CONST;
+        $query->uri = $uri;
+
+        return yield $this->search($query, $document);
+    }
+
+    public function getClassesByShortName(Document $document, string $shortName): \Generator
+    {
+        $query = new Query();
+        $query->category = ReflectionIndexDataProvider::CATEGORY_CLASS;
+        $query->key = '\\' . ltrim($shortName, '\\');
+        $query->match = Query::SUFFIX;
+
+        return yield $this->search($query, $document);
+    }
+
+    public function getFunctionsByShortName(Document $document, string $shortName): \Generator
+    {
+        $query = new Query();
+        $query->category = ReflectionIndexDataProvider::CATEGORY_FUNCTION;
+        $query->key = '\\' . ltrim($shortName, '\\');
+        $query->match = Query::SUFFIX;
+
+        return yield $this->search($query, $document);
+    }
+
+    public function getConstsByShortName(Document $document, string $shortName): \Generator
+    {
+        $query = new Query();
+        $query->category = ReflectionIndexDataProvider::CATEGORY_CONST;
+        $query->key = '\\' . ltrim($shortName, '\\');
+        $query->match = Query::SUFFIX;
+
+        return yield $this->search($query, $document);
     }
 }

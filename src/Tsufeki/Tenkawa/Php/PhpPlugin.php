@@ -51,6 +51,8 @@ use Tsufeki\Tenkawa\Php\Language\HoverDocCommentProvider;
 use Tsufeki\Tenkawa\Php\Language\HoverFormatter;
 use Tsufeki\Tenkawa\Php\Language\HoverGlobalsProvider;
 use Tsufeki\Tenkawa\Php\Language\HoverMembersProvider;
+use Tsufeki\Tenkawa\Php\Language\ImportCommandProvider;
+use Tsufeki\Tenkawa\Php\Language\ImportGlobalCodeActionProvider;
 use Tsufeki\Tenkawa\Php\Language\MembersCompletionProvider;
 use Tsufeki\Tenkawa\Php\Language\MembersHelper;
 use Tsufeki\Tenkawa\Php\Language\NodeFinder;
@@ -84,6 +86,8 @@ use Tsufeki\Tenkawa\Server\Index\IndexDataProvider;
 use Tsufeki\Tenkawa\Server\Io\FileLister\FileFilter;
 use Tsufeki\Tenkawa\Server\Io\FileLister\GlobFileFilter;
 use Tsufeki\Tenkawa\Server\Io\FileLister\GlobRejectDirectoryFilter;
+use Tsufeki\Tenkawa\Server\Language\CodeActionProvider;
+use Tsufeki\Tenkawa\Server\Language\CommandProvider;
 use Tsufeki\Tenkawa\Server\Language\CompletionProvider;
 use Tsufeki\Tenkawa\Server\Language\DiagnosticsProvider;
 use Tsufeki\Tenkawa\Server\Language\DocumentSymbolsProvider;
@@ -118,11 +122,13 @@ class PhpPlugin extends Plugin
 
         $container->setClass(HoverFormatter::class);
         $container->setClass(NodeFinder::class);
+        $container->setClass(CommandProvider::class, ImportCommandProvider::class, true);
 
         $container->setClass(GlobalsHelper::class);
         $container->setClass(GoToDefinitionProvider::class, GoToGlobalsProvider::class, true);
         $container->setClass(HoverProvider::class, HoverGlobalsProvider::class, true);
         $container->setClass(CompletionProvider::class, GlobalsCompletionProvider::class, true);
+        $container->setClass(CodeActionProvider::class, ImportGlobalCodeActionProvider::class, true);
 
         $container->setClass(DocCommentHelper::class);
         $container->setClass(GoToDefinitionProvider::class, GoToDocCommentProvider::class, true);

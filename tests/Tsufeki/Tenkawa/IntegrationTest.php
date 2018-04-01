@@ -71,7 +71,10 @@ class IntegrationTest extends TestCase
                         ],
                         'definitionProvider' => true,
                         'documentSymbolProvider' => true,
-                        'codeActionProvider' => false,
+                        'codeActionProvider' => true,
+                        'executeCommandProvider' => [
+                            'commands' => ['tenkawa.php.refactor.import'],
+                        ],
                     ],
                 ],
             ]), $resp);
