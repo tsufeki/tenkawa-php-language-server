@@ -5,10 +5,12 @@ namespace Tsufeki\Tenkawa\Php\Language;
 use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\NodeTraverser;
+use Tsufeki\Tenkawa\Php\Parser\FindIntersectingNodesVisitor;
 use Tsufeki\Tenkawa\Php\Parser\FindNodeVisitor;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Position;
+use Tsufeki\Tenkawa\Server\Protocol\Common\Range;
 
 class NodeFinder
 {
@@ -39,6 +41,22 @@ class NodeFinder
         $nodeTraverser = new NodeTraverser();
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($ast->nodes);
+
+        return $nodes;
+    }
+
+    /**
+     * @resolve (Node|Comment)[]
+     */
+    public function getNodesIntersectingWithRange(Document $document, Range $range): \Generator
+    {
+        $ast = yield $this->parser->parse($document);
+
+        $visitor = new FindIntersectingNodesVisitor($document, $range);
+        $nodeTraverser = new NodeTraverser();
+        $nodeTraverser->addVisitor($visitor);
+        $nodeTraverser->traverse($ast->nodes);
+        $nodes = $visitor->getNodes();
 
         return $nodes;
     }

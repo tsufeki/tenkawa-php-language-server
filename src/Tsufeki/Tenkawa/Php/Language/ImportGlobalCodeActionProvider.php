@@ -10,8 +10,10 @@ use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Language\CodeActionProvider;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Command;
+use Tsufeki\Tenkawa\Server\Protocol\Common\Position;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Range;
 use Tsufeki\Tenkawa\Server\Protocol\Server\TextDocument\CodeActionContext;
+use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class ImportGlobalCodeActionProvider implements CodeActionProvider
 {
@@ -47,7 +49,26 @@ class ImportGlobalCodeActionProvider implements CodeActionProvider
         }
 
         /** @var (Node|Comment)[] $nodes */
-        $nodes = yield $this->nodeFinder->getNodePath($document, $range->start);
+        $nodes = yield $this->nodeFinder->getNodesIntersectingWithRange($document, $range);
+
+        $commands = [];
+        foreach ($nodes as $node) {
+            if ($node instanceof Name) {
+                $nodeRange = PositionUtils::rangeFromNodeAttrs($node->getAttributes(), $document);
+                /** @var Command $command */
+                foreach (yield $this->getCodeActionsAtPosition($nodeRange->start, $document) as $command) {
+                    $commands[$command->arguments[2] . '-' . $command->arguments[3]] = $command;
+                }
+            }
+        }
+
+        return array_values($commands);
+    }
+
+    private function getCodeActionsAtPosition(Position $position, Document $document): \Generator
+    {
+        /** @var (Node|Comment)[] $nodes */
+        $nodes = yield $this->nodeFinder->getNodePath($document, $position);
         if (count($nodes) < 2 || !($nodes[0] instanceof Name)) {
             return [];
         }
@@ -88,7 +109,8 @@ class ImportGlobalCodeActionProvider implements CodeActionProvider
             $command = new Command();
             $command->title = "Import $fullName";
             $command->command = ImportCommandProvider::COMMAND;
-            $command->arguments = [$document->getUri(), $range->start, $kind, '\\' . $fullName];
+            $command->arguments = [$document->getUri()->getNormalized(), $position, $kind, '\\' . $fullName];
+            $commands[] = $command;
         }
 
         return $commands;
