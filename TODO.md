@@ -7,7 +7,6 @@
 * Recalculate diagnostics when indexing finished.
 * Fix phpstan diagnostics in traits.
 * "Import" code action
-* Test on Windows.
 
 0.2
 ---

@@ -136,7 +136,7 @@ class ReflectionVisitor extends NameContextVisitor
         if (isset($node->namespacedName)) {
             $element->name = $this->nameToString(new FullyQualified($node->namespacedName));
         } else {
-            $element->name = $node->name;
+            $element->name = is_string($node->name) ? $node->name : '';
         }
     }
 
@@ -173,7 +173,7 @@ class ReflectionVisitor extends NameContextVisitor
         $optional = true;
         foreach (array_reverse($node->params) as $paramNode) {
             $param = new Param();
-            $param->name = $paramNode->name;
+            $param->name = is_string($paramNode->name) ? $paramNode->name : '';
             $param->byRef = $paramNode->byRef;
             $param->optional = $optional = $optional && ($paramNode->default !== null || $paramNode->variadic);
             $param->variadic = $paramNode->variadic;

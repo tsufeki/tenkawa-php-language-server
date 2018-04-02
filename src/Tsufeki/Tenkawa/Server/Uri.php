@@ -207,7 +207,9 @@ class Uri
 
             if ($normalized->path !== null) {
                 $normalized->path = rtrim($normalized->path, '/');
-            } else {
+            }
+
+            if ($normalized->path === null || $normalized->path === '') {
                 $normalized->path = '/';
             }
 

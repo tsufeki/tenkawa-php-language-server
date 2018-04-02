@@ -36,7 +36,7 @@ class UriMapper implements Loader, Dumper
         }
 
         if (!is_string($data)) {
-            throw new TypeMismatchException('string', $data);
+            throw new TypeMismatchException('string', $data, $context);
         }
 
         try {

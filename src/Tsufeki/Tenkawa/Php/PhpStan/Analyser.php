@@ -7,6 +7,8 @@ use PhpParser\PrettyPrinter\Standard;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\Scope;
 use PHPStan\Analyser\TypeSpecifier;
+use PHPStan\Broker\ClassNotFoundException;
+use PHPStan\Broker\FunctionNotFoundException;
 use PHPStan\Reflection\MissingMethodFromReflectionException;
 use PHPStan\Reflection\MissingPropertyFromReflectionException;
 use Tsufeki\Tenkawa\Server\Document\Document;
@@ -91,6 +93,8 @@ class Analyser
                     // new property/method is indexed.
                     // TODO: find better way of handling such situation.
                 } catch (MissingMethodFromReflectionException $e) {
+                } catch (ClassNotFoundException $e) {
+                } catch (FunctionNotFoundException $e) {
                 }
             },
             [],
