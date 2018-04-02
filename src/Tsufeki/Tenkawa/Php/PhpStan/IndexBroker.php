@@ -107,6 +107,28 @@ class IndexBroker extends Broker
         $this->document = $document;
     }
 
+    private function getCache(string $key)
+    {
+        if ($this->document === null) {
+            throw new ShouldNotHappenException();
+        }
+
+        $cache = $this->document->get('phpstan.cache');
+
+        return $cache[$key] ?? null;
+    }
+
+    private function setCache(string $key, $value)
+    {
+        if ($this->document === null) {
+            throw new ShouldNotHappenException();
+        }
+
+        $cache = $this->document->get('phpstan.cache');
+        $cache[$key] = $value;
+        $this->document->set('phpstan.cache', $cache);
+    }
+
     public function getClass(string $className): ClassReflection
     {
         if ($this->document === null) {
@@ -114,7 +136,7 @@ class IndexBroker extends Broker
         }
 
         $className = '\\' . ltrim($className, '\\');
-        $classReflection = $this->document->get("phpstan.broker.class.$className");
+        $classReflection = $this->getCache("broker.class.$className");
         if ($classReflection !== null) {
             return $classReflection;
         }
@@ -131,7 +153,7 @@ class IndexBroker extends Broker
             $this->propertiesReflectionExtensions,
             $this->methodsReflectionExtensions
         );
-        $this->document->set("phpstan.broker.class.$className", $classReflection);
+        $this->setCache("broker.class.$className", $classReflection);
 
         return $classReflection;
     }

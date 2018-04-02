@@ -20,6 +20,7 @@ use Tsufeki\Tenkawa\Server\Event\Document\OnProjectClose;
 use Tsufeki\Tenkawa\Server\Event\Document\OnProjectOpen;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
+use Tsufeki\Tenkawa\Server\Event\OnIndexingFinished;
 use Tsufeki\Tenkawa\Server\Event\OnInit;
 use Tsufeki\Tenkawa\Server\Event\OnShutdown;
 use Tsufeki\Tenkawa\Server\Event\OnStart;
@@ -71,6 +72,7 @@ class ServerPlugin extends Plugin
         $container->setClass(DiagnosticsAggregator::class);
         $container->setAlias(OnOpen::class, DiagnosticsAggregator::class, true);
         $container->setAlias(OnChange::class, DiagnosticsAggregator::class, true);
+        $container->setAlias(OnIndexingFinished::class, DiagnosticsAggregator::class, true);
 
         if ($options['index.memory_only'] ?? false) {
             $container->setClass(IndexStorageFactory::class, MemoryIndexStorageFactory::class);

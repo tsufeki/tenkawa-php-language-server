@@ -11,7 +11,9 @@ use Tsufeki\Tenkawa\Server\Event\Document\OnChange;
 use Tsufeki\Tenkawa\Server\Event\Document\OnClose;
 use Tsufeki\Tenkawa\Server\Event\Document\OnOpen;
 use Tsufeki\Tenkawa\Server\Event\Document\OnProjectOpen;
+use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
+use Tsufeki\Tenkawa\Server\Event\OnIndexingFinished;
 use Tsufeki\Tenkawa\Server\Event\OnStart;
 use Tsufeki\Tenkawa\Server\Index\Storage\ChainedStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\MergedStorage;
@@ -70,6 +72,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
     private $globalIndex;
 
     /**
+     * @var EventDispatcher
+     */
+    private $eventDispatcher;
+
+    /**
      * @var LoggerInterface
      */
     private $logger;
@@ -94,6 +101,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
         FileLister $fileLister,
         array $fileFilters,
         array $fileFilterFactories,
+        EventDispatcher $eventDispatcher,
         LoggerInterface $logger
     ) {
         $this->indexDataProviders = $indexDataProviders;
@@ -104,6 +112,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
         $this->fileLister = $fileLister;
         $this->fileFilters = $fileFilters;
         $this->fileFilterFactories = $fileFilterFactories;
+        $this->eventDispatcher = $eventDispatcher;
         $this->logger = $logger;
 
         $versions = array_map(function (IndexDataProvider $provider) {
@@ -196,6 +205,8 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
             yield $this->clearDocument($uri, $indexStorage);
         }
 
+        yield $this->eventDispatcher->dispatch(OnIndexingFinished::class);
+
         if ($processedFilesCount > 0) {
             $this->logger->debug("Indexing finished: $subpath [$processedFilesCount files, $stopwatch]");
         }
@@ -249,6 +260,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
         $openFilesIndex = $project->get('index.open_files');
 
         yield $this->indexDocument($document, $openFilesIndex, $document->getVersion());
+        yield $this->eventDispatcher->dispatch(OnIndexingFinished::class);
     }
 
     public function onClose(Document $document): \Generator
@@ -260,6 +272,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
         $openFilesIndex = $project->get('index.open_files');
 
         yield $this->clearDocument($document->getUri(), $openFilesIndex);
+        yield $this->eventDispatcher->dispatch(OnIndexingFinished::class);
     }
 
     /**

@@ -3,8 +3,10 @@
 namespace Tests\Tsufeki\Tenkawa\Server\Language;
 
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Recoil\React\ReactKernel;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Language\DiagnosticsAggregator;
 use Tsufeki\Tenkawa\Server\Language\DiagnosticsProvider;
 use Tsufeki\Tenkawa\Server\Protocol\Common\Diagnostic;
@@ -16,7 +18,7 @@ use Tsufeki\Tenkawa\Server\Uri;
  */
 class DiagnosticsAggregatorTest extends TestCase
 {
-    public function test()
+    public function test_document_diagnostics()
     {
         $document = new Document(Uri::fromString('file:///foo'), 'php');
 
@@ -47,7 +49,17 @@ class DiagnosticsAggregatorTest extends TestCase
                 [$this->identicalTo($document->getUri()), $this->identicalTo($diags)]
             );
 
-        $aggregator = new DiagnosticsAggregator($providers, $client);
+        $documentStore = $this->createMock(DocumentStore::class);
+        $documentStore
+            ->expects($this->exactly(2))
+            ->method('getDocuments')
+            ->willReturn((function () use ($document) {
+                return [$document];
+                yield;
+            })());
+        $logger = $this->createMock(LoggerInterface::class);
+
+        $aggregator = new DiagnosticsAggregator($providers, [], $client, $documentStore, $logger);
 
         ReactKernel::start(function () use ($aggregator, $document) {
             yield $aggregator->onChange($document);

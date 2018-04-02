@@ -166,6 +166,15 @@ class DocumentStore
     }
 
     /**
+     * @resolve Document[]
+     */
+    public function getDocuments(): \Generator
+    {
+        return array_values($this->documents);
+        yield;
+    }
+
+    /**
      * @resolve Project
      */
     public function openProject(Uri $rootUri): \Generator

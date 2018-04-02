@@ -20,7 +20,7 @@ class EventDispatcher
     public function __construct(Container $container)
     {
         $this->container = $container;
-        $this->timeout = 30.0;
+        $this->timeout = 120.0;
     }
 
     /**

@@ -89,6 +89,7 @@ use Tsufeki\Tenkawa\Server\Language\DiagnosticsProvider;
 use Tsufeki\Tenkawa\Server\Language\DocumentSymbolsProvider;
 use Tsufeki\Tenkawa\Server\Language\GoToDefinitionProvider;
 use Tsufeki\Tenkawa\Server\Language\HoverProvider;
+use Tsufeki\Tenkawa\Server\Language\WorkspaceDiagnosticsProvider;
 use Tsufeki\Tenkawa\Server\Plugin;
 
 class PhpPlugin extends Plugin
@@ -164,7 +165,7 @@ class PhpPlugin extends Plugin
 
         $container->setClass(DocumentSymbolsProvider::class, ReflectionDocumentSymbolsProvider::class, true);
 
-        $container->setClass(DiagnosticsProvider::class, PhpStanDiagnosticsProvider::class, true);
+        $container->setClass(WorkspaceDiagnosticsProvider::class, PhpStanDiagnosticsProvider::class, true);
         $container->setClass(PropertiesClassReflectionExtension::class, UniversalObjectCratesClassReflectionExtension::class, true, [new Value(['stdClass'])]);
         $container->setClass(Registry::class);
         $container->setClass(RuleLevelHelper::class, null, false, [null, new Value(true), new Value(false), new Value(true)]);
