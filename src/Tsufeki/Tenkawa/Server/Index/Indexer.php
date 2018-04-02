@@ -203,11 +203,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
             yield;
             $uri = Uri::fromString($uriString);
             yield $this->clearDocument($uri, $indexStorage);
+            $processedFilesCount++;
         }
 
-        yield $this->eventDispatcher->dispatch(OnIndexingFinished::class);
-
         if ($processedFilesCount > 0) {
+            yield $this->eventDispatcher->dispatch(OnIndexingFinished::class);
             $this->logger->debug("Indexing finished: $subpath [$processedFilesCount files, $stopwatch]");
         }
     }
