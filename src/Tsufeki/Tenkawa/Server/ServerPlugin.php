@@ -48,6 +48,7 @@ use Tsufeki\Tenkawa\Server\Language\HoverAggregator;
 use Tsufeki\Tenkawa\Server\Logger\ClientLogger;
 use Tsufeki\Tenkawa\Server\Mapper\UriMapper;
 use Tsufeki\Tenkawa\Server\Protocol\LanguageClient;
+use Tsufeki\Tenkawa\Server\Refactor\EditHelper;
 
 class ServerPlugin extends Plugin
 {
@@ -98,6 +99,8 @@ class ServerPlugin extends Plugin
         $container->setAlias(OnShutdown::class, FileWatcherHandler::class, true);
         $container->setAlias(OnProjectOpen::class, FileWatcherHandler::class, true);
         $container->setAlias(OnProjectClose::class, FileWatcherHandler::class, true);
+
+        $container->setClass(EditHelper::class);
 
         $container->setClass(CommandDispatcher::class);
         $container->setClass(HoverAggregator::class);

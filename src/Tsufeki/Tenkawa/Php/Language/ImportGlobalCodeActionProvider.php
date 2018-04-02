@@ -51,12 +51,13 @@ class ImportGlobalCodeActionProvider implements CodeActionProvider
         /** @var (Node|Comment)[] $nodes */
         $nodes = yield $this->nodeFinder->getNodesIntersectingWithRange($document, $range);
 
+        $version = $document->getVersion();
         $commands = [];
         foreach ($nodes as $node) {
             if ($node instanceof Name) {
                 $nodeRange = PositionUtils::rangeFromNodeAttrs($node->getAttributes(), $document);
                 /** @var Command $command */
-                foreach (yield $this->getCodeActionsAtPosition($nodeRange->start, $document) as $command) {
+                foreach (yield $this->getCodeActionsAtPosition($nodeRange->start, $document, $version) as $command) {
                     $commands[$command->arguments[2] . '-' . $command->arguments[3]] = $command;
                 }
             }
@@ -65,7 +66,7 @@ class ImportGlobalCodeActionProvider implements CodeActionProvider
         return array_values($commands);
     }
 
-    private function getCodeActionsAtPosition(Position $position, Document $document): \Generator
+    private function getCodeActionsAtPosition(Position $position, Document $document, int $version = null): \Generator
     {
         /** @var (Node|Comment)[] $nodes */
         $nodes = yield $this->nodeFinder->getNodePath($document, $position);
@@ -109,7 +110,13 @@ class ImportGlobalCodeActionProvider implements CodeActionProvider
             $command = new Command();
             $command->title = "Import $fullName";
             $command->command = ImportCommandProvider::COMMAND;
-            $command->arguments = [$document->getUri()->getNormalized(), $position, $kind, '\\' . $fullName];
+            $command->arguments = [
+                $document->getUri()->getNormalized(),
+                $position,
+                $kind,
+                '\\' . $fullName,
+                $version,
+            ];
             $commands[] = $command;
         }
 

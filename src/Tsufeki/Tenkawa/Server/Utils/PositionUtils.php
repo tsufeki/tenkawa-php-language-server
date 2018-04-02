@@ -74,6 +74,11 @@ class PositionUtils
         return $offset;
     }
 
+    public static function fixPosition(Position $position, Document $document): Position
+    {
+        return self::positionFromOffset(self::offsetFromPosition($position, $document), $document);
+    }
+
     public static function rangeFromNodeAttrs(array $attributes, Document $document): Range
     {
         return new Range(
