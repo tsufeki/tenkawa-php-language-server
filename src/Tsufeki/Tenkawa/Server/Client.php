@@ -77,8 +77,8 @@ class Client extends LanguageClient
 
     public function publishDiagnostics(Uri $uri, array $diagnostics): \Generator
     {
-        $count = count($diagnostics);
-        $this->logger->debug('send: ' . __FUNCTION__ . " $uri [$count items]");
+        // $count = count($diagnostics);
+        // $this->logger->debug('send: ' . __FUNCTION__ . " $uri [$count items]");
         yield $this->rpc->notify('textDocument/publishDiagnostics', compact('uri', 'diagnostics'));
     }
 
