@@ -20,6 +20,7 @@ use Tsufeki\Tenkawa\Php\Reflection\ConstExprEvaluator;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
 
 class IndexBroker extends Broker

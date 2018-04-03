@@ -12,6 +12,7 @@ use PHPStan\Broker\FunctionNotFoundException;
 use PHPStan\Reflection\MissingMethodFromReflectionException;
 use PHPStan\Reflection\MissingPropertyFromReflectionException;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
 
 class Analyser
@@ -81,7 +82,7 @@ class Analyser
         $cache = $cache ?? new Cache();
         $path = $document->getUri()->getFilesystemPath();
 
-        yield $this->syncAsync->callSync(
+        $this->syncAsync->callSync(
             function () use ($path, $nodeCallback) {
                 try {
                     $this->nodeScopeResolver->processNodes(
@@ -118,5 +119,8 @@ class Analyser
         );
 
         $cache->close();
+
+        return;
+        yield;
     }
 }

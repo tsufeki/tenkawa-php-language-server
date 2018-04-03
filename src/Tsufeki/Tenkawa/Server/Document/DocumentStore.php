@@ -11,6 +11,7 @@ use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Exception\DocumentNotOpenException;
 use Tsufeki\Tenkawa\Server\Exception\ProjectNotOpenException;
 use Tsufeki\Tenkawa\Server\Uri;
+use Tsufeki\Tenkawa\Server\Utils\Cache;
 
 class DocumentStore
 {
@@ -34,9 +35,15 @@ class DocumentStore
      */
     private $eventDispatcher;
 
+    /**
+     * @var Cache
+     */
+    private $cache;
+
     public function __construct(EventDispatcher $eventDispatcher)
     {
         $this->eventDispatcher = $eventDispatcher;
+        $this->cache = new Cache();
     }
 
     /**
@@ -61,6 +68,7 @@ class DocumentStore
         $document->update($text, $version);
         $uriString = $document->getUri()->getNormalized();
         $this->documents[$uriString] = $document;
+        $this->cache->clear();
 
         yield $this->eventDispatcher->dispatchAndWait(OnOpen::class, $document);
 
@@ -101,6 +109,7 @@ class DocumentStore
         $uriString = $document->getUri()->getNormalized();
         unset($this->documents[$uriString]);
         $document->close();
+        $this->cache->clear();
     }
 
     /**
@@ -138,12 +147,19 @@ class DocumentStore
      */
     public function getProjectsForUri(Uri $uri): \Generator
     {
+        $key = "projects_for_uri.$uri";
+        $projects = $this->cache->get($key);
+        if ($projects !== null) {
+            return $projects;
+        }
+
         $projects = [];
         foreach ($this->projects as $project) {
             if ($project->getRootUri()->equals($uri) || $project->getRootUri()->isParentOf($uri)) {
                 $projects[] = $project;
             }
         }
+        $this->cache->set($key, $projects);
 
         return $projects;
         yield;
@@ -154,12 +170,19 @@ class DocumentStore
      */
     public function getDocumentsForProject(Project $project): \Generator
     {
+        $key = 'documents_for_project.' . spl_object_hash($project);
+        $documents = $this->cache->get($key);
+        if ($documents !== null) {
+            return $documents;
+        }
+
         $documents = [];
         foreach ($this->documents as $document) {
             if ($project->getRootUri()->isParentOf($document->getUri())) {
                 $documents[] = $document;
             }
         }
+        $this->cache->set($key, $documents);
 
         return $documents;
         yield;
@@ -182,6 +205,7 @@ class DocumentStore
         $project = new Project($rootUri);
         $uriString = $project->getRootUri()->getNormalized();
         $this->projects[$uriString] = $project;
+        $this->cache->clear();
 
         yield $this->eventDispatcher->dispatchAndWait(OnProjectOpen::class, $project);
 
@@ -203,6 +227,7 @@ class DocumentStore
         $uriString = $project->getRootUri()->getNormalized();
         unset($this->projects[$uriString]);
         $project->close();
+        $this->cache->clear();
     }
 
     public function closeAll(): \Generator

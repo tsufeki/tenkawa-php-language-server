@@ -17,7 +17,7 @@ class SyncAsyncKernelTest extends TestCase
         $sa = new SyncAsyncKernel([ReactKernel::class, 'create']);
 
         $sa->start(function () use ($sa) {
-            $result = yield $sa->callSync(function () use ($sa) {
+            $result = $sa->callSync(function () use ($sa) {
                 return 'foo' . $sa->callAsync((function () {
                     yield;
 

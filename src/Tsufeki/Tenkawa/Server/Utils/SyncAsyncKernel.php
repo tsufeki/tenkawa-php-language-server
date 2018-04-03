@@ -18,6 +18,11 @@ class SyncAsyncKernel implements Kernel
     private $kernel;
 
     /**
+     * @var Kernel|null Cached nested kernel.
+     */
+    private $freeKernel;
+
+    /**
      * @var bool
      */
     private $sync = true;
@@ -38,7 +43,7 @@ class SyncAsyncKernel implements Kernel
         array $args = [],
         callable $resumeCallback = null,
         callable $pauseCallback = null
-    ): \Generator {
+    ) {
         if ($this->sync) {
             throw new \RuntimeException("Can't call SyncAsyncKernel::callSync in sync mode");
         }
@@ -60,7 +65,6 @@ class SyncAsyncKernel implements Kernel
         }
 
         return $result;
-        yield;
     }
 
     /**
@@ -73,7 +77,12 @@ class SyncAsyncKernel implements Kernel
         }
 
         $oldKernel = $this->kernel;
-        $this->kernel = ($this->kernelFactory)();
+        if ($this->freeKernel) {
+            $this->kernel = $this->freeKernel;
+            $this->freeKernel = null;
+        } else {
+            $this->kernel = ($this->kernelFactory)();
+        }
 
         $this->sync = false;
         $context = !empty($this->syncStack) ? $this->syncStack[count($this->syncStack) - 1] : null;
@@ -88,6 +97,7 @@ class SyncAsyncKernel implements Kernel
             if ($context) {
                 $context->resume();
             }
+            $this->freeKernel = $this->kernel;
             $this->kernel = $oldKernel;
         }
 
