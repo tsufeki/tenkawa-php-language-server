@@ -65,7 +65,6 @@ class PhpStanDiagnosticsProvider implements WorkspaceDiagnosticsProvider
             return [];
         }
 
-        $document->set('phpstan.cache', []);
         $diagnostics = [];
 
         yield $this->analyser->analyse(
