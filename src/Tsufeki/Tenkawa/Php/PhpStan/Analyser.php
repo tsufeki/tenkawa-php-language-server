@@ -72,12 +72,13 @@ class Analyser
     /**
      * @param \Closure $nodeCallback (Node $node, Scope $scope)
      */
-    public function analyse(Document $document, \Closure $nodeCallback): \Generator
+    public function analyse(Document $document, \Closure $nodeCallback, Cache $cache = null): \Generator
     {
         if ($document->getLanguage() !== 'php') {
             return;
         }
 
+        $cache = $cache ?? new Cache();
         $path = $document->getUri()->getFilesystemPath();
 
         yield $this->syncAsync->callSync(
@@ -98,18 +99,24 @@ class Analyser
                 }
             },
             [],
-            function () use ($document, $path) {
+            function () use ($document, $cache, $path) {
                 $this->broker->setDocument($document);
+                $this->broker->setCache($cache);
                 $this->parser->setDocument($document);
                 $this->phpDocResolver->setDocument($document);
+                $this->phpDocResolver->setCache($cache);
                 $this->nodeScopeResolver->setAnalysedFiles([$path]);
             },
             function () {
                 $this->broker->setDocument(null);
+                $this->broker->setCache(null);
                 $this->parser->setDocument(null);
                 $this->phpDocResolver->setDocument(null);
+                $this->phpDocResolver->setCache(null);
                 $this->nodeScopeResolver->setAnalysedFiles([]);
             }
         );
+
+        $cache->close();
     }
 }

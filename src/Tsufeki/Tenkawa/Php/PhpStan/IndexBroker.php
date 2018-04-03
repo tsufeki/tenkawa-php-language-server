@@ -65,6 +65,11 @@ class IndexBroker extends Broker
     private $document;
 
     /**
+     * @var Cache|null
+     */
+    private $cache;
+
+    /**
      * @param PropertiesClassReflectionExtension[]     $propertiesClassReflectionExtensions
      * @param MethodsClassReflectionExtension[]        $methodsClassReflectionExtensions
      * @param DynamicMethodReturnTypeExtension[]       $dynamicMethodReturnTypeExtensions
@@ -107,36 +112,19 @@ class IndexBroker extends Broker
         $this->document = $document;
     }
 
-    private function getCache(string $key)
+    public function setCache(Cache $cache = null)
     {
-        if ($this->document === null) {
-            throw new ShouldNotHappenException();
-        }
-
-        $cache = $this->document->get('phpstan.cache');
-
-        return $cache[$key] ?? null;
-    }
-
-    private function setCache(string $key, $value)
-    {
-        if ($this->document === null) {
-            throw new ShouldNotHappenException();
-        }
-
-        $cache = $this->document->get('phpstan.cache');
-        $cache[$key] = $value;
-        $this->document->set('phpstan.cache', $cache);
+        $this->cache = $cache;
     }
 
     public function getClass(string $className): ClassReflection
     {
-        if ($this->document === null) {
+        if ($this->document === null || $this->cache === null) {
             throw new ShouldNotHappenException();
         }
 
         $className = '\\' . ltrim($className, '\\');
-        $classReflection = $this->getCache("broker.class.$className");
+        $classReflection = $this->cache->get("broker.class.$className");
         if ($classReflection !== null) {
             return $classReflection;
         }
@@ -153,7 +141,7 @@ class IndexBroker extends Broker
             $this->propertiesReflectionExtensions,
             $this->methodsReflectionExtensions
         );
-        $this->setCache("broker.class.$className", $classReflection);
+        $this->cache->set("broker.class.$className", $classReflection);
 
         return $classReflection;
     }
@@ -176,23 +164,28 @@ class IndexBroker extends Broker
 
     public function getFunction(Name $nameNode, Scope $scope = null): FunctionReflection
     {
-        if ($this->document === null) {
+        if ($this->document === null || $this->cache === null) {
             throw new ShouldNotHappenException();
         }
 
-        $function = null;
         foreach ($this->getNameCandidates($nameNode, $scope) as $name) {
-            $function = $this->syncAsync->callAsync($this->reflectionProvider->getFunction($this->document, $name))[0] ?? null;
-            if ($function !== null) {
-                break;
+            $functionReflection = $this->cache->get("broker.function.$name");
+            if ($functionReflection !== null) {
+                return $functionReflection;
             }
+
+            $function = $this->syncAsync->callAsync($this->reflectionProvider->getFunction($this->document, $name))[0] ?? null;
+            if ($function === null) {
+                continue;
+            }
+
+            $functionReflection = new IndexFunctionReflection($function, $this->phpDocResolver);
+            $this->cache->set("broker.function.$name", $functionReflection);
+
+            return $functionReflection;
         }
 
-        if ($function === null) {
-            throw new FunctionNotFoundException((string)$nameNode);
-        }
-
-        return new IndexFunctionReflection($function, $this->phpDocResolver);
+        throw new FunctionNotFoundException((string)$nameNode);
     }
 
     public function hasFunction(Name $nameNode, Scope $scope = null): bool

@@ -93,7 +93,7 @@ class DiagnosticsAggregator implements OnOpen, OnChange, OnIndexingFinished
     public function onIndexingFinished(): \Generator
     {
         if ($this->pendingWorkspaceTask !== null) {
-            $this->logger->debug("Workspace diagnostics cancelling");
+            $this->logger->debug('Workspace diagnostics cancelling');
             $this->pendingWorkspaceTask->throw(new CancelledException());
         }
 
@@ -101,7 +101,7 @@ class DiagnosticsAggregator implements OnOpen, OnChange, OnIndexingFinished
 
         try {
             yield Recoil::sleep($this->debounceTime);
-            $this->logger->debug("Workspace diagnostics starting");
+            $this->logger->debug('Workspace diagnostics starting');
 
             $time = new Stopwatch();
 
@@ -116,7 +116,7 @@ class DiagnosticsAggregator implements OnOpen, OnChange, OnIndexingFinished
 
             $this->logger->debug("Workspace diagnostics finished [$time]");
         } catch (CancelledException $e) {
-            $this->logger->debug("Workspace diagnostics cancelled [" . ($time ?? '') . ']');
+            $this->logger->debug('Workspace diagnostics cancelled [' . ($time ?? '') . ']');
         } finally {
             $this->pendingWorkspaceTask = null;
         }

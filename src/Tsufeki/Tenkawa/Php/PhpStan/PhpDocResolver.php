@@ -46,6 +46,11 @@ class PhpDocResolver extends FileTypeMapper
      */
     private $document;
 
+    /**
+     * @var Cache|null
+     */
+    private $cache;
+
     public function __construct(
         Parser $phpParser,
         PhpDocStringResolver $phpDocStringResolver,
@@ -63,14 +68,24 @@ class PhpDocResolver extends FileTypeMapper
         $this->document = $document;
     }
 
+    public function setCache(Cache $cache = null)
+    {
+        $this->cache = $cache;
+    }
+
     public function getResolvedPhpDoc(string $filename, string $className = null, string $docComment): ResolvedPhpDocBlock
     {
-        if ($this->document === null) {
+        if ($this->document === null || $this->cache === null) {
             throw new ShouldNotHappenException();
         }
 
         //TODO infinite recursion guard
         $uri = Uri::fromFilesystemPath($filename);
+        $key = 'phpdoc_resolver.' . sha1("{$uri->getNormalized()}-$docComment-$className");
+        $docBlock = $this->cache->get($key);
+        if ($docBlock !== null) {
+            return $docBlock;
+        }
 
         $nameContext = null;
         if ($this->document->getUri()->equals($uri)) {
@@ -87,7 +102,10 @@ class PhpDocResolver extends FileTypeMapper
         $nameContext = $nameContext ?? new NameContext();
         $nameContext->class = $className ? '\\' . $className : null;
 
-        return $this->getResolvedPhpDocForNameContext($docComment, $nameContext);
+        $docBlock = $this->getResolvedPhpDocForNameContext($docComment, $nameContext);
+        $this->cache->set($key, $docBlock);
+
+        return $docBlock;
     }
 
     /**
