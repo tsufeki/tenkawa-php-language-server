@@ -3,45 +3,39 @@
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
 use PhpParser\Node;
-use PhpParser\NodeTraverser;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Php\Reflection\NameContextVisitor;
 
 class PhpDocResolverVisitor extends NameContextVisitor
 {
     /**
-     * @var string
+     * @var array<string,NameContext> comment => name context
      */
-    private $docCommentNeedle;
+    private $nameContexts = [];
 
     /**
      * @var NameContext|null
      */
-    private $foundNameContext;
-
-    public function __construct(string $docCommentNeedle)
-    {
-        parent::__construct();
-        $this->docCommentNeedle = $docCommentNeedle;
-    }
+    private $lastNameContext;
 
     public function enterNode(Node $node)
     {
         parent::enterNode($node);
 
         $phpDoc = $node->getDocComment();
-        if ($phpDoc !== null && $phpDoc->getText() === $this->docCommentNeedle) {
-            $this->foundNameContext = clone $this->nameContext;
-
-            return NodeTraverser::STOP_TRAVERSAL;
+        if ($phpDoc !== null) {
+            if ($this->lastNameContext === null || $this->lastNameContext != $this->nameContext) {
+                $this->lastNameContext = clone $this->nameContext;
+            }
+            $this->nameContexts[$phpDoc->getText()] = $this->lastNameContext;
         }
     }
 
     /**
-     * @return NameContext|null
+     * @return array<string,NameContext> comment => name context
      */
-    public function getNameContext()
+    public function getNameContexts()
     {
-        return $this->foundNameContext;
+        return $this->nameContexts;
     }
 }

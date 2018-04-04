@@ -82,20 +82,10 @@ class PhpDocResolver extends FileTypeMapper
 
         //TODO infinite recursion guard
         $uri = Uri::fromFilesystemPath($filename);
-        $key = 'phpdoc_resolver.' . sha1("{$uri->getNormalized()}-$docComment-$className");
-        $docBlock = $this->cache->get($key);
-        if ($docBlock !== null) {
-            return $docBlock;
-        }
-
         $nameContext = null;
+
         if ($this->document->getUri()->equals($uri)) {
-            $nodes = $this->phpParser->parseFile($filename);
-            $visitor = new PhpDocResolverVisitor($docComment);
-            $nodeTraverser = new NodeTraverser();
-            $nodeTraverser->addVisitor($visitor);
-            $nodeTraverser->traverse($nodes);
-            $nameContext = $visitor->getNameContext();
+            $nameContext = $this->findDocCommentInAst($filename, $docComment);
         } else {
             $nameContext = $this->findDocCommentInIndex($uri, $docComment);
         }
@@ -104,9 +94,31 @@ class PhpDocResolver extends FileTypeMapper
         $nameContext->class = $className ? '\\' . $className : null;
 
         $docBlock = $this->getResolvedPhpDocForNameContext($docComment, $nameContext);
-        $this->cache->set($key, $docBlock);
 
         return $docBlock;
+    }
+
+    private function findDocCommentInAst(string $filename, string $docComment)
+    {
+        if ($this->cache === null) {
+            throw new ShouldNotHappenException();
+        }
+
+        $nameContexts = $this->cache->get("phpdoc_resolver.name_contexts.$filename");
+        if ($nameContexts !== null) {
+            return $nameContexts[$docComment] ?? null;
+        }
+
+        $nodes = $this->phpParser->parseFile($filename);
+        $visitor = new PhpDocResolverVisitor();
+        $nodeTraverser = new NodeTraverser();
+        $nodeTraverser->addVisitor($visitor);
+        $nodeTraverser->traverse($nodes);
+        $nameContexts = $visitor->getNameContexts();
+
+        $this->cache->set("phpdoc_resolver.name_contexts.$filename", $nameContexts);
+
+        return $nameContexts[$docComment] ?? null;
     }
 
     /**
