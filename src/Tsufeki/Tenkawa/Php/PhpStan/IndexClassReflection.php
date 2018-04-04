@@ -183,6 +183,11 @@ class IndexClassReflection extends ClassReflection
 
     private function createMethods(string $methodName)
     {
+        if (isset($this->methods[$methodName])) {
+            return;
+        }
+        $this->methods[$methodName] = [];
+
         if (isset($this->class->methods[$methodName])) {
             $method = $this->class->methods[$methodName];
             $indexMethod = new IndexMethodReflection(
@@ -250,6 +255,11 @@ class IndexClassReflection extends ClassReflection
 
     private function createProperties(string $propertyName)
     {
+        if (isset($this->properties[$propertyName])) {
+            return;
+        }
+        $this->properties[$propertyName] = [];
+
         if (isset($this->class->properties[$propertyName])) {
             $property = $this->class->properties[$propertyName];
             $indexProperty = new IndexPropertyReflection(
