@@ -180,8 +180,18 @@ class PhpDocResolver extends FileTypeMapper
         );
     }
 
-    public function getResolvedPhpDocForNameContext(string $docComment, NameContext $context): ResolvedPhpDocBlock
+    private function getResolvedPhpDocForNameContext(string $docComment, NameContext $context): ResolvedPhpDocBlock
     {
+        if ($this->cache === null) {
+            throw new ShouldNotHappenException();
+        }
+
+        $key = 'phpdoc_resolver.doc_block.' . sha1(serialize($context) . $docComment);
+        $docBlock = $this->cache->get($key);
+        if ($docBlock !== null) {
+            return $docBlock;
+        }
+
         $nameScope = new NameScope(
             ltrim($context->namespace, '\\') ?: null,
             array_map(function (string $name) {
@@ -190,6 +200,9 @@ class PhpDocResolver extends FileTypeMapper
             ltrim((string)$context->class, '\\') ?: null
         );
 
-        return $this->phpDocStringResolver->resolve($docComment, $nameScope);
+        $docBlock = $this->phpDocStringResolver->resolve($docComment, $nameScope);
+        $this->cache->set($key, $docBlock);
+
+        return $docBlock;
     }
 }
