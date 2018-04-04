@@ -18,6 +18,7 @@ use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
+use Tsufeki\Tenkawa\Server\Utils\InfiniteRecursionMarker;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
 
 class PhpDocResolver extends FileTypeMapper
@@ -80,7 +81,6 @@ class PhpDocResolver extends FileTypeMapper
             throw new ShouldNotHappenException();
         }
 
-        //TODO infinite recursion guard
         $uri = Uri::fromFilesystemPath($filename);
         $nameContext = null;
 
@@ -188,9 +188,13 @@ class PhpDocResolver extends FileTypeMapper
 
         $key = 'phpdoc_resolver.doc_block.' . sha1(serialize($context) . $docComment);
         $docBlock = $this->cache->get($key);
+        if ($docBlock === InfiniteRecursionMarker::get()) {
+            return $this->phpDocStringResolver->resolve('/** */', new NameScope());
+        }
         if ($docBlock !== null) {
             return $docBlock;
         }
+        $this->cache->set($key, InfiniteRecursionMarker::get());
 
         $nameScope = new NameScope(
             ltrim($context->namespace, '\\') ?: null,

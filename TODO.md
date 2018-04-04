@@ -4,7 +4,6 @@
 
 * Fix formatting of doc comments in hover: markdown inside markdown.
 * Fix phpstan diagnostics in traits. (?)
-* Improve performance of phpstan diagnostics.
 * vscode: Check if php executable exists.
 
 0.2

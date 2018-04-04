@@ -41,7 +41,7 @@ class EventDispatcher
         $listeners = $this->container->getOrDefault($event, []);
 
         yield array_map(function ($listener) use ($method, $args) {
-            return [$listener, $method](...$args);
+            return $listener->$method(...$args);
         }, $listeners);
     }
 }

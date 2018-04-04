@@ -6,6 +6,8 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Utils\Cache;
+use Tsufeki\Tenkawa\Server\Utils\InfiniteRecursionMarker;
 
 class ClassResolver
 {
@@ -31,8 +33,18 @@ class ClassResolver
     /**
      * @resolve ResolvedClassLike|null
      */
-    public function resolve(string $className, Document $document): \Generator
+    public function resolve(string $className, Document $document, Cache $cache = null): \Generator
     {
+        $cache = $cache ?? new Cache();
+        $resolved = $cache->get($className);
+        if ($resolved === InfiniteRecursionMarker::get()) {
+            return null;
+        }
+        if ($resolved !== null) {
+            return $resolved;
+        }
+        $cache->set($className, InfiniteRecursionMarker::get());
+
         /** @var ClassLike[] $classes */
         $classes = yield $this->reflectionProvider->getClass($document, $className);
         if (empty($classes)) {
@@ -52,7 +64,7 @@ class ClassResolver
         $resolved->final = $class->final;
 
         if ($class->parentClass !== null) {
-            $resolved->parentClass = yield $this->resolve($class->parentClass, $document);
+            $resolved->parentClass = yield $this->resolve($class->parentClass, $document, $cache);
         }
 
         if ($resolved->parentClass !== null) {
@@ -60,7 +72,7 @@ class ClassResolver
         }
 
         foreach ($class->interfaces as $interfaceName) {
-            $iface = yield $this->resolve($interfaceName, $document);
+            $iface = yield $this->resolve($interfaceName, $document, $cache);
             if ($iface !== null) {
                 $resolved->interfaces[] = $iface;
                 $resolved->interfaces = array_merge($resolved->interfaces, $iface->interfaces);
@@ -79,7 +91,7 @@ class ClassResolver
         }));
 
         foreach ($class->traits as $traitName) {
-            $resolved->traits[] = yield $this->resolve($traitName, $document);
+            $resolved->traits[] = yield $this->resolve($traitName, $document, $cache);
         }
         $resolved->traits = array_filter($resolved->traits);
 
@@ -106,6 +118,8 @@ class ClassResolver
         foreach ($this->classResolverExtensions as $extension) {
             yield $extension->resolve($resolved, $document);
         }
+
+        $cache->set($className, $resolved);
 
         return $resolved;
     }
