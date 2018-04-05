@@ -19,17 +19,16 @@
         "react/child-process": "^0.5",
         "react/promise-stream": "^1.1",
         "recoil/react": "^1.0",
-        "tsufeki/blanche-json-rpc": "^0.1.1",
+        "tsufeki/blanche-json-rpc": "^0.2.0",
         "tsufeki/hmcontainer": "^0.3",
-        "tsufeki/kayo-json-mapper": "^0.2.3",
+        "tsufeki/kayo-json-mapper": "^0.3.0",
         "tsufeki/php-lenient-parser": "^0.1",
         "tsufeki/react-filesystem-monitor": "^0.3.0",
         "webmozart/glob": "^4.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.5",
-        "phpstan/phpstan-phpunit": "^0.9",
-        "php-coveralls/php-coveralls": "^2.0"
+        "phpstan/phpstan-phpunit": "^0.9"
     },
     "autoload": {
         "psr-4": {
