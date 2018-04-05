@@ -68,6 +68,16 @@ class ConstExprEvaluation
             case '\\null':
                 return null;
         }
+
+        switch ($expr) {
+            case 'INF':
+            case '\\INF':
+                return INF;
+            case 'NAN':
+            case '\\NAN':
+                return NAN;
+        }
+
         $node = yield $this->parser->parseExpr($expr);
 
         return yield $this->evaluateNode($node, $nameContext);
