@@ -13,6 +13,5 @@ cache:
         - vendor
 
 script:
-    - mkdir -p build/logs
     - ./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=max --no-interaction --no-progress src/ tests/ bin/
     - ./vendor/bin/phpunit

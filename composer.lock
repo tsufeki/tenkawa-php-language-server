@@ -1453,16 +1453,16 @@
         },
         {
             "name": "recoil/react",
-            "version": "1.0.0",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/recoilphp/react.git",
-                "reference": "97781a020e32a07580e4a10b8195179af6ccca64"
+                "reference": "d816f41180577cf815ef0e6a0655fc721a371da7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/recoilphp/react/zipball/97781a020e32a07580e4a10b8195179af6ccca64",
-                "reference": "97781a020e32a07580e4a10b8195179af6ccca64",
+                "url": "https://api.github.com/repos/recoilphp/react/zipball/d816f41180577cf815ef0e6a0655fc721a371da7",
+                "reference": "d816f41180577cf815ef0e6a0655fc721a371da7",
                 "shasum": ""
             },
             "require": {
@@ -1474,7 +1474,7 @@
             },
             "require-dev": {
                 "eloquent/phony": "^2",
-                "friendsofphp/php-cs-fixer": "^1",
+                "friendsofphp/php-cs-fixer": "^2",
                 "hamcrest/hamcrest-php": "^2",
                 "peridot-php/leo": "^1",
                 "peridot-php/peridot": "^1",
@@ -1513,7 +1513,7 @@
                 "promise",
                 "react"
             ],
-            "time": "2017-10-17T22:46:21+00:00"
+            "time": "2018-04-05T21:46:13+00:00"
         },
         {
             "name": "symfony/console",
@@ -1930,22 +1930,22 @@
         },
         {
             "name": "tsufeki/react-filesystem-monitor",
-            "version": "0.3.0",
+            "version": "0.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsufeki/react-filesystem-monitor.git",
-                "reference": "b624c87bbead5c729839ada84f70ecf0430ddacc"
+                "reference": "e58186a41c45b8960f4558c4b8bc35261f02c2c5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsufeki/react-filesystem-monitor/zipball/b624c87bbead5c729839ada84f70ecf0430ddacc",
-                "reference": "b624c87bbead5c729839ada84f70ecf0430ddacc",
+                "url": "https://api.github.com/repos/tsufeki/react-filesystem-monitor/zipball/e58186a41c45b8960f4558c4b8bc35261f02c2c5",
+                "reference": "e58186a41c45b8960f4558c4b8bc35261f02c2c5",
                 "shasum": ""
             },
             "require": {
                 "evenement/evenement": "^3.0 || ^2.0",
                 "react/child-process": "^0.5.2",
-                "react/event-loop": "^0.4.3",
+                "react/event-loop": "^0.5 || ^0.4.3",
                 "react/stream": "^0.7",
                 "tsufeki/react-line-stream": "^0.2.0"
             },
@@ -1966,7 +1966,7 @@
                 }
             ],
             "description": "Asynchronous filesystem monitor based on React PHP",
-            "time": "2018-03-26T21:30:49+00:00"
+            "time": "2018-04-05T21:45:45+00:00"
         },
         {
             "name": "tsufeki/react-line-stream",
