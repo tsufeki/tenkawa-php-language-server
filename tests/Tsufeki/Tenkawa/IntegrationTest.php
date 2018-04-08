@@ -11,7 +11,6 @@ use Tsufeki\BlancheJsonRpc\Json;
 use Tsufeki\Tenkawa\Php\PhpPlugin;
 use Tsufeki\Tenkawa\Server\ServerPlugin;
 use Tsufeki\Tenkawa\Server\Tenkawa;
-use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
 
 /**
  * @covers \Tsufeki\Tenkawa\Server\Client
@@ -26,9 +25,9 @@ class IntegrationTest extends TestCase
 {
     public function test()
     {
-        $kernel = new SyncAsyncKernel([ReactKernel::class, 'create']);
+        $kernel = ReactKernel::create();
         $kernel->execute(function () use ($kernel) {
-            $tenkawa = new Tenkawa(new NullLogger(), $kernel, [new ServerPlugin(), new PhpPlugin()]);
+            $tenkawa = new Tenkawa($kernel, new NullLogger(), [new ServerPlugin(), new PhpPlugin()]);
             $transport = new DummyTransport();
 
             $options = [

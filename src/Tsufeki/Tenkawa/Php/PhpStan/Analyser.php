@@ -13,7 +13,7 @@ use PHPStan\Reflection\MissingMethodFromReflectionException;
 use PHPStan\Reflection\MissingPropertyFromReflectionException;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
-use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
+use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
 
 class Analyser
 {
@@ -48,7 +48,7 @@ class Analyser
     private $typeSpecifier;
 
     /**
-     * @var SyncAsyncKernel
+     * @var SyncAsync
      */
     private $syncAsync;
 
@@ -59,7 +59,7 @@ class Analyser
         PhpDocResolver $phpDocResolver,
         Standard $printer,
         TypeSpecifier $typeSpecifier,
-        SyncAsyncKernel $syncAsync
+        SyncAsync $syncAsync
     ) {
         $this->nodeScopeResolver = $nodeScopeResolver;
         $this->parser = $parser;

@@ -4,19 +4,20 @@ namespace Tests\Tsufeki\Tenkawa\Server\Utils;
 
 use PHPStan\Testing\TestCase;
 use Recoil\React\ReactKernel;
-use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
+use Tsufeki\Tenkawa\Server\Utils\NestedKernelsSyncAsync;
 
 /**
- * @covers \Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel
+ * @covers \Tsufeki\Tenkawa\Server\Utils\NestedKernelsSyncAsyncKernel
  * @covers \Tsufeki\Tenkawa\Server\Utils\SyncCallContext
  */
-class SyncAsyncKernelTest extends TestCase
+class SyncAsyncTest extends TestCase
 {
     public function test()
     {
-        $sa = new SyncAsyncKernel([ReactKernel::class, 'create']);
+        $kernel = ReactKernel::create();
+        $sa = new NestedKernelsSyncAsync([ReactKernel::class, 'create']);
 
-        $sa->start(function () use ($sa) {
+        $kernel->execute(function () use ($sa) {
             $result = $sa->callSync(function () use ($sa) {
                 return 'foo' . $sa->callAsync((function () {
                     yield;
@@ -28,5 +29,6 @@ class SyncAsyncKernelTest extends TestCase
 
             $this->assertSame('foobar', $result);
         });
+        $kernel->run();
     }
 }

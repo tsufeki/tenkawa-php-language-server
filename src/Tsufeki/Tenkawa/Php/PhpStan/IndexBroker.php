@@ -21,7 +21,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
-use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
+use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
 
 class IndexBroker extends Broker
 {
@@ -51,7 +51,7 @@ class IndexBroker extends Broker
     private $constExprEvaluator;
 
     /**
-     * @var SyncAsyncKernel
+     * @var SyncAsync
      */
     private $syncAsync;
 
@@ -86,7 +86,7 @@ class IndexBroker extends Broker
         ReflectionProvider $reflectionProvider,
         ClassResolver $classResolver,
         ConstExprEvaluator $constExprEvaluator,
-        SyncAsyncKernel $syncAsync,
+        SyncAsync $syncAsync,
         PhpDocResolver $phpDocResolver
     ) {
         parent::__construct(

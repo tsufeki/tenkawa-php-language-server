@@ -19,7 +19,7 @@ use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\InfiniteRecursionMarker;
-use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
+use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
 
 class PhpDocResolver extends FileTypeMapper
 {
@@ -39,7 +39,7 @@ class PhpDocResolver extends FileTypeMapper
     private $reflectionProvider;
 
     /**
-     * @var SyncAsyncKernel
+     * @var SyncAsync
      */
     private $syncAsync;
 
@@ -57,7 +57,7 @@ class PhpDocResolver extends FileTypeMapper
         Parser $phpParser,
         PhpDocStringResolver $phpDocStringResolver,
         ReflectionProvider $reflectionProvider,
-        SyncAsyncKernel $syncAsync
+        SyncAsync $syncAsync
     ) {
         $this->phpParser = $phpParser;
         $this->phpDocStringResolver = $phpDocStringResolver;

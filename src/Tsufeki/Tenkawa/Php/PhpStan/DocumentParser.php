@@ -8,7 +8,7 @@ use Tsufeki\Tenkawa\Php\Parser\Ast;
 use Tsufeki\Tenkawa\Php\Parser\Parser as TenkawaParser;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Uri;
-use Tsufeki\Tenkawa\Server\Utils\SyncAsyncKernel;
+use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
 
 class DocumentParser implements Parser
 {
@@ -18,7 +18,7 @@ class DocumentParser implements Parser
     private $parser;
 
     /**
-     * @var SyncAsyncKernel
+     * @var SyncAsync
      */
     private $syncAsync;
 
@@ -27,7 +27,7 @@ class DocumentParser implements Parser
      */
     private $document;
 
-    public function __construct(TenkawaParser $parser, SyncAsyncKernel $syncAsync)
+    public function __construct(TenkawaParser $parser, SyncAsync $syncAsync)
     {
         $this->parser = $parser;
         $this->syncAsync = $syncAsync;
