@@ -3,12 +3,14 @@
 namespace Tsufeki\Tenkawa\Server;
 
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodRegistry;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
 use Tsufeki\Tenkawa\Server\Event\OnStart;
 use Tsufeki\Tenkawa\Server\Logger\ClientLogger;
 use Tsufeki\Tenkawa\Server\Logger\CompositeLogger;
+use Tsufeki\Tenkawa\Server\Logger\LevelFilteringLogger;
 
 class ServerPluginInit implements OnStart
 {
@@ -57,7 +59,7 @@ class ServerPluginInit implements OnStart
 
         if ($this->logger instanceof CompositeLogger) {
             if ($options['log.client'] ?? false) {
-                $this->logger->add($this->clientLogger);
+                $this->logger->add(new LevelFilteringLogger($this->clientLogger, LogLevel::INFO));
             }
         }
 
