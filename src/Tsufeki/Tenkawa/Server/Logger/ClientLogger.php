@@ -5,8 +5,8 @@ namespace Tsufeki\Tenkawa\Server\Logger;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 use Recoil\Kernel;
-use Tsufeki\Tenkawa\Server\Protocol\Client\MessageType;
-use Tsufeki\Tenkawa\Server\Protocol\LanguageClient;
+use Tsufeki\Tenkawa\Server\Feature\Message\MessageFeature;
+use Tsufeki\Tenkawa\Server\Feature\Message\MessageType;
 
 class ClientLogger extends AbstractLogger
 {
@@ -24,25 +24,25 @@ class ClientLogger extends AbstractLogger
     ];
 
     /**
-     * @var LanguageClient
+     * @var MessageFeature
      */
-    private $client;
+    private $messageFeature;
 
     /**
      * @var Kernel
      */
     private $kernel;
 
-    public function __construct(LanguageClient $client, Kernel $kernel)
+    public function __construct(MessageFeature $messageFeature, Kernel $kernel)
     {
-        $this->client = $client;
+        $this->messageFeature = $messageFeature;
         $this->kernel = $kernel;
     }
 
     public function log($level, $message, array $context = [])
     {
         $this->kernel->execute(function () use ($level, $message, $context) {
-            yield $this->client->logMessage(
+            yield $this->messageFeature->logMessage(
                 static::LEVEL_MAP[$level],
                 trim($this->interpolate($message, $context) . "\n" . ($context['exception'] ?? ''))
             );

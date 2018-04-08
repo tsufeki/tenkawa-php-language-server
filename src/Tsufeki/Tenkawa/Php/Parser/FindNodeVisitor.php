@@ -7,7 +7,7 @@ use PhpParser\Node;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitorAbstract;
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Position;
+use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class FindNodeVisitor extends NodeVisitorAbstract

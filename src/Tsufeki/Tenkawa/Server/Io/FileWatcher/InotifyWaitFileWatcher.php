@@ -7,7 +7,6 @@ use ReactFilesystemMonitor\FilesystemMonitorFactoryInterface;
 use ReactFilesystemMonitor\FilesystemMonitorInterface;
 use Recoil\Recoil;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
-use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Event;
 use Tsufeki\Tenkawa\Server\Utils\Platform;
@@ -53,7 +52,7 @@ class InotifyWaitFileWatcher implements FileWatcher
         $this->logger = $logger;
     }
 
-    public function isAvailable(ClientCapabilities $clientCapabilities): bool
+    public function isAvailable(): bool
     {
         return Platform::isLinux()
             && `which inotifywait 2>/dev/null`;

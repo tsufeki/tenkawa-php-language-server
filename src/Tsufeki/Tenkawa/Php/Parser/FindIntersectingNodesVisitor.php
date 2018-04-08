@@ -7,7 +7,7 @@ use PhpParser\Node;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitorAbstract;
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Range;
+use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class FindIntersectingNodesVisitor extends NodeVisitorAbstract

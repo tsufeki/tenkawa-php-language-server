@@ -13,13 +13,11 @@ use Tsufeki\Tenkawa\Server\ServerPlugin;
 use Tsufeki\Tenkawa\Server\Tenkawa;
 
 /**
- * @covers \Tsufeki\Tenkawa\Server\Client
  * @covers \Tsufeki\Tenkawa\Server\ServerPlugin
  * @covers \Tsufeki\Tenkawa\Server\ServerPluginInit
  * @covers \Tsufeki\Tenkawa\Php\PhpPlugin
  * @covers \Tsufeki\Tenkawa\Php\PhpPluginInit
  * @covers \Tsufeki\Tenkawa\Server\Tenkawa
- * @covers \Tsufeki\Tenkawa\Server\Server
  */
 class IntegrationTest extends TestCase
 {

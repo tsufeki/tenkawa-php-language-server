@@ -11,7 +11,6 @@ use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Event\OnInit;
 use Tsufeki\Tenkawa\Server\Event\OnShutdown;
 use Tsufeki\Tenkawa\Server\Io\FileWatcher\FileWatcher;
-use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ClientCapabilities;
 
 class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen, OnProjectClose
 {
@@ -49,11 +48,11 @@ class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen, OnProject
         $this->eventDispatcher = $eventDispatcher;
     }
 
-    public function onInit(ClientCapabilities $clientCapabilities): \Generator
+    public function onInit(): \Generator
     {
         $this->activeFileWatcher = null;
         foreach ($this->fileWatchers as $fileWatcher) {
-            if ($fileWatcher->isAvailable($clientCapabilities)) {
+            if ($fileWatcher->isAvailable()) {
                 $this->activeFileWatcher = $fileWatcher;
                 break;
             }

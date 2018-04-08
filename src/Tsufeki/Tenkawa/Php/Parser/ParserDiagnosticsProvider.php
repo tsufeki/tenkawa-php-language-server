@@ -4,9 +4,9 @@ namespace Tsufeki\Tenkawa\Php\Parser;
 
 use PhpParser\Error;
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Language\DiagnosticsProvider;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Diagnostic;
-use Tsufeki\Tenkawa\Server\Protocol\Common\DiagnosticSeverity;
+use Tsufeki\Tenkawa\Server\Feature\Diagnostics\Diagnostic;
+use Tsufeki\Tenkawa\Server\Feature\Diagnostics\DiagnosticSeverity;
+use Tsufeki\Tenkawa\Server\Feature\Diagnostics\DiagnosticsProvider;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class ParserDiagnosticsProvider implements DiagnosticsProvider

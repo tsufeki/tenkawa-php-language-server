@@ -24,6 +24,21 @@ use Tsufeki\Tenkawa\Server\Event\OnIndexingFinished;
 use Tsufeki\Tenkawa\Server\Event\OnInit;
 use Tsufeki\Tenkawa\Server\Event\OnShutdown;
 use Tsufeki\Tenkawa\Server\Event\OnStart;
+use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionFeature;
+use Tsufeki\Tenkawa\Server\Feature\Command\CommandFeature;
+use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionFeature;
+use Tsufeki\Tenkawa\Server\Feature\Diagnostics\DiagnosticsFeature;
+use Tsufeki\Tenkawa\Server\Feature\DocumentSymbols\DocumentSymbolsFeature;
+use Tsufeki\Tenkawa\Server\Feature\Feature;
+use Tsufeki\Tenkawa\Server\Feature\FileWatcher\FileWatcherFeature;
+use Tsufeki\Tenkawa\Server\Feature\GoToDefinition\GoToDefinitionFeature;
+use Tsufeki\Tenkawa\Server\Feature\Hover\HoverFeature;
+use Tsufeki\Tenkawa\Server\Feature\LanguageServer;
+use Tsufeki\Tenkawa\Server\Feature\Message\MessageFeature;
+use Tsufeki\Tenkawa\Server\Feature\Registration\RegistrationFeature;
+use Tsufeki\Tenkawa\Server\Feature\TextDocument\TextDocumentFeature;
+use Tsufeki\Tenkawa\Server\Feature\Workspace\WorkspaceFeature;
+use Tsufeki\Tenkawa\Server\Feature\WorkspaceEdit\WorkspaceEditFeature;
 use Tsufeki\Tenkawa\Server\Index\FileWatcherHandler;
 use Tsufeki\Tenkawa\Server\Index\Index;
 use Tsufeki\Tenkawa\Server\Index\Indexer;
@@ -34,20 +49,11 @@ use Tsufeki\Tenkawa\Server\Io\Directories;
 use Tsufeki\Tenkawa\Server\Io\FileLister\FileLister;
 use Tsufeki\Tenkawa\Server\Io\FileLister\LocalFileLister;
 use Tsufeki\Tenkawa\Server\Io\FileReader;
-use Tsufeki\Tenkawa\Server\Io\FileWatcher\ClientFileWatcher;
 use Tsufeki\Tenkawa\Server\Io\FileWatcher\FileWatcher;
 use Tsufeki\Tenkawa\Server\Io\FileWatcher\InotifyWaitFileWatcher;
 use Tsufeki\Tenkawa\Server\Io\LocalFileReader;
-use Tsufeki\Tenkawa\Server\Language\CodeActionAggregator;
-use Tsufeki\Tenkawa\Server\Language\CommandDispatcher;
-use Tsufeki\Tenkawa\Server\Language\CompletionAggregator;
-use Tsufeki\Tenkawa\Server\Language\DiagnosticsAggregator;
-use Tsufeki\Tenkawa\Server\Language\DocumentSymbolsAggregator;
-use Tsufeki\Tenkawa\Server\Language\GoToDefinitionAggregator;
-use Tsufeki\Tenkawa\Server\Language\HoverAggregator;
 use Tsufeki\Tenkawa\Server\Logger\ClientLogger;
 use Tsufeki\Tenkawa\Server\Mapper\UriMapper;
-use Tsufeki\Tenkawa\Server\Protocol\LanguageClient;
 use Tsufeki\Tenkawa\Server\Refactor\EditHelper;
 
 class ServerPlugin extends Plugin
@@ -66,14 +72,7 @@ class ServerPlugin extends Plugin
         $container->setClass(FileReader::class, LocalFileReader::class);
         $container->setClass(FileLister::class, LocalFileLister::class);
 
-        $container->setClass(MethodProvider::class, Server::class, true);
-        $container->setClass(LanguageClient::class, Client::class);
         $container->setClass(DocumentStore::class);
-
-        $container->setClass(DiagnosticsAggregator::class);
-        $container->setAlias(OnOpen::class, DiagnosticsAggregator::class, true);
-        $container->setAlias(OnChange::class, DiagnosticsAggregator::class, true);
-        $container->setAlias(OnIndexingFinished::class, DiagnosticsAggregator::class, true);
 
         if ($options['index.memory_only'] ?? false) {
             $container->setClass(IndexStorageFactory::class, MemoryIndexStorageFactory::class);
@@ -90,7 +89,6 @@ class ServerPlugin extends Plugin
         $container->setAlias(OnFileChange::class, Indexer::class, true);
         $container->setClass(Index::class);
 
-        $container->setClass(ClientFileWatcher::class);
         $container->setClass(InotifyWaitFileWatcher::class);
         $container->setClass(FilesystemMonitorFactoryInterface::class, FilesystemMonitorFactory::class);
         $container->setCallable(FileWatcher::class, [$this, 'createFileWatchers']);
@@ -102,12 +100,58 @@ class ServerPlugin extends Plugin
 
         $container->setClass(EditHelper::class);
 
-        $container->setClass(CommandDispatcher::class);
-        $container->setClass(HoverAggregator::class);
-        $container->setClass(GoToDefinitionAggregator::class);
-        $container->setClass(CompletionAggregator::class);
-        $container->setClass(DocumentSymbolsAggregator::class);
-        $container->setClass(CodeActionAggregator::class);
+        $container->setClass(MethodProvider::class, LanguageServer::class, true);
+
+        $container->setClass(CodeActionFeature::class);
+        $container->setAlias(Feature::class, CodeActionFeature::class, true);
+        $container->setAlias(MethodProvider::class, CodeActionFeature::class, true);
+
+        $container->setClass(CommandFeature::class);
+        $container->setAlias(Feature::class, CommandFeature::class, true);
+        $container->setAlias(MethodProvider::class, CommandFeature::class, true);
+
+        $container->setClass(CompletionFeature::class);
+        $container->setAlias(Feature::class, CompletionFeature::class, true);
+        $container->setAlias(MethodProvider::class, CompletionFeature::class, true);
+
+        $container->setClass(DiagnosticsFeature::class);
+        $container->setAlias(Feature::class, DiagnosticsFeature::class, true);
+        $container->setAlias(OnOpen::class, DiagnosticsFeature::class, true);
+        $container->setAlias(OnChange::class, DiagnosticsFeature::class, true);
+        $container->setAlias(OnIndexingFinished::class, DiagnosticsFeature::class, true);
+
+        $container->setClass(DocumentSymbolsFeature::class);
+        $container->setAlias(Feature::class, DocumentSymbolsFeature::class, true);
+        $container->setAlias(MethodProvider::class, DocumentSymbolsFeature::class, true);
+
+        $container->setClass(FileWatcherFeature::class);
+        $container->setAlias(Feature::class, FileWatcherFeature::class, true);
+        $container->setAlias(MethodProvider::class, FileWatcherFeature::class, true);
+
+        $container->setClass(GoToDefinitionFeature::class);
+        $container->setAlias(Feature::class, GoToDefinitionFeature::class, true);
+        $container->setAlias(MethodProvider::class, GoToDefinitionFeature::class, true);
+
+        $container->setClass(HoverFeature::class);
+        $container->setAlias(Feature::class, HoverFeature::class, true);
+        $container->setAlias(MethodProvider::class, HoverFeature::class, true);
+
+        $container->setClass(MessageFeature::class);
+        $container->setAlias(Feature::class, MessageFeature::class, true);
+
+        $container->setClass(RegistrationFeature::class);
+        $container->setAlias(Feature::class, RegistrationFeature::class, true);
+
+        $container->setClass(TextDocumentFeature::class);
+        $container->setAlias(Feature::class, TextDocumentFeature::class, true);
+        $container->setAlias(MethodProvider::class, TextDocumentFeature::class, true);
+
+        $container->setClass(WorkspaceFeature::class);
+        $container->setAlias(Feature::class, WorkspaceFeature::class, true);
+        $container->setAlias(MethodProvider::class, WorkspaceFeature::class, true);
+
+        $container->setClass(WorkspaceEditFeature::class);
+        $container->setAlias(Feature::class, WorkspaceEditFeature::class, true);
     }
 
     /**
@@ -133,7 +177,7 @@ class ServerPlugin extends Plugin
     }
 
     public function createFileWatchers(
-        ClientFileWatcher $clientFileWatcher,
+        FileWatcherFeature $clientFileWatcher,
         InotifyWaitFileWatcher $inotifyWaitFileWatcher
     ): array {
         return [$clientFileWatcher, $inotifyWaitFileWatcher];

@@ -2,9 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Server\Event;
 
-use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ClientCapabilities;
-
 interface OnInit
 {
-    public function onInit(ClientCapabilities $clientCapabilities): \Generator;
+    public function onInit(): \Generator;
 }

@@ -6,7 +6,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Location;
+use Tsufeki\Tenkawa\Server\Feature\Common\Location;
 
 class ResolvedClassLike
 {

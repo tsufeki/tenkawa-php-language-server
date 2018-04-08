@@ -3,8 +3,8 @@
 namespace Tsufeki\Tenkawa\Server\Utils;
 
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Position;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Range;
+use Tsufeki\Tenkawa\Server\Feature\Common\Position;
+use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 
 class PositionUtils
 {

@@ -3,9 +3,9 @@
 namespace Tsufeki\Tenkawa\Server\Refactor;
 
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Position;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Range;
-use Tsufeki\Tenkawa\Server\Protocol\Common\TextEdit;
+use Tsufeki\Tenkawa\Server\Feature\Common\Position;
+use Tsufeki\Tenkawa\Server\Feature\Common\Range;
+use Tsufeki\Tenkawa\Server\Feature\Common\TextEdit;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 

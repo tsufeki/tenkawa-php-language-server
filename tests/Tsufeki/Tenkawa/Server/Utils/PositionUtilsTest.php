@@ -4,8 +4,8 @@ namespace Tests\Tsufeki\Tenkawa\Server\Utils;
 
 use PHPUnit\Framework\TestCase;
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Position;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Range;
+use Tsufeki\Tenkawa\Server\Feature\Common\Position;
+use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 

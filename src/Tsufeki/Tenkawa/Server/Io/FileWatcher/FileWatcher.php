@@ -2,12 +2,11 @@
 
 namespace Tsufeki\Tenkawa\Server\Io\FileWatcher;
 
-use Tsufeki\Tenkawa\Server\Protocol\Server\LifeCycle\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Uri;
 
 interface FileWatcher
 {
-    public function isAvailable(ClientCapabilities $clientCapabilities): bool;
+    public function isAvailable(): bool;
 
     public function start(): \Generator;
 

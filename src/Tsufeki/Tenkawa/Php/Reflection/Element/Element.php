@@ -3,7 +3,7 @@
 namespace Tsufeki\Tenkawa\Php\Reflection\Element;
 
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Location;
+use Tsufeki\Tenkawa\Server\Feature\Common\Location;
 
 abstract class Element
 {

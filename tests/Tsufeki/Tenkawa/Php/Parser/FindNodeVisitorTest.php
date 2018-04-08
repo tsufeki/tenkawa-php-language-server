@@ -13,7 +13,7 @@ use PhpParser\NodeTraverser;
 use PHPUnit\Framework\TestCase;
 use Tsufeki\Tenkawa\Php\Parser\FindNodeVisitor;
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Position;
+use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Uri;
 
 /**

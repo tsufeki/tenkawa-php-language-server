@@ -26,7 +26,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\TraitAlias;
 use Tsufeki\Tenkawa\Php\Reflection\Element\TraitInsteadOf;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Type;
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Protocol\Common\Location;
+use Tsufeki\Tenkawa\Server\Feature\Common\Location;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class ReflectionVisitor extends NameContextVisitor
