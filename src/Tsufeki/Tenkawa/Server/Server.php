@@ -9,6 +9,7 @@ use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Event\OnInit;
 use Tsufeki\Tenkawa\Server\Event\OnShutdown;
+use Tsufeki\Tenkawa\Server\Exception\DocumentNotOpenException;
 use Tsufeki\Tenkawa\Server\Language\CodeActionAggregator;
 use Tsufeki\Tenkawa\Server\Language\CommandDispatcher;
 use Tsufeki\Tenkawa\Server\Language\CompletionAggregator;
@@ -358,9 +359,15 @@ class Server extends LanguageServer
     {
         $time = new Stopwatch();
 
-        $document = $this->documentStore->get($textDocument->uri);
-        $commands = yield $this->codeActionAggregator->getCodeActions($document, $range, $context);
-        $count = count($commands);
+        try {
+            $document = $this->documentStore->get($textDocument->uri);
+            $commands = yield $this->codeActionAggregator->getCodeActions($document, $range, $context);
+            $count = count($commands);
+        } catch (DocumentNotOpenException $e) {
+            // This happens on vscode when opening a file, ignore it.
+            $commands = [];
+            $count = 0;
+        }
 
         $this->logger->debug(__FUNCTION__ . " $textDocument->uri$range->start$range->end [$time, $count items]");
 
