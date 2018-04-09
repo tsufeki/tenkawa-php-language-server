@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Server;
 
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Recoil\Exception\StrandException;
 use Recoil\Kernel;
 use Recoil\React\ReactKernel;
@@ -12,6 +13,7 @@ use Tsufeki\HmContainer\Container;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnStart;
 use Tsufeki\Tenkawa\Server\Logger\CompositeLogger;
+use Tsufeki\Tenkawa\Server\Logger\LevelFilteringLogger;
 use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
 use Tsufeki\Tenkawa\Server\Transport\RunnableTransport;
 use Tsufeki\Tenkawa\Server\Transport\StreamTransport;
@@ -99,6 +101,7 @@ class Tenkawa
             'log.stderr' => false,
             'log.file' => false,
             'log.client' => false,
+            'log.level' => LogLevel::INFO,
             'transport.socket' => false,
         ];
 
@@ -118,6 +121,9 @@ class Tenkawa
                         continue 2;
                     case '--log-client':
                         $options['log.client'] = true;
+                        continue 2;
+                    case '--log-level':
+                        $options['log.level'] = $value;
                         continue 2;
                     case '--socket':
                         $options['transport.socket'] = $value;
@@ -156,12 +162,18 @@ class Tenkawa
 
     private static function setupLoggers(CompositeLogger $logger, array $options)
     {
-        if ($options['log.stderr'] ?? false) {
-            $logger->add(new StreamLogger(STDERR));
+        if ($options['log.stderr']) {
+            $logger->add(new LevelFilteringLogger(
+                new StreamLogger(STDERR),
+                $options['log.level']
+            ));
         }
 
-        if ($options['log.file'] ?? false) {
-            $logger->add(new StreamLogger(fopen($options['log.file'], 'a')));
+        if ($options['log.file']) {
+            $logger->add(new LevelFilteringLogger(
+                new StreamLogger(fopen($options['log.file'], 'a')),
+                $options['log.level']
+            ));
         }
     }
 

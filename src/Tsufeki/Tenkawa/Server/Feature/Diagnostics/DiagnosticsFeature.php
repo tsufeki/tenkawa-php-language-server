@@ -70,7 +70,7 @@ class DiagnosticsFeature implements Feature, OnOpen, OnChange, OnIndexingFinishe
         $this->providers = $providers;
         $this->workspaceProviders = $workspaceProviders;
         $this->documentStore = $documentStore;
-        $this->debounceTime = 2.0;
+        $this->debounceTime = 0.9;
         $this->rpc = $rpc;
         $this->logger = $logger;
     }
