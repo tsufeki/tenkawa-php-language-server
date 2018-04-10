@@ -8,6 +8,7 @@ use PhpParser\Node\Name;
 use Tsufeki\Tenkawa\Php\Feature\GlobalsHelper;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
+use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionContext;
@@ -85,43 +86,99 @@ class ImportGlobalCodeActionProvider implements CodeActionProvider
             return [];
         }
 
+        $kind = $this->getKind($parentNode);
+        if ($kind === null || $this->isAlreadyImported($name, $kind)) {
+            return [];
+        }
+
         /** @var Element[] $existingElements */
         $existingElements = yield $this->globalsHelper->getReflectionFromNodePath($nodes, $document);
         if (!empty($existingElements)) {
             return [];
         }
 
-        $elements = [];
-        $kind = '';
-        if (isset(GlobalsHelper::CLASS_REFERENCING_NODES[get_class($parentNode)])) {
-            $elements = yield $this->reflectionProvider->getClassesByShortName($document, (string)$name);
-        } elseif (isset(GlobalsHelper::FUNCTION_REFERENCING_NODES[get_class($parentNode)])) {
-            $elements = yield $this->reflectionProvider->getFunctionsByShortName($document, (string)$name);
-            $kind = 'function';
-        } elseif (isset(GlobalsHelper::CONST_REFERENCING_NODES[get_class($parentNode)])) {
-            $elements = yield $this->reflectionProvider->getConstsByShortName($document, (string)$name);
-            $kind = 'const';
-        } else {
-            return [];
-        }
-
+        $elements = yield $this->getReflections($name, $kind, $document);
         $commands = [];
         /** @var Element $element */
         foreach ($elements as $element) {
-            $fullName = ltrim($element->name, '\\');
+            $parts = explode('\\', ltrim($element->name, '\\'));
+            if (count($name->parts) > 1) {
+                // discard nested parts, import only top-most namespace
+                $parts = array_slice($parts, 0, -count($name->parts) + 1);
+            }
+            $importName = implode('\\', $parts);
             $command = new Command();
-            $command->title = "Import $fullName";
+            $command->title = "Import $importName";
             $command->command = ImportCommandProvider::COMMAND;
             $command->arguments = [
                 $document->getUri()->getNormalized(),
                 $position,
-                $kind,
-                '\\' . $fullName,
+                count($name->parts) > 1 ? '' : $kind,
+                '\\' . $importName,
                 $version,
             ];
             $commands[] = $command;
         }
 
         return $commands;
+    }
+
+    /**
+     * @param Node|Comment $parentNode
+     *
+     * @return string|null
+     */
+    private function getKind($parentNode)
+    {
+        if (isset(GlobalsHelper::CLASS_REFERENCING_NODES[get_class($parentNode)])) {
+            return '';
+        }
+        if (isset(GlobalsHelper::FUNCTION_REFERENCING_NODES[get_class($parentNode)])) {
+            return 'function';
+        }
+        if (isset(GlobalsHelper::CONST_REFERENCING_NODES[get_class($parentNode)])) {
+            return 'const';
+        }
+
+        return null;
+    }
+
+    private function isAlreadyImported(Name $name, string $kind): bool
+    {
+        $importAlias = $name->parts[0];
+        /** @var NameContext $nameContext */
+        $nameContext = $name->getAttribute('nameContext') ?? new NameContext();
+        $kind = count($name->parts) > 1 ? '' : $kind;
+
+        if ($kind === 'const') {
+            if (isset($nameContext->constUses[$importAlias])) {
+                return true;
+            }
+        } elseif ($kind === 'function') {
+            if (isset($nameContext->functionUses[$importAlias])) {
+                return true;
+            }
+        } else {
+            if (isset($nameContext->uses[$importAlias])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @resolve Element[]
+     */
+    private function getReflections(Name $name, string $kind, Document $document): \Generator
+    {
+        if ($kind === 'const') {
+            return yield $this->reflectionProvider->getConstsByShortName($document, (string)$name);
+        }
+        if ($kind === 'function') {
+            return yield $this->reflectionProvider->getFunctionsByShortName($document, (string)$name);
+        }
+
+        return yield $this->reflectionProvider->getClassesByShortName($document, (string)$name);
     }
 }
