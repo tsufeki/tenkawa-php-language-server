@@ -20,7 +20,7 @@ class MemoryIndexStorageFactory implements IndexStorageFactory
         $this->documentStore = $documentStore;
     }
 
-    public function createGlobalIndex(string $indexDataVersion): WritableIndexStorage
+    public function createGlobalIndex(string $indexDataVersion, string $uriPrefixHint = ''): WritableIndexStorage
     {
         return new MemoryStorage();
     }

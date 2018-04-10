@@ -7,12 +7,13 @@ use Tsufeki\Tenkawa\Server\Index\IndexEntry;
 use Tsufeki\Tenkawa\Server\Index\Query;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Platform;
+use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 use Webmozart\PathUtil\Path;
 
 class SqliteStorage implements WritableIndexStorage
 {
     const MEMORY = ':memory:';
-    const SCHEMA_VERSION = 1;
+    const SCHEMA_VERSION = 2;
 
     /**
      * @var string
@@ -25,14 +26,32 @@ class SqliteStorage implements WritableIndexStorage
     private $indexDataVersion;
 
     /**
+     * @var string
+     */
+    private $uriPrefix;
+
+    /**
+     * @var int
+     */
+    private $uriPrefixLength;
+
+    /**
+     * @var string
+     */
+    private $uriPrefixNormalized;
+
+    /**
      * @var \PDO|null
      */
     private $pdo;
 
-    public function __construct(string $path, string $indexDataVersion)
+    public function __construct(string $path, string $indexDataVersion, string $uriPrefix = '')
     {
         $this->path = $path;
         $this->indexDataVersion = $indexDataVersion;
+        $this->uriPrefix = $uriPrefix === '' ? '' : rtrim($uriPrefix, '/') . '/';
+        $this->uriPrefixLength = strlen($this->uriPrefix);
+        $this->uriPrefixNormalized = rtrim(Uri::fromString($this->uriPrefix)->getNormalized(), '/') . '/';
     }
 
     private function getPdo(): \PDO
@@ -93,6 +112,24 @@ class SqliteStorage implements WritableIndexStorage
             on tenkawa_index (key)')->execute();
     }
 
+    private function stripPrefix(string $uri): string
+    {
+        if ($this->uriPrefixLength !== 0 && StringUtils::startsWith($uri, $this->uriPrefix)) {
+            return substr($uri, $this->uriPrefixLength);
+        }
+
+        return $uri;
+    }
+
+    private function restorePrefix(string $uri, bool $normalized = false): string
+    {
+        if ($this->uriPrefixLength !== 0 && strpos($uri, '://') === false) {
+            return ($normalized ? $this->uriPrefixNormalized : $this->uriPrefix) . $uri;
+        }
+
+        return $uri;
+    }
+
     public function search(Query $query): \Generator
     {
         $conditions = [];
@@ -120,7 +157,7 @@ class SqliteStorage implements WritableIndexStorage
             } else {
                 $conditions[] = 'source_uri = :uri';
             }
-            $params['uri'] = $query->uri->getNormalized();
+            $params['uri'] = $this->stripPrefix($query->uri->getNormalized());
         }
 
         $fields = ['source_uri', 'category', 'key'];
@@ -138,7 +175,7 @@ class SqliteStorage implements WritableIndexStorage
         $result = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $entry = new IndexEntry();
-            $entry->sourceUri = Uri::fromString($row['source_uri']);
+            $entry->sourceUri = Uri::fromString($this->restorePrefix($row['source_uri']));
             $entry->category = $row['category'];
             $entry->key = $row['key'];
             if ($query->includeData) {
@@ -167,7 +204,7 @@ class SqliteStorage implements WritableIndexStorage
                     where $condition
             ");
 
-            $stmt->execute(['sourceUri' => $uri->getNormalized()]);
+            $stmt->execute(['sourceUri' => $this->stripPrefix($uri->getNormalized())]);
 
             $stmt = $this->getPdo()->prepare('
                 insert
@@ -177,7 +214,7 @@ class SqliteStorage implements WritableIndexStorage
 
             foreach ($entries as $entry) {
                 $stmt->execute([
-                    'sourceUri' => (string)$uri,
+                    'sourceUri' => $this->stripPrefix((string)$uri),
                     'category' => $entry->category,
                     'key' => $entry->key,
                     'data' => Json::encode($entry->data),
@@ -214,7 +251,7 @@ class SqliteStorage implements WritableIndexStorage
 
         if ($filterUri !== null) {
             $sql .= " having uri = :filterUri or uri glob :filterUri||'/*'";
-            $params['filterUri'] = $filterUri->getNormalized();
+            $params['filterUri'] = $this->stripPrefix($filterUri->getNormalized());
         }
 
         $stmt = $this->getPdo()->prepare($sql);
@@ -222,7 +259,7 @@ class SqliteStorage implements WritableIndexStorage
 
         $result = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $result[$row['uri']] = (int)$row['timestamp'] ?: null;
+            $result[$this->restorePrefix($row['uri'], true)] = (int)$row['timestamp'] ?: null;
         }
 
         return $result;

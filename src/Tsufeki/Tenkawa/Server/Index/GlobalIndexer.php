@@ -7,4 +7,9 @@ use Tsufeki\Tenkawa\Server\Index\Storage\WritableIndexStorage;
 interface GlobalIndexer
 {
     public function index(WritableIndexStorage $globalIndexStorage, Indexer $indexer): \Generator;
+
+    /**
+     * Propose a common prefix for indexed URIs.
+     */
+    public function getUriPrefixHint(): string;
 }

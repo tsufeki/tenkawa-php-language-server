@@ -27,9 +27,13 @@ class LocalCacheIndexStorageFactory implements IndexStorageFactory
         $this->documentStore = $documentStore;
     }
 
-    public function createGlobalIndex(string $indexDataVersion): WritableIndexStorage
+    public function createGlobalIndex(string $indexDataVersion, string $uriPrefixHint = ''): WritableIndexStorage
     {
-        return new SqliteStorage($this->cacheDir . '/global.sqlite', $indexDataVersion);
+        return new SqliteStorage(
+            $this->cacheDir . '/global.sqlite',
+            $indexDataVersion,
+            $uriPrefixHint
+        );
     }
 
     public function createOpenedFilesIndex(Project $project, string $indexDataVersion): WritableIndexStorage
@@ -41,6 +45,10 @@ class LocalCacheIndexStorageFactory implements IndexStorageFactory
     {
         $hash = sha1((string)$project->getRootUri());
 
-        return new SqliteStorage($this->cacheDir . "/project-$hash.sqlite", $indexDataVersion);
+        return new SqliteStorage(
+            $this->cacheDir . "/project-$hash.sqlite",
+            $indexDataVersion,
+            (string)$project->getRootUri()
+        );
     }
 }

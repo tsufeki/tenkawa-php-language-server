@@ -36,4 +36,9 @@ class StubsIndexer implements GlobalIndexer
             yield $indexer->indexProject($project, $globalIndexStorage, null, self::ORIGIN);
         }
     }
+
+    public function getUriPrefixHint(): string
+    {
+        return (string)$this->stubsUri;
+    }
 }

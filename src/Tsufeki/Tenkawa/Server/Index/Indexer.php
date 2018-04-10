@@ -214,7 +214,15 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
 
     public function onStart(array $options): \Generator
     {
-        $this->globalIndex = $this->indexStorageFactory->createGlobalIndex($this->indexDataVersion);
+        $uriPrefix = '';
+        foreach ($this->globalIndexers as $globalIndexer) {
+            if ($globalIndexer->getUriPrefixHint()) {
+                $uriPrefix = $globalIndexer->getUriPrefixHint();
+                break;
+            }
+        }
+
+        $this->globalIndex = $this->indexStorageFactory->createGlobalIndex($this->indexDataVersion, $uriPrefix);
 
         yield Recoil::execute(array_map(function (GlobalIndexer $globalIndexer) {
             return $globalIndexer->index($this->globalIndex, $this);
