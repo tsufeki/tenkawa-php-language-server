@@ -11,19 +11,13 @@ use Tsufeki\Tenkawa\Php\Parser\Ast;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
 use Tsufeki\Tenkawa\Php\Parser\TokenIterator;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
-use Tsufeki\Tenkawa\Php\Reflection\ReflectionIndexDataProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionContext;
-use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItem;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItemKind;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionList;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionProvider;
-use Tsufeki\Tenkawa\Server\Index\Index;
-use Tsufeki\Tenkawa\Server\Index\IndexEntry;
-use Tsufeki\Tenkawa\Server\Index\Query;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
-use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 
 class GlobalsCompletionProvider implements CompletionProvider
 {
@@ -38,15 +32,18 @@ class GlobalsCompletionProvider implements CompletionProvider
     private $nodeFinder;
 
     /**
-     * @var Index
+     * @var GlobalsCompletionHelper
      */
-    private $index;
+    private $globalCompletionHelper;
 
-    public function __construct(Parser $parser, Index $index, NodeFinder $nodeFinder)
-    {
+    public function __construct(
+        Parser $parser,
+        NodeFinder $nodeFinder,
+        GlobalsCompletionHelper $globalCompletionHelper
+    ) {
         $this->parser = $parser;
-        $this->index = $index;
         $this->nodeFinder = $nodeFinder;
+        $this->globalCompletionHelper = $globalCompletionHelper;
     }
 
     public function getTriggerCharacters(): array
@@ -59,17 +56,15 @@ class GlobalsCompletionProvider implements CompletionProvider
         Position $position,
         CompletionContext $context = null
     ): \Generator {
-        $completions = new CompletionList();
-
         if ($document->getLanguage() !== 'php') {
-            return $completions;
+            return new CompletionList();
         }
 
         /** @var (Node|Comment)[] $nodes */
         $nodes = yield $this->nodeFinder->getNodePath($document, $position);
 
         if (count($nodes) < 2 || !($nodes[0] instanceof Name)) {
-            return $completions;
+            return new CompletionList();
         }
 
         $name = $nodes[0];
@@ -84,37 +79,17 @@ class GlobalsCompletionProvider implements CompletionProvider
         $absolute = $this->isAbsolute($name, $node);
 
         if ($node instanceof Stmt\UseUse && $parentNode instanceof Stmt\GroupUse) {
-            $name = Name::concat($parentNode->prefix, $name);
-        }
-        assert($name !== null);
-
-        /** @var CompletionItem[][] $items */
-        $items = [];
-        foreach ($kinds as $kind) {
-            if (empty($beforeParts)) {
-                if ($absolute) {
-                    $items[] = yield $this->searchNamespace('\\', $kind, $document);
-                } else {
-                    /** @var NameContext $nameContext */
-                    $nameContext = $name->getAttribute('nameContext') ?? new NameContext();
-                    $items[] = yield $this->searchNamespace($nameContext->namespace, $kind, $document);
-                    $items[] = $this->getAliases($nameContext, $kind);
-                    if (
-                        in_array($kind, [CompletionItemKind::CONSTANT, CompletionItemKind::FUNCTION_], true)
-                        && $nameContext->namespace !== '\\'
-                    ) {
-                        $items[] = yield $this->searchNamespace('\\', $kind, $document);
-                    }
-                }
-            } else {
-                $prefix = $name->slice(0, count($name->parts) - count($afterParts));
-                $items[] = yield $this->searchNamespace('\\' . (string)$prefix, $kind, $document);
-            }
+            $beforeParts = array_merge($parentNode->prefix->parts, $beforeParts);
         }
 
-        $completions->items = array_unique(array_merge(...$items), SORT_REGULAR);
-
-        return $completions;
+        return yield $this->globalCompletionHelper->getCompletions(
+            $document,
+            $beforeParts,
+            $afterParts,
+            $kinds,
+            $absolute,
+            $name->getAttribute('nameContext') ?? new NameContext()
+        );
     }
 
     /**
@@ -202,98 +177,5 @@ class GlobalsCompletionProvider implements CompletionProvider
             || $node instanceof Stmt\UseUse
             || $node instanceof Stmt\GroupUse
             || $node instanceof Stmt\Namespace_;
-    }
-
-    /**
-     * @resolve CompletionItem[]
-     */
-    private function searchNamespace(string $namespace, $kind, Document $document): \Generator
-    {
-        // TODO search case insensitive
-
-        if ($kind === CompletionItemKind::CONSTANT) {
-            $names = yield $this->query($namespace, ReflectionIndexDataProvider::CATEGORY_CONST, $document);
-        } elseif ($kind === CompletionItemKind::FUNCTION_) {
-            $names = yield $this->query($namespace, ReflectionIndexDataProvider::CATEGORY_FUNCTION, $document);
-        } elseif ($kind === CompletionItemKind::CLASS_) {
-            $names = yield $this->query($namespace, ReflectionIndexDataProvider::CATEGORY_CLASS, $document);
-        } else {
-            $names = array_merge(
-                yield $this->query($namespace, ReflectionIndexDataProvider::CATEGORY_CONST, $document, true),
-                yield $this->query($namespace, ReflectionIndexDataProvider::CATEGORY_FUNCTION, $document, true),
-                yield $this->query($namespace, ReflectionIndexDataProvider::CATEGORY_CLASS, $document, true)
-            );
-        }
-
-        $items = [];
-        foreach ($names as $name => $isNamespace) {
-            $items[] = $this->makeItem($name, $isNamespace ? CompletionItemKind::MODULE : $kind);
-        }
-
-        return $items;
-    }
-
-    private function query(
-        string $namespace,
-        string $category,
-        Document $document,
-        bool $namespaceOnly = false
-    ): \Generator {
-        $namespace = rtrim($namespace, '\\') . '\\';
-
-        $query = new Query();
-        $query->category = $category;
-        $query->key = $namespace;
-        $query->match = Query::PREFIX;
-        $query->includeData = false;
-
-        /** @var IndexEntry[] $entries */
-        $entries = yield $this->index->search($document, $query);
-        $namespaceLength = strlen($namespace);
-        $names = [];
-        foreach ($entries as $entry) {
-            $backslashPos = strpos($entry->key, '\\', $namespaceLength);
-            if ($backslashPos !== false) {
-                $names[substr($entry->key, 0, $backslashPos)] = true;
-            } elseif (!$namespaceOnly) {
-                $names[$entry->key] = false;
-            }
-        }
-
-        return $names;
-    }
-
-    /**
-     * @return CompletionItem[]
-     */
-    private function getAliases(NameContext $nameContext, $kind): array
-    {
-        if ($kind === CompletionItemKind::CONSTANT) {
-            $uses = $nameContext->constUses;
-        } elseif ($kind === CompletionItemKind::FUNCTION_) {
-            $uses = $nameContext->functionUses;
-        } else {
-            $uses = $nameContext->uses;
-        }
-
-        $items = [];
-        foreach ($uses as $alias => $fullName) {
-            $items[] = $this->makeItem($fullName, $kind, $alias);
-        }
-
-        return $items;
-    }
-
-    private function makeItem(string $name, int $kind, string $shortName = null): CompletionItem
-    {
-        $shortName = $shortName ?? StringUtils::getShortName($name);
-
-        $item = new CompletionItem();
-        $item->label = $shortName;
-        $item->kind = $kind === CompletionItemKind::CONSTANT ? CompletionItemKind::VARIABLE : $kind;
-        $item->detail = $name;
-        $item->insertText = $shortName . ($kind === CompletionItemKind::MODULE ? '\\' : '');
-
-        return $item;
     }
 }

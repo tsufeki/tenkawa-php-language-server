@@ -127,8 +127,8 @@ class CompletionFeature implements Feature, MethodProvider
      */
     private function getTriggerCharacters(): array
     {
-        return array_unique(array_merge(...array_map(function (CompletionProvider $provider) {
+        return array_values(array_unique(array_merge(...array_map(function (CompletionProvider $provider) {
             return $provider->getTriggerCharacters();
-        }, $this->providers)));
+        }, $this->providers))));
     }
 }
