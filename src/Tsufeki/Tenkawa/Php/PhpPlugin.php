@@ -44,6 +44,8 @@ use Tsufeki\Tenkawa\Php\Feature\CodeAction\ImportGlobalCodeActionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\DocCommentGlobalsCompletionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\GlobalsCompletionHelper;
 use Tsufeki\Tenkawa\Php\Feature\Completion\GlobalsCompletionProvider;
+use Tsufeki\Tenkawa\Php\Feature\Completion\ImportDocCommentGlobalsCompletionProvider;
+use Tsufeki\Tenkawa\Php\Feature\Completion\ImportGlobalsCompletionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\MembersCompletionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\VariableCompletionProvider;
 use Tsufeki\Tenkawa\Php\Feature\DocCommentHelper;
@@ -133,6 +135,7 @@ class PhpPlugin extends Plugin
         $container->setClass(HoverProvider::class, HoverGlobalsProvider::class, true);
         $container->setClass(GlobalsCompletionHelper::class);
         $container->setClass(CompletionProvider::class, GlobalsCompletionProvider::class, true);
+        $container->setClass(CompletionProvider::class, ImportGlobalsCompletionProvider::class, true);
         $container->setClass(ImportHelper::class);
         $container->setClass(CodeActionProvider::class, ImportGlobalCodeActionProvider::class, true);
         $container->setClass(CodeActionProvider::class, ImportDocCommentGlobalCodeActionProvider::class, true);
@@ -141,6 +144,7 @@ class PhpPlugin extends Plugin
         $container->setClass(GoToDefinitionProvider::class, GoToDocCommentProvider::class, true);
         $container->setClass(HoverProvider::class, HoverDocCommentProvider::class, true);
         $container->setClass(CompletionProvider::class, DocCommentGlobalsCompletionProvider::class, true);
+        $container->setClass(CompletionProvider::class, ImportDocCommentGlobalsCompletionProvider::class, true);
 
         $container->setClass(TypeInference::class, PhpStanTypeInference::class);
         $container->setClass(NodeScopeResolver::class, null, false, [null, null, null, null, null, new Value(true), new Value(false), new Value([])]);

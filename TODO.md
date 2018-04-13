@@ -10,4 +10,3 @@
 ---
 * Completion of closure `use`s.
 * Signature help.
-* Completion inside doc comments.
