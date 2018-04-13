@@ -39,6 +39,7 @@ use PHPStan\Type\Php\CallbackBasedFunctionReturnTypeExtension;
 use Tsufeki\HmContainer\Container;
 use Tsufeki\HmContainer\Definition\Value;
 use Tsufeki\Tenkawa\Php\Feature\CodeAction\ImportCommandProvider;
+use Tsufeki\Tenkawa\Php\Feature\CodeAction\ImportDocCommentGlobalCodeActionProvider;
 use Tsufeki\Tenkawa\Php\Feature\CodeAction\ImportGlobalCodeActionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\DocCommentGlobalsCompletionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\GlobalsCompletionHelper;
@@ -56,6 +57,7 @@ use Tsufeki\Tenkawa\Php\Feature\Hover\HoverDocCommentProvider;
 use Tsufeki\Tenkawa\Php\Feature\Hover\HoverFormatter;
 use Tsufeki\Tenkawa\Php\Feature\Hover\HoverGlobalsProvider;
 use Tsufeki\Tenkawa\Php\Feature\Hover\HoverMembersProvider;
+use Tsufeki\Tenkawa\Php\Feature\ImportHelper;
 use Tsufeki\Tenkawa\Php\Feature\MembersHelper;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
 use Tsufeki\Tenkawa\Php\Index\ComposerFileFilterFactory;
@@ -131,7 +133,9 @@ class PhpPlugin extends Plugin
         $container->setClass(HoverProvider::class, HoverGlobalsProvider::class, true);
         $container->setClass(GlobalsCompletionHelper::class);
         $container->setClass(CompletionProvider::class, GlobalsCompletionProvider::class, true);
+        $container->setClass(ImportHelper::class);
         $container->setClass(CodeActionProvider::class, ImportGlobalCodeActionProvider::class, true);
+        $container->setClass(CodeActionProvider::class, ImportDocCommentGlobalCodeActionProvider::class, true);
 
         $container->setClass(DocCommentHelper::class);
         $container->setClass(GoToDefinitionProvider::class, GoToDocCommentProvider::class, true);

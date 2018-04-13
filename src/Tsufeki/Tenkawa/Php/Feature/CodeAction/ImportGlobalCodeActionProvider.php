@@ -6,10 +6,9 @@ use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\Node\Name;
 use Tsufeki\Tenkawa\Php\Feature\GlobalsHelper;
+use Tsufeki\Tenkawa\Php\Feature\ImportHelper;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
-use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionContext;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionProvider;
@@ -21,25 +20,19 @@ use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 class ImportGlobalCodeActionProvider implements CodeActionProvider
 {
     /**
-     * @var GlobalsHelper
+     * @var ImportHelper
      */
-    private $globalsHelper;
+    private $importHelper;
 
     /**
      * @var NodeFinder
      */
     private $nodeFinder;
 
-    /**
-     * @var ReflectionProvider
-     */
-    private $reflectionProvider;
-
-    public function __construct(GlobalsHelper $globalsHelper, NodeFinder $nodeFinder, ReflectionProvider $reflectionProvider)
+    public function __construct(ImportHelper $importHelper, NodeFinder $nodeFinder)
     {
-        $this->globalsHelper = $globalsHelper;
+        $this->importHelper = $importHelper;
         $this->nodeFinder = $nodeFinder;
-        $this->reflectionProvider = $reflectionProvider;
     }
 
     /**
@@ -69,6 +62,9 @@ class ImportGlobalCodeActionProvider implements CodeActionProvider
         return array_values($commands);
     }
 
+    /**
+     * @resolve Command[]
+     */
     private function getCodeActionsAtPosition(Position $position, Document $document, int $version = null): \Generator
     {
         /** @var (Node|Comment)[] $nodes */
@@ -77,6 +73,7 @@ class ImportGlobalCodeActionProvider implements CodeActionProvider
             return [];
         }
 
+        $nameContext = $nodes[0]->getAttribute('nameContext') ?? new NameContext();
         $name = $nodes[0]->getAttribute('originalName', $nodes[0]);
         $parentNode = $nodes[1];
         if (!($name instanceof Name) ||
@@ -87,40 +84,18 @@ class ImportGlobalCodeActionProvider implements CodeActionProvider
         }
 
         $kind = $this->getKind($parentNode);
-        if ($kind === null || $this->isAlreadyImported($name, $kind)) {
+        if ($kind === null) {
             return [];
         }
 
-        /** @var Element[] $existingElements */
-        $existingElements = yield $this->globalsHelper->getReflectionFromNodePath($nodes, $document);
-        if (!empty($existingElements)) {
-            return [];
-        }
-
-        $elements = yield $this->getReflections($name, $kind, $document);
-        $commands = [];
-        /** @var Element $element */
-        foreach ($elements as $element) {
-            $parts = explode('\\', ltrim($element->name, '\\'));
-            if (count($name->parts) > 1) {
-                // discard nested parts, import only top-most namespace
-                $parts = array_slice($parts, 0, -count($name->parts) + 1);
-            }
-            $importName = implode('\\', $parts);
-            $command = new Command();
-            $command->title = "Import $importName";
-            $command->command = ImportCommandProvider::COMMAND;
-            $command->arguments = [
-                $document->getUri()->getNormalized(),
-                $position,
-                count($name->parts) > 1 ? '' : $kind,
-                '\\' . $importName,
-                $version,
-            ];
-            $commands[] = $command;
-        }
-
-        return $commands;
+        return yield $this->importHelper->getCodeActions(
+            (string)$name,
+            $kind,
+            $nameContext,
+            $position,
+            $document,
+            $version
+        );
     }
 
     /**
@@ -141,44 +116,5 @@ class ImportGlobalCodeActionProvider implements CodeActionProvider
         }
 
         return null;
-    }
-
-    private function isAlreadyImported(Name $name, string $kind): bool
-    {
-        $importAlias = $name->parts[0];
-        /** @var NameContext $nameContext */
-        $nameContext = $name->getAttribute('nameContext') ?? new NameContext();
-        $kind = count($name->parts) > 1 ? '' : $kind;
-
-        if ($kind === 'const') {
-            if (isset($nameContext->constUses[$importAlias])) {
-                return true;
-            }
-        } elseif ($kind === 'function') {
-            if (isset($nameContext->functionUses[$importAlias])) {
-                return true;
-            }
-        } else {
-            if (isset($nameContext->uses[$importAlias])) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @resolve Element[]
-     */
-    private function getReflections(Name $name, string $kind, Document $document): \Generator
-    {
-        if ($kind === 'const') {
-            return yield $this->reflectionProvider->getConstsByShortName($document, (string)$name);
-        }
-        if ($kind === 'function') {
-            return yield $this->reflectionProvider->getFunctionsByShortName($document, (string)$name);
-        }
-
-        return yield $this->reflectionProvider->getClassesByShortName($document, (string)$name);
     }
 }

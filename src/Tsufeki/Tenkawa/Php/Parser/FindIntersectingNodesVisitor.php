@@ -42,8 +42,6 @@ class FindIntersectingNodesVisitor extends NodeVisitorAbstract
                 $comment->getFilePos() + strlen($comment->getText())
             )) {
                 $this->nodes[] = $comment;
-
-                return NodeTraverser::DONT_TRAVERSE_CHILDREN;
             }
         }
 
