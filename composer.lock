@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "e609a05a8ebda6d8b00da25ef4a76db8",
+    "content-hash": "8bfbe30df6bdc574fd5512313736e263",
     "packages": [
         {
             "name": "evenement/evenement",
@@ -157,12 +157,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "1b21a068695dd8b16199307f7abf8436f170d191"
+                "reference": "14cd7fc017d6a079466b61ddefaa5de7455cbcb8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/1b21a068695dd8b16199307f7abf8436f170d191",
-                "reference": "1b21a068695dd8b16199307f7abf8436f170d191",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/14cd7fc017d6a079466b61ddefaa5de7455cbcb8",
+                "reference": "14cd7fc017d6a079466b61ddefaa5de7455cbcb8",
                 "shasum": ""
             },
             "type": "library",
@@ -182,7 +182,71 @@
                 "stubs",
                 "type"
             ],
-            "time": "2018-04-03T15:31:29+00:00"
+            "time": "2018-04-12T09:37:52+00:00"
+        },
+        {
+            "name": "league/html-to-markdown",
+            "version": "4.6.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thephpleague/html-to-markdown.git",
+                "reference": "3af14d8f44838257a75822819784e83819b34e2e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thephpleague/html-to-markdown/zipball/3af14d8f44838257a75822819784e83819b34e2e",
+                "reference": "3af14d8f44838257a75822819784e83819b34e2e",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-xml": "*",
+                "php": ">=5.3.3"
+            },
+            "require-dev": {
+                "mikehaertl/php-shellcommand": "~1.1.0",
+                "phpunit/phpunit": "4.*",
+                "scrutinizer/ocular": "~1.1"
+            },
+            "bin": [
+                "bin/html-to-markdown"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "4.7-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "League\\HTMLToMarkdown\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Colin O'Dell",
+                    "email": "colinodell@gmail.com",
+                    "homepage": "http://www.colinodell.com",
+                    "role": "Lead Developer"
+                },
+                {
+                    "name": "Nick Cernis",
+                    "email": "nick@cern.is",
+                    "homepage": "http://modernnerd.net",
+                    "role": "Original Author"
+                }
+            ],
+            "description": "An HTML-to-markdown conversion helper for PHP",
+            "homepage": "https://github.com/thephpleague/html-to-markdown",
+            "keywords": [
+                "html",
+                "markdown"
+            ],
+            "time": "2018-01-07T19:45:06+00:00"
         },
         {
             "name": "nette/bootstrap",
@@ -1750,16 +1814,16 @@
         },
         {
             "name": "tsufeki/blanche-json-rpc",
-            "version": "0.2.0",
+            "version": "0.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsufeki/blanche-json-rpc.git",
-                "reference": "f4e96786c8db8bbc3d4aba6439a90d3509c1f0ab"
+                "reference": "e85c1f5349add960ae30ea258d6b57bddfe458bb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsufeki/blanche-json-rpc/zipball/f4e96786c8db8bbc3d4aba6439a90d3509c1f0ab",
-                "reference": "f4e96786c8db8bbc3d4aba6439a90d3509c1f0ab",
+                "url": "https://api.github.com/repos/tsufeki/blanche-json-rpc/zipball/e85c1f5349add960ae30ea258d6b57bddfe458bb",
+                "reference": "e85c1f5349add960ae30ea258d6b57bddfe458bb",
                 "shasum": ""
             },
             "require": {
@@ -1791,7 +1855,7 @@
                 }
             ],
             "description": "Async JSON-RPC library for Recoil PHP",
-            "time": "2018-04-05T20:22:07+00:00"
+            "time": "2018-04-13T18:32:07+00:00"
         },
         {
             "name": "tsufeki/hmcontainer",

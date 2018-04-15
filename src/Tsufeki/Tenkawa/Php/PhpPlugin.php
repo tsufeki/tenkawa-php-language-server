@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php;
 
+use League\HTMLToMarkdown\HtmlConverter;
 use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\DocBlockFactoryInterface;
 use PhpParser\PrettyPrinter\Standard;
@@ -132,6 +133,7 @@ class PhpPlugin extends Plugin
         $container->setClass(HoverFormatter::class);
         $container->setCallable(DocBlockFactoryInterface::class, [DocBlockFactory::class, 'createInstance'], false, [new Value([])]);
         $container->setClass(PhpDocFormatter::class);
+        $container->setClass(HtmlConverter::class, null, false, [new Value([])]);
         $container->setClass(NodeFinder::class);
         $container->setClass(CommandProvider::class, ImportCommandProvider::class, true);
 

@@ -2,13 +2,25 @@
 
 namespace Tsufeki\Tenkawa\Php\Reflection;
 
+use League\HTMLToMarkdown\HtmlConverter;
 use Tsufeki\Tenkawa\Php\Index\StubsIndexer;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
+use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 
 class StubsReflectionTransformer
 {
+    /**
+     * @var HtmlConverter
+     */
+    private $htmlConverter;
+
+    public function __construct(HtmlConverter $htmlConverter)
+    {
+        $this->htmlConverter = $htmlConverter;
+    }
+
     /**
      * @resolve Element
      */
@@ -25,8 +37,17 @@ class StubsReflectionTransformer
         if ($element instanceof ClassLike) {
             foreach ($element->methods as $method) {
                 $this->transformFunction($method);
+                $this->transformDocComment($method->docComment);
+            }
+            foreach ($element->properties as $property) {
+                $this->transformDocComment($property->docComment);
+            }
+            foreach ($element->consts as $const) {
+                $this->transformDocComment($const->docComment);
             }
         }
+
+        $this->transformDocComment($element->docComment);
 
         return $element;
         yield;
@@ -64,5 +85,29 @@ class StubsReflectionTransformer
                 $param->optional = true;
             }
         }
+    }
+
+    private function transformDocComment(DocComment $docComment = null)
+    {
+        if ($docComment === null || empty($docComment->text)) {
+            return;
+        }
+
+        $text = substr(trim($docComment->text), 3, -2);
+        $text = preg_replace('~^\s*\*\s~m', '', $text);
+        $text = preg_replace('~^(\s*)@~m', '<br>$1@', $text);
+        $text = str_replace("\n\n", "<br>\n\n", $text);
+        $text = "/**\n" . $this->htmlConverter->convert($text) . "\n*/";
+        $text = str_replace('\\[\\]', '[]', $text);
+        $text = str_replace('```', "\n```", $text);
+        $text = preg_replace_callback(
+            '~\\$([a-zA-Z0-9_]|\\\\_)*~',
+            function ($match) {
+                return str_replace('\\', '', $match[0]);
+            },
+            $text
+        );
+
+        $docComment->text = $text;
     }
 }
