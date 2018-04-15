@@ -3,8 +3,12 @@
 namespace Tsufeki\Tenkawa\Server\Index\Storage;
 
 use Tsufeki\BlancheJsonRpc\Json;
+use Tsufeki\KayoJsonMapper\Mapper;
+use Tsufeki\KayoJsonMapper\MapperBuilder;
+use Tsufeki\KayoJsonMapper\NameMangler\NullNameMangler;
 use Tsufeki\Tenkawa\Server\Index\IndexEntry;
 use Tsufeki\Tenkawa\Server\Index\Query;
+use Tsufeki\Tenkawa\Server\Mapper\UriMapper;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Platform;
 use Tsufeki\Tenkawa\Server\Utils\StringUtils;
@@ -13,7 +17,7 @@ use Webmozart\PathUtil\Path;
 class SqliteStorage implements WritableIndexStorage
 {
     const MEMORY = ':memory:';
-    const SCHEMA_VERSION = 2;
+    const SCHEMA_VERSION = 3;
 
     /**
      * @var string
@@ -41,6 +45,11 @@ class SqliteStorage implements WritableIndexStorage
     private $uriPrefixNormalized;
 
     /**
+     * @var Mapper
+     */
+    private $mapper;
+
+    /**
      * @var \PDO|null
      */
     private $pdo;
@@ -52,6 +61,26 @@ class SqliteStorage implements WritableIndexStorage
         $this->uriPrefix = $uriPrefix === '' ? '' : rtrim($uriPrefix, '/') . '/';
         $this->uriPrefixLength = strlen($this->uriPrefix);
         $this->uriPrefixNormalized = rtrim(Uri::fromString($this->uriPrefix)->getNormalized(), '/') . '/';
+        $this->mapper = $this->createMapper($this->uriPrefix);
+    }
+
+    private function createMapper(string $uriPrefix): Mapper
+    {
+        $uriMapper = new UriMapper();
+
+        return MapperBuilder::create()
+            ->setNameMangler(new NullNameMangler())
+            ->setPrivatePropertyAccess(false)
+            ->setGuessRequiredProperties(true)
+            ->setDumpNullProperties(false)
+            ->throwOnMissingProperty(true)
+            ->throwOnUnknownProperty(false)
+            ->throwOnInfiniteRecursion(true)
+            ->acceptStdClassAsArray(true)
+            ->setStrictNulls(true)
+            ->addLoader($uriMapper)
+            ->addDumper($uriMapper)
+            ->getMapper();
     }
 
     private function getPdo(): \PDO
@@ -99,6 +128,7 @@ class SqliteStorage implements WritableIndexStorage
             category text not null,
             key text not null,
             data text not null,
+            data_class text not null,
             timestamp integer default null
         )')->execute();
 
@@ -163,6 +193,7 @@ class SqliteStorage implements WritableIndexStorage
         $fields = ['source_uri', 'category', 'key'];
         if ($query->includeData) {
             $fields[] = 'data';
+            $fields[] = 'data_class';
         }
 
         $stmt = $this->getPdo()->prepare('
@@ -179,7 +210,10 @@ class SqliteStorage implements WritableIndexStorage
             $entry->category = $row['category'];
             $entry->key = $row['key'];
             if ($query->includeData) {
-                $entry->data = Json::decode($row['data']);
+                $entry->data = $this->mapper->load(
+                    Json::decode($row['data']),
+                    $row['data_class'] ?: 'mixed'
+                );
             }
             $result[] = $entry;
         }
@@ -208,8 +242,8 @@ class SqliteStorage implements WritableIndexStorage
 
             $stmt = $this->getPdo()->prepare('
                 insert
-                    into tenkawa_index (source_uri, category, key, data, timestamp)
-                    values (:sourceUri, :category, :key, :data, :timestamp)
+                    into tenkawa_index (source_uri, category, key, data, data_class, timestamp)
+                    values (:sourceUri, :category, :key, :data, :dataClass, :timestamp)
             ');
 
             foreach ($entries as $entry) {
@@ -217,7 +251,8 @@ class SqliteStorage implements WritableIndexStorage
                     'sourceUri' => $this->stripPrefix((string)$uri),
                     'category' => $entry->category,
                     'key' => $entry->key,
-                    'data' => Json::encode($entry->data),
+                    'data' => Json::encode($this->mapper->dump($entry->data)),
+                    'dataClass' => is_object($entry->data) ? get_class($entry->data) : 'mixed',
                     'timestamp' => $timestamp,
                 ]);
             }

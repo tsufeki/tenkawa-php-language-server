@@ -176,6 +176,9 @@ class ServerPlugin extends Plugin
             ->getMapper();
     }
 
+    /**
+     * @internal
+     */
     public function createFileWatchers(
         FileWatcherFeature $clientFileWatcher,
         InotifyWaitFileWatcher $inotifyWaitFileWatcher

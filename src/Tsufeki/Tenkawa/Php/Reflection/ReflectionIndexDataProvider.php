@@ -4,7 +4,6 @@ namespace Tsufeki\Tenkawa\Php\Reflection;
 
 use PhpParser\NodeTraverser;
 use PhpParser\PrettyPrinter\Standard;
-use Tsufeki\KayoJsonMapper\Mapper;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Index\IndexDataProvider;
@@ -22,19 +21,13 @@ class ReflectionIndexDataProvider implements IndexDataProvider
     private $parser;
 
     /**
-     * @var Mapper
-     */
-    private $mapper;
-
-    /**
      * @var Standard
      */
     private $prettyPrinter;
 
-    public function __construct(Parser $parser, Mapper $mapper, Standard $prettyPrinter)
+    public function __construct(Parser $parser, Standard $prettyPrinter)
     {
         $this->parser = $parser;
-        $this->mapper = $mapper;
         $this->prettyPrinter = $prettyPrinter;
     }
 
@@ -86,7 +79,7 @@ class ReflectionIndexDataProvider implements IndexDataProvider
             $entry->sourceUri = $document->getUri();
             $entry->category = $category;
             $entry->key = $caseSensitive ? $elem->name : strtolower($elem->name);
-            $entry->data = $this->mapper->dump($elem);
+            $entry->data = $elem;
 
             return $entry;
         }, $elements);

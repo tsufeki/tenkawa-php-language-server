@@ -2,10 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\Reflection;
 
-use Tsufeki\KayoJsonMapper\Mapper;
-use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
+use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Index\Index;
 use Tsufeki\Tenkawa\Server\Index\IndexEntry;
@@ -20,11 +17,6 @@ class IndexReflectionProvider implements ReflectionProvider
     private $index;
 
     /**
-     * @var Mapper
-     */
-    private $mapper;
-
-    /**
      * @var ReflectionTransformer[]
      */
     private $transformers;
@@ -32,10 +24,9 @@ class IndexReflectionProvider implements ReflectionProvider
     /**
      * @param ReflectionTransformer[] $transformers
      */
-    public function __construct(Index $index, Mapper $mapper, array $transformers)
+    public function __construct(Index $index, array $transformers)
     {
         $this->index = $index;
-        $this->mapper = $mapper;
         $this->transformers = $transformers;
     }
 
@@ -47,16 +38,10 @@ class IndexReflectionProvider implements ReflectionProvider
         /** @var IndexEntry[] $entries */
         $entries = yield $this->index->search($document, $query);
 
-        $itemClass = ClassLike::class;
-        if ($query->category === ReflectionIndexDataProvider::CATEGORY_FUNCTION) {
-            $itemClass = Function_::class;
-        } elseif ($query->category === ReflectionIndexDataProvider::CATEGORY_CONST) {
-            $itemClass = Const_::class;
-        }
-
         $elements = [];
         foreach ($entries as $entry) {
-            $element = $this->mapper->load($entry->data, $itemClass);
+            $element = $entry->data;
+            assert($element instanceof Element);
             foreach ($this->transformers as $transformer) {
                 $element = yield $transformer->transform($element);
             }
