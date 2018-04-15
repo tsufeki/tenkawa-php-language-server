@@ -1,6 +1,6 @@
 {
     "name": "tsufeki/tenkawa-php-language-server",
-    "description": "Language server protocol implementation for PHP",
+    "description": "Language server for PHP, with powerful static analysis and type inference",
     "license": "GPL-3.0-or-later",
     "authors": [
         {

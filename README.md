@@ -5,7 +5,8 @@ Tenkawa PHP Language Server
 Tenkawa is a [language server][lsp] for PHP, with powerful static analysis
 and type inference engine borrowed without asking from [PHPStan][phpstan].
 
-Still experimental, but should be usable.
+Still experimental, but should be usable. Any bug reports, feature requests,
+suggestions, questions are welcome.
 
 [lsp]: https://microsoft.github.io/language-server-protocol/
 [phpstan]: https://github.com/phpstan/phpstan
@@ -83,16 +84,16 @@ Unimplemented (yet?):
 Known issues
 ------------
 
-* Many features don't work inside anonymous classes and traits. This is
-  caused by PHPStan's design and it should be possible to fix when next
-  version(s) lands.
 * Information about standard library and extensions is taken from
-  [PhpStorm stubs][stubs], which aren't
-  always perfect and sometimes does not work well with our static analysis.
-  This is the main reason why the real, standalone PHPStan gives different
-  results than our server. This may improve with future PHPStan as well.
+  [PhpStorm stubs][stubs], which aren't always perfect and sometimes don't
+  work well with our static analysis. This is the main reason why the real,
+  standalone PHPStan gives different results than our server. This may improve
+  with future PHPStan versions.
+* Many features don't work inside anonymous classes and traits. This is
+  caused by PHPStan's design and it should be possible to fix this when next
+  version(s) land.
 * Refactors are not 100% bullet-proof. More comprehensive implementation needs
-  PHP Parser 4 (and it's support in PHPStan).
+  PHP Parser 4 (and its support in PHPStan).
 * Filtering of big lists (i.e. completions) is left entirely to the client,
   which must be able to withstand it performance-wise.
 * Performance & long indexing times.
