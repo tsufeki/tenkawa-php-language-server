@@ -4,6 +4,7 @@ namespace Tsufeki\Tenkawa\Php\Feature\Hover;
 
 use PhpParser\Node;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
+use Tsufeki\Tenkawa\Php\TypeInference\Type;
 use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
@@ -23,10 +24,16 @@ class ExpressionTypeHoverProvider implements HoverProvider
      */
     private $nodeFinder;
 
-    public function __construct(TypeInference $typeInference, NodeFinder $nodeFinder)
+    /**
+     * @var HoverFormatter
+     */
+    private $formatter;
+
+    public function __construct(TypeInference $typeInference, NodeFinder $nodeFinder, HoverFormatter $formatter)
     {
         $this->typeInference = $typeInference;
         $this->nodeFinder = $nodeFinder;
+        $this->formatter = $formatter;
     }
 
     public function getHover(Document $document, Position $position): \Generator
@@ -43,6 +50,7 @@ class ExpressionTypeHoverProvider implements HoverProvider
             array_shift($nodes);
         }
 
+        /** @var Type|null $type */
         $type = null;
         if (!empty($nodes) && $nodes[0] instanceof Node) {
             $type = $nodes[0]->getAttribute('type', null);
@@ -50,7 +58,7 @@ class ExpressionTypeHoverProvider implements HoverProvider
 
         if ($type !== null) {
             $hover = new Hover();
-            $hover->contents = "expression: $type";
+            $hover->contents = $this->formatter->formatExpression($type);
             $hover->range = PositionUtils::rangeFromNodeAttrs($nodes[0]->getAttributes(), $document);
 
             return $hover;

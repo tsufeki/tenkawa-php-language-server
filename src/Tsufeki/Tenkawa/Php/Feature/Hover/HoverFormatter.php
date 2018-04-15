@@ -2,11 +2,10 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\Hover;
 
-use PhpParser\Comment;
+use Tsufeki\Tenkawa\Php\Feature\PhpDocFormatter;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
-use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
@@ -14,44 +13,54 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Type;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Variable;
+use Tsufeki\Tenkawa\Php\TypeInference\Type as InferredType;
 use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 
 class HoverFormatter
 {
-    public function format(Element $element): string
+    /**
+     * @var PhpDocFormatter
+     */
+    private $phpDocFormatter;
+
+    public function __construct(PhpDocFormatter $phpDocFormatter)
     {
-        $s = "```php\n<?php\n";
-
-        if ($element->docComment) {
-            $s .= $this->formatDocComment($element->docComment);
-        }
-
-        if ($element instanceof ClassLike) {
-            $s .= $this->formatClass($element);
-        } elseif ($element instanceof Method) {
-            $s .= $this->formatMethod($element);
-        } elseif ($element instanceof Property) {
-            $s .= $this->formatProperty($element);
-        } elseif ($element instanceof ClassConst) {
-            $s .= $this->formatClassConst($element);
-        } elseif ($element instanceof Function_) {
-            $s .= $this->formatFunction($element);
-        } elseif ($element instanceof Variable) {
-            $s .= $this->formatVariable($element);
-        } elseif ($element instanceof Const_) {
-            $s .= $this->formatConst($element);
-        }
-
-        $s .= "\n```";
-
-        return $s;
+        $this->phpDocFormatter = $phpDocFormatter;
     }
 
-    private function formatDocComment(DocComment $doc): string
+    public function format(Element $element): string
     {
-        $doc = (new Comment\Doc($doc->text))->getReformattedText();
+        $paragraphs = [];
 
-        return trim($doc) . "\n";
+        $paragraphs[0] = "```php\n<?php\n";
+        if ($element instanceof ClassLike) {
+            $paragraphs[0] .= $this->formatClass($element);
+        } elseif ($element instanceof Method) {
+            $paragraphs[0] .= $this->formatMethod($element);
+        } elseif ($element instanceof Property) {
+            $paragraphs[0] .= $this->formatProperty($element);
+        } elseif ($element instanceof ClassConst) {
+            $paragraphs[0] .= $this->formatClassConst($element);
+        } elseif ($element instanceof Function_) {
+            $paragraphs[0] .= $this->formatFunction($element);
+        } elseif ($element instanceof Variable) {
+            $paragraphs[0] .= $this->formatVariable($element);
+        } elseif ($element instanceof Const_) {
+            $paragraphs[0] .= $this->formatConst($element);
+        }
+        $paragraphs[0] .= "\n```";
+
+        $namespace = $element->nameContext->namespace;
+        if ($namespace !== '\\') {
+            $namespace = trim($namespace, '\\');
+            $paragraphs[] = "in `$namespace`";
+        }
+
+        if ($element->docComment) {
+            $paragraphs[] = $this->phpDocFormatter->format($element->docComment->text, $element->nameContext);
+        }
+
+        return implode("\n\n", $paragraphs);
     }
 
     /**
@@ -89,7 +98,7 @@ class HoverFormatter
     {
         $s = 'const ' . ($class ? StringUtils::getShortName($class) . '::' : '') . StringUtils::getShortName($const->name);
         if ($const->valueExpression !== null) {
-            $s .= ' = ' . $const->valueExpression;
+            $s .= ' = ' . StringUtils::limitLength($const->valueExpression);
         }
 
         return $s;
@@ -149,7 +158,7 @@ class HoverFormatter
         if ($param->defaultNull) {
             $s .= ' = null';
         } elseif ($param->defaultExpression) {
-            $s .= ' = ' . $param->defaultExpression;
+            $s .= ' = ' . StringUtils::limitLength($param->defaultExpression);
         } elseif ($param->optional && !$param->variadic) {
             $s .= ' = ...';
         }
@@ -212,5 +221,10 @@ class HoverFormatter
         }
 
         return $s;
+    }
+
+    public function formatExpression(InferredType $type): string
+    {
+        return "expression: `$type`";
     }
 }

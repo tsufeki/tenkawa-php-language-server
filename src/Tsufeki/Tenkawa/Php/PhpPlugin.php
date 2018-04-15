@@ -2,6 +2,8 @@
 
 namespace Tsufeki\Tenkawa\Php;
 
+use phpDocumentor\Reflection\DocBlockFactory;
+use phpDocumentor\Reflection\DocBlockFactoryInterface;
 use PhpParser\PrettyPrinter\Standard;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\TypeSpecifier;
@@ -62,6 +64,7 @@ use Tsufeki\Tenkawa\Php\Feature\Hover\HoverMembersProvider;
 use Tsufeki\Tenkawa\Php\Feature\ImportHelper;
 use Tsufeki\Tenkawa\Php\Feature\MembersHelper;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
+use Tsufeki\Tenkawa\Php\Feature\PhpDocFormatter;
 use Tsufeki\Tenkawa\Php\Index\ComposerFileFilterFactory;
 use Tsufeki\Tenkawa\Php\Index\StubsIndexer;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
@@ -127,6 +130,8 @@ class PhpPlugin extends Plugin
         $container->setClass(ConstExprEvaluator::class);
 
         $container->setClass(HoverFormatter::class);
+        $container->setCallable(DocBlockFactoryInterface::class, [DocBlockFactory::class, 'createInstance'], false, [new Value([])]);
+        $container->setClass(PhpDocFormatter::class);
         $container->setClass(NodeFinder::class);
         $container->setClass(CommandProvider::class, ImportCommandProvider::class, true);
 
