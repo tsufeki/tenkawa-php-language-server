@@ -114,6 +114,16 @@ class ReflectionVisitor extends NameContextVisitor
             $typeObj->type = '?' . $innerType->type;
         } else {
             $typeObj->type = $this->nameToString($type);
+
+            $lowercaseType = strtolower($typeObj->type);
+            $class = $this->classLikeStack[count($this->classLikeStack) - 1] ?? null;
+            if ($class !== null) {
+                if ($lowercaseType === 'self') {
+                    $typeObj->type = $class->name;
+                } elseif ($lowercaseType === 'parent' && $class->parentClass) {
+                    $typeObj->type = $class->parentClass;
+                }
+            }
         }
 
         return $typeObj;
