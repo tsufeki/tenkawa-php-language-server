@@ -7,10 +7,7 @@ use PhpParser\PrettyPrinter\Standard;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\Scope;
 use PHPStan\Analyser\TypeSpecifier;
-use PHPStan\Broker\ClassNotFoundException;
-use PHPStan\Broker\FunctionNotFoundException;
-use PHPStan\Reflection\MissingMethodFromReflectionException;
-use PHPStan\Reflection\MissingPropertyFromReflectionException;
+use Psr\Log\LoggerInterface;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
@@ -52,6 +49,11 @@ class Analyser
      */
     private $syncAsync;
 
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
     public function __construct(
         NodeScopeResolver $nodeScopeResolver,
         DocumentParser $parser,
@@ -59,7 +61,8 @@ class Analyser
         PhpDocResolver $phpDocResolver,
         Standard $printer,
         TypeSpecifier $typeSpecifier,
-        SyncAsync $syncAsync
+        SyncAsync $syncAsync,
+        LoggerInterface $logger
     ) {
         $this->nodeScopeResolver = $nodeScopeResolver;
         $this->parser = $parser;
@@ -68,6 +71,7 @@ class Analyser
         $this->printer = $printer;
         $this->typeSpecifier = $typeSpecifier;
         $this->syncAsync = $syncAsync;
+        $this->logger = $logger;
     }
 
     /**
@@ -90,13 +94,16 @@ class Analyser
                         new Scope($this->broker, $this->printer, $this->typeSpecifier, $path),
                         $nodeCallback
                     );
-                } catch (MissingPropertyFromReflectionException $e) {
-                    // These exceptions are thrown when analysis begins before
-                    // new property/method is indexed.
-                    // TODO: find better way of handling such situation.
-                } catch (MissingMethodFromReflectionException $e) {
-                } catch (ClassNotFoundException $e) {
-                } catch (FunctionNotFoundException $e) {
+                } catch (\Throwable $e) {
+                    // These exceptions are thrown when PHPStan chokes on partial AST
+                    // with syntax errors or when indexing hasn't caught up.
+                    $this->logger->error(
+                        'Exception during PHPStan analysis: ' .
+                        get_class($e) . ': ' .
+                        $e->getMessage() .
+                        ' in ' . $e->getFile() . ':' . $e->getLine()
+                    );
+                    $this->logger->debug('Exception during PHPStan analysis', ['exception' => $e]);
                 }
             },
             [],
