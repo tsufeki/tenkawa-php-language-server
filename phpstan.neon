@@ -3,6 +3,8 @@ includes:
     - vendor/phpstan/phpstan-phpunit/rules.neon
 
 parameters:
+    excludes_analyse:
+        - '%rootDir%/../../../tests/Tsufeki/Tenkawa/fixtures/*'
     ignoreErrors:
         - '#Call to an undefined static method Recoil\\Recoil::eventLoop\(\)#'
         - '#Tsufeki\\Tenkawa\\Php\\PhpStan\\.*::__construct\(\) does not call parent constructor from (PHPStan\\.*|ReflectionClass)#'

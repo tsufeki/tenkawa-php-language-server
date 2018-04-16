@@ -7,9 +7,14 @@ use Tsufeki\Tenkawa\Server\Event\OnStart;
 
 class PhpPluginInit implements OnStart
 {
+    private static $unionTypesSet = false;
+
     public function onStart(array $options): \Generator
     {
-        TypeCombinator::setUnionTypesEnabled(true);
+        if (!self::$unionTypesSet) {
+            self::$unionTypesSet = true;
+            TypeCombinator::setUnionTypesEnabled(true);
+        }
 
         return;
         yield;

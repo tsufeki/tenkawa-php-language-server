@@ -80,6 +80,12 @@ class FindNodeVisitorTest extends TestCase
                 [],
             ],
             [
+                '<?php $;',
+                0, 7,
+                [Expr\Error::class, Expr\Variable::class],
+                true,
+            ],
+            [
                 '<?php /* bar */ $foo = 7;',
                 0, 9,
                 [Comment::class, Expr\Assign::class],

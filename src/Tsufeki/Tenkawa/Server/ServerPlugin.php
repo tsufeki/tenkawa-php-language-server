@@ -92,7 +92,9 @@ class ServerPlugin extends Plugin
 
         $container->setClass(InotifyWaitFileWatcher::class);
         $container->setClass(FilesystemMonitorFactoryInterface::class, FilesystemMonitorFactory::class);
-        $container->setCallable(FileWatcher::class, [$this, 'createFileWatchers']);
+        if ($options['file_watcher'] ?? true) {
+            $container->setCallable(FileWatcher::class, [$this, 'createFileWatchers']);
+        }
         $container->setClass(FileWatcherHandler::class);
         $container->setAlias(OnInit::class, FileWatcherHandler::class, true);
         $container->setAlias(OnShutdown::class, FileWatcherHandler::class, true);
