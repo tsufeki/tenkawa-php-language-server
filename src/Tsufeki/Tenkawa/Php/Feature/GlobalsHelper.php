@@ -86,6 +86,10 @@ class GlobalsHelper
      */
     public function getReferencedConst(Name $name, Node $parentNode = null, Node $grandparentNode = null)
     {
+        if (in_array(strtolower($name->toString()), ['true', 'false', 'null'], true)) {
+            return null;
+        }
+
         if ($parentNode !== null && isset(self::CONST_REFERENCING_NODES[get_class($parentNode)])) {
             return '\\' . $name->toString();
         }
