@@ -14,9 +14,14 @@ class Stopwatch
         $this->start = $this->now();
     }
 
+    public function getSeconds(): float
+    {
+        return $this->now() - $this->start;
+    }
+
     public function __toString(): string
     {
-        $seconds = $this->now() - $this->start;
+        $seconds = $this->getSeconds();
         $minutes = (int)($seconds / 60);
         $seconds = fmod($seconds, 60);
         $hours = (int)($minutes / 60);

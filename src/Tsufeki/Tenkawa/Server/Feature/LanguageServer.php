@@ -11,6 +11,7 @@ use Tsufeki\Tenkawa\Server\Event\OnShutdown;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\InitializeResult;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
+use Tsufeki\Tenkawa\Server\Feature\Configuration\ConfigurationFeature;
 use Tsufeki\Tenkawa\Server\Feature\Workspace\WorkspaceFeature;
 use Tsufeki\Tenkawa\Server\Feature\Workspace\WorkspaceFolder;
 use Tsufeki\Tenkawa\Server\Uri;
@@ -44,6 +45,11 @@ class LanguageServer implements MethodProvider
     private $workspaceFeature;
 
     /**
+     * @var ConfigurationFeature
+     */
+    private $configurationFeature;
+
+    /**
      * @param Feature[] $features
      */
     public function __construct(
@@ -51,13 +57,15 @@ class LanguageServer implements MethodProvider
         DocumentStore $documentStore,
         LoggerInterface $logger,
         array $features,
-        WorkspaceFeature $workspaceFeature
+        WorkspaceFeature $workspaceFeature,
+        ConfigurationFeature $configurationFeature
     ) {
         $this->eventDispatcher = $eventDispatcher;
         $this->documentStore = $documentStore;
         $this->logger = $logger;
         $this->features = $features;
         $this->workspaceFeature = $workspaceFeature;
+        $this->configurationFeature = $configurationFeature;
     }
 
     public function getRequests(): array
@@ -97,6 +105,7 @@ class LanguageServer implements MethodProvider
             yield $feature->initialize($capabilities, $serverCapabilities);
         }
 
+        yield $this->configurationFeature->setGlobals($initializationOptions);
         yield $this->workspaceFeature->openInitialProjects($rootPath, $rootUri, $workspaceFolders);
 
         $result = new InitializeResult();

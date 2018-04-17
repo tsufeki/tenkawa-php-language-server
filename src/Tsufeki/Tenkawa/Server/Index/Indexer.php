@@ -208,7 +208,9 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
 
         if ($processedFilesCount > 0) {
             yield $this->eventDispatcher->dispatch(OnIndexingFinished::class);
-            $this->logger->debug("Indexing finished: $subpath [$processedFilesCount files, $stopwatch]");
+            if ($stopwatch->getSeconds() >= 10.0) {
+                $this->logger->info("Indexing finished: $subpath [$processedFilesCount files, $stopwatch]");
+            }
         }
     }
 

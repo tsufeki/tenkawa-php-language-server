@@ -8,6 +8,7 @@ use PHPStan\Rules\Registry;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Exception\DocumentNotOpenException;
+use Tsufeki\Tenkawa\Server\Feature\Configuration\ConfigurationFeature;
 use Tsufeki\Tenkawa\Server\Feature\Diagnostics\Diagnostic;
 use Tsufeki\Tenkawa\Server\Feature\Diagnostics\DiagnosticSeverity;
 use Tsufeki\Tenkawa\Server\Feature\Diagnostics\WorkspaceDiagnosticsProvider;
@@ -31,13 +32,23 @@ class PhpStanDiagnosticsProvider implements WorkspaceDiagnosticsProvider
      */
     private $documentStore;
 
+    /**
+     * @var ConfigurationFeature
+     */
+    private $configurationFeature;
+
     private $severity = DiagnosticSeverity::WARNING;
 
-    public function __construct(Analyser $analyser, Registry $registry, DocumentStore $documentStore)
-    {
+    public function __construct(
+        Analyser $analyser,
+        Registry $registry,
+        DocumentStore $documentStore,
+        ConfigurationFeature $configurationFeature
+    ) {
         $this->analyser = $analyser;
         $this->registry = $registry;
         $this->documentStore = $documentStore;
+        $this->configurationFeature = $configurationFeature;
     }
 
     /**
@@ -62,6 +73,11 @@ class PhpStanDiagnosticsProvider implements WorkspaceDiagnosticsProvider
     private function getDiagnostics(Document $document): \Generator
     {
         if ($document->getLanguage() !== 'php') {
+            return [];
+        }
+
+        $enabled = yield $this->configurationFeature->get('diagnostics.phpstan.enabled', $document);
+        if ($enabled === false) {
             return [];
         }
 

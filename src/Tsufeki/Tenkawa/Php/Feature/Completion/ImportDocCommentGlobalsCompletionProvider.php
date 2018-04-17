@@ -13,6 +13,7 @@ use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionContext;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItemKind;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionList;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionProvider;
+use Tsufeki\Tenkawa\Server\Feature\Configuration\ConfigurationFeature;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class ImportDocCommentGlobalsCompletionProvider implements CompletionProvider
@@ -32,14 +33,21 @@ class ImportDocCommentGlobalsCompletionProvider implements CompletionProvider
      */
     private $globalCompletionHelper;
 
+    /**
+     * @var ConfigurationFeature
+     */
+    private $configurationFeature;
+
     public function __construct(
         NodeFinder $nodeFinder,
         Lexer $lexer,
-        GlobalsCompletionHelper $globalCompletionHelper
+        GlobalsCompletionHelper $globalCompletionHelper,
+        ConfigurationFeature $configurationFeature
     ) {
         $this->nodeFinder = $nodeFinder;
         $this->lexer = $lexer;
         $this->globalCompletionHelper = $globalCompletionHelper;
+        $this->configurationFeature = $configurationFeature;
     }
 
     public function getTriggerCharacters(): array
@@ -53,6 +61,11 @@ class ImportDocCommentGlobalsCompletionProvider implements CompletionProvider
         CompletionContext $context = null
     ): \Generator {
         if ($document->getLanguage() !== 'php') {
+            return new CompletionList();
+        }
+
+        $enabled = yield $this->configurationFeature->get('completion.autoImport', $document);
+        if ($enabled === false) {
             return new CompletionList();
         }
 

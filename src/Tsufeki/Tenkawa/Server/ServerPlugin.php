@@ -27,6 +27,7 @@ use Tsufeki\Tenkawa\Server\Event\OnStart;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionFeature;
 use Tsufeki\Tenkawa\Server\Feature\Command\CommandFeature;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionFeature;
+use Tsufeki\Tenkawa\Server\Feature\Configuration\ConfigurationFeature;
 use Tsufeki\Tenkawa\Server\Feature\Diagnostics\DiagnosticsFeature;
 use Tsufeki\Tenkawa\Server\Feature\DocumentSymbols\DocumentSymbolsFeature;
 use Tsufeki\Tenkawa\Server\Feature\Feature;
@@ -113,6 +114,9 @@ class ServerPlugin extends Plugin
         $container->setClass(CompletionFeature::class);
         $container->setAlias(Feature::class, CompletionFeature::class, true);
         $container->setAlias(MethodProvider::class, CompletionFeature::class, true);
+
+        $container->setClass(ConfigurationFeature::class);
+        $container->setAlias(Feature::class, ConfigurationFeature::class, true);
 
         $container->setClass(DiagnosticsFeature::class);
         $container->setAlias(Feature::class, DiagnosticsFeature::class, true);
