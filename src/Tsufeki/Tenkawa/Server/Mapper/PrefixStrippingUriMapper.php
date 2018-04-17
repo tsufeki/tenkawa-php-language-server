@@ -27,6 +27,11 @@ class PrefixStrippingUriMapper implements Loader, Dumper
     private $prefixNormalized;
 
     /**
+     * @var int
+     */
+    private $prefixNormalizedLength;
+
+    /**
      * @var UriMapper
      */
     private $uriMapper;
@@ -36,6 +41,7 @@ class PrefixStrippingUriMapper implements Loader, Dumper
         $this->prefix = $prefix === '' ? '' : rtrim($prefix, '/') . '/';
         $this->prefixLength = strlen($this->prefix);
         $this->prefixNormalized = rtrim(Uri::fromString($this->prefix)->getNormalized(), '/') . '/';
+        $this->prefixNormalizedLength = strlen($this->prefixNormalized);
 
         $this->uriMapper = new UriMapper();
     }
@@ -55,10 +61,13 @@ class PrefixStrippingUriMapper implements Loader, Dumper
         return $this->uriMapper->load($this->restorePrefix($data), $type, $context);
     }
 
-    public function stripPrefix(string $uri): string
+    public function stripPrefix(string $uri, bool $normalized = false): string
     {
-        if ($this->prefixLength !== 0 && StringUtils::startsWith($uri, $this->prefix)) {
-            return substr($uri, $this->prefixLength);
+        $prefix = $normalized ? $this->prefixNormalized : $this->prefix;
+        $prefixLength = $normalized ? $this->prefixNormalizedLength : $this->prefixLength;
+
+        if ($prefixLength !== 0 && StringUtils::startsWith($uri, $prefix)) {
+            return substr($uri, $prefixLength);
         }
 
         return $uri;

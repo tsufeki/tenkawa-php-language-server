@@ -155,7 +155,7 @@ class SqliteStorage implements WritableIndexStorage
             } else {
                 $conditions[] = 'source_uri = :uri';
             }
-            $params['uri'] = $this->uriMapper->stripPrefix($query->uri->getNormalized());
+            $params['uri'] = $this->uriMapper->stripPrefix($query->uri->getNormalized(), true);
         }
 
         $fields = ['source_uri', 'category', 'key'];
@@ -206,7 +206,7 @@ class SqliteStorage implements WritableIndexStorage
                     where $condition
             ");
 
-            $stmt->execute(['sourceUri' => $this->uriMapper->stripPrefix($uri->getNormalized())]);
+            $stmt->execute(['sourceUri' => $this->uriMapper->stripPrefix($uri->getNormalized(), true)]);
 
             $stmt = $this->getPdo()->prepare('
                 insert
@@ -254,7 +254,7 @@ class SqliteStorage implements WritableIndexStorage
 
         if ($filterUri !== null) {
             $sql .= " having uri = :filterUri or uri glob :filterUri||'/*'";
-            $params['filterUri'] = $this->uriMapper->stripPrefix($filterUri->getNormalized());
+            $params['filterUri'] = $this->uriMapper->stripPrefix($filterUri->getNormalized(), true);
         }
 
         $stmt = $this->getPdo()->prepare($sql);
