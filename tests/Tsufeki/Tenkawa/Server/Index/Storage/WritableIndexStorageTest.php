@@ -18,7 +18,7 @@ abstract class WritableIndexStorageTest extends TestCase
         $entries = [];
 
         $entry = new IndexEntry();
-        $entry->sourceUri = Uri::fromString('file:///foo');
+        $entry->sourceUri = Uri::fromString('file:///dir/foo');
         $entry->key = 'foobar';
         $entry->category = 'cat1';
         $entry->data = [1, 2, 3];
@@ -30,7 +30,7 @@ abstract class WritableIndexStorageTest extends TestCase
     private function getStorageWithEntries(): \Generator
     {
         $storage = $this->getStorage();
-        yield $storage->replaceFile(Uri::fromString('file:///foo'), $this->getEntries(), 123456);
+        yield $storage->replaceFile(Uri::fromString('file:///dir/foo'), $this->getEntries(), 123456);
 
         return $storage;
     }
@@ -62,7 +62,7 @@ abstract class WritableIndexStorageTest extends TestCase
             ['cat1', 'foobar', Query::FULL, null],
             [null, 'foo', Query::PREFIX, null],
             [null, 'bar', Query::SUFFIX, null],
-            [null, null, Query::FULL, Uri::fromString('file:///foo')],
+            [null, null, Query::FULL, Uri::fromString('file:///dir/foo')],
         ];
     }
 
@@ -94,7 +94,7 @@ abstract class WritableIndexStorageTest extends TestCase
             [null, 'foobaz', Query::FULL, null],
             [null, 'fox', Query::PREFIX, null],
             [null, 'baz', Query::SUFFIX, null],
-            [null, null, Query::FULL, Uri::fromString('file:///bar')],
+            [null, null, Query::FULL, Uri::fromString('file:///dir/bar')],
         ];
     }
 
@@ -104,7 +104,7 @@ abstract class WritableIndexStorageTest extends TestCase
             /** @var WritableIndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
-            yield $storage->replaceFile(Uri::fromString('file:///foo'), []);
+            yield $storage->replaceFile(Uri::fromString('file:///dir/foo'), []);
 
             $query = new Query();
             $query->category = 'cat1';
@@ -121,7 +121,7 @@ abstract class WritableIndexStorageTest extends TestCase
             /** @var WritableIndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
-            yield $storage->replaceFile(Uri::fromString('file:///bar'), []);
+            yield $storage->replaceFile(Uri::fromString('file:///dir/bar'), []);
 
             $query = new Query();
             $query->category = 'cat1';
@@ -132,15 +132,38 @@ abstract class WritableIndexStorageTest extends TestCase
         });
     }
 
-    public function test_get_files()
+    /**
+     * @dataProvider data_get_files
+     */
+    public function test_get_files(string $filterUri = null, array $expected)
     {
-        ReactKernel::start(function (): \Generator {
+        ReactKernel::start(function () use ($filterUri, $expected): \Generator {
             /** @var WritableIndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
-            $result = yield $storage->getFileTimestamps();
+            $entry = new IndexEntry();
+            $entry->sourceUri = Uri::fromString('file:///qux/foo');
+            $entry->key = 'qux';
+            $entry->category = 'cat2';
+            yield $storage->replaceFile(Uri::fromString('file:///qux/foo'), [$entry], 234567);
 
-            $this->assertSame(['file:///foo' => 123456], $result);
+            $result = yield $storage->getFileTimestamps($filterUri !== null ? Uri::fromString($filterUri) : null);
+            ksort($result);
+
+            $this->assertSame($expected, $result);
         });
+    }
+
+    public function data_get_files(): array
+    {
+        return [
+            [null, ['file:///dir/foo' => 123456, 'file:///qux/foo' => 234567]],
+            ['file:///', ['file:///dir/foo' => 123456, 'file:///qux/foo' => 234567]],
+            ['file:///dir', ['file:///dir/foo' => 123456]],
+            ['file:///qux', ['file:///qux/foo' => 234567]],
+            ['file:///dir/foo', ['file:///dir/foo' => 123456]],
+            ['file:///qux/foo', ['file:///qux/foo' => 234567]],
+            ['file:///baz', []],
+        ];
     }
 }

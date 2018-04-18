@@ -155,7 +155,7 @@ class SqliteStorage implements WritableIndexStorage
             } else {
                 $conditions[] = 'source_uri = :uri';
             }
-            $params['uri'] = $this->uriMapper->stripPrefix($query->uri->getNormalized(), true);
+            $params['uri'] = $this->uriMapper->stripPrefixNormalized($query->uri->getNormalized());
         }
 
         $fields = ['source_uri', 'category', 'key'];
@@ -206,7 +206,7 @@ class SqliteStorage implements WritableIndexStorage
                     where $condition
             ");
 
-            $stmt->execute(['sourceUri' => $this->uriMapper->stripPrefix($uri->getNormalized(), true)]);
+            $stmt->execute(['sourceUri' => $this->uriMapper->stripPrefixNormalized($uri->getNormalized())]);
 
             $stmt = $this->getPdo()->prepare('
                 insert
@@ -253,8 +253,17 @@ class SqliteStorage implements WritableIndexStorage
         ";
 
         if ($filterUri !== null) {
-            $sql .= " having uri = :filterUri or uri glob :filterUri||'/*'";
-            $params['filterUri'] = $this->uriMapper->stripPrefix($filterUri->getNormalized(), true);
+            $prefixUri = Uri::fromString($this->uriMapper->getPrefix());
+            $having = [];
+            if ($prefixUri->equals($filterUri) || $filterUri->isParentOf($prefixUri)) {
+                $having[] = "uri not glob '*://*'";
+            }
+            if (!$prefixUri->equals($filterUri)) {
+                $having[] = 'uri = :filterUri or uri glob :filterUriGlob';
+                $params['filterUri'] = $this->uriMapper->stripPrefixNormalized($filterUri->getNormalized());
+                $params['filterUriGlob'] = $this->uriMapper->stripPrefixNormalized($filterUri->getNormalizedWithSlash()) . '*';
+            }
+            $sql .= ' having ' . implode(' or ', $having);
         }
 
         $stmt = $this->getPdo()->prepare($sql);
@@ -262,7 +271,7 @@ class SqliteStorage implements WritableIndexStorage
 
         $result = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $result[$this->uriMapper->restorePrefix($row['uri'], true)] = (int)$row['timestamp'] ?: null;
+            $result[$this->uriMapper->restorePrefixNormalized($row['uri'])] = (int)$row['timestamp'] ?: null;
         }
 
         return $result;

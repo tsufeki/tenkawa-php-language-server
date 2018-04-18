@@ -221,6 +221,28 @@ class Uri
         return (string)$normalized;
     }
 
+    public function getWithSlash(): string
+    {
+        $uriString = (string)$this;
+
+        if (substr($uriString, -1) !== '/') {
+            $uriString .= '/';
+        }
+
+        return $uriString;
+    }
+
+    public function getNormalizedWithSlash(): string
+    {
+        $normalized = $this->getNormalized();
+
+        if (substr($normalized, -1) !== '/') {
+            $normalized .= '/';
+        }
+
+        return $normalized;
+    }
+
     public function getNormalizedGlob(): string
     {
         $normalized = $this->getNormalized();
@@ -235,10 +257,8 @@ class Uri
             return $this->equals($other);
         }
 
-        $thisNormalized = $this->getNormalized();
+        $thisNormalized = $this->getNormalizedWithSlash();
         $otherNormalized = $other->getNormalized();
-
-        $thisNormalized .= '/';
 
         return StringUtils::startsWith($otherNormalized, $thisNormalized);
     }

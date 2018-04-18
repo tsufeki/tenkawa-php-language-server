@@ -17,19 +17,19 @@ class PrefixStrippingUriMapper implements Loader, Dumper
     private $prefix;
 
     /**
-     * @var int
-     */
-    private $prefixLength;
-
-    /**
      * @var string
      */
     private $prefixNormalized;
 
     /**
-     * @var int
+     * @var string
      */
-    private $prefixNormalizedLength;
+    private $prefixWithSlash;
+
+    /**
+     * @var string
+     */
+    private $prefixNormalizedWithSlash;
 
     /**
      * @var UriMapper
@@ -38,12 +38,18 @@ class PrefixStrippingUriMapper implements Loader, Dumper
 
     public function __construct(string $prefix)
     {
-        $this->prefix = $prefix === '' ? '' : rtrim($prefix, '/') . '/';
-        $this->prefixLength = strlen($this->prefix);
-        $this->prefixNormalized = rtrim(Uri::fromString($this->prefix)->getNormalized(), '/') . '/';
-        $this->prefixNormalizedLength = strlen($this->prefixNormalized);
+        $uri = Uri::fromString($prefix);
+        $this->prefix = (string)$uri;
+        $this->prefixNormalized = $uri->getNormalized();
+        $this->prefixWithSlash = $uri->getWithSlash();
+        $this->prefixNormalizedWithSlash = $uri->getNormalizedWithSlash();
 
         $this->uriMapper = new UriMapper();
+    }
+
+    public function getPrefix(): string
+    {
+        return $this->prefix;
     }
 
     public function getSupportedTypes(): array
@@ -61,22 +67,45 @@ class PrefixStrippingUriMapper implements Loader, Dumper
         return $this->uriMapper->load($this->restorePrefix($data), $type, $context);
     }
 
-    public function stripPrefix(string $uri, bool $normalized = false): string
+    public function stripPrefix(string $uri): string
     {
-        $prefix = $normalized ? $this->prefixNormalized : $this->prefix;
-        $prefixLength = $normalized ? $this->prefixNormalizedLength : $this->prefixLength;
+        if (StringUtils::startsWith($uri, $this->prefixWithSlash)) {
+            return substr($uri, strlen($this->prefixWithSlash));
+        }
 
-        if ($prefixLength !== 0 && StringUtils::startsWith($uri, $prefix)) {
-            return substr($uri, $prefixLength);
+        if ($uri === $this->prefix) {
+            return '';
         }
 
         return $uri;
     }
 
-    public function restorePrefix(string $uri, bool $normalized = false): string
+    public function stripPrefixNormalized(string $uri): string
     {
-        if ($this->prefixLength !== 0 && strpos($uri, '://') === false) {
-            return ($normalized ? $this->prefixNormalized : $this->prefix) . $uri;
+        if (StringUtils::startsWith($uri, $this->prefixNormalizedWithSlash)) {
+            return substr($uri, strlen($this->prefixNormalizedWithSlash));
+        }
+
+        if ($uri === $this->prefixNormalized) {
+            return '';
+        }
+
+        return $uri;
+    }
+
+    public function restorePrefix(string $uri): string
+    {
+        if (strpos($uri, '://') === false) {
+            return $this->prefixWithSlash . $uri;
+        }
+
+        return $uri;
+    }
+
+    public function restorePrefixNormalized(string $uri): string
+    {
+        if (strpos($uri, '://') === false) {
+            return $this->prefixNormalizedWithSlash . $uri;
         }
 
         return $uri;

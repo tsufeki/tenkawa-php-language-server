@@ -41,7 +41,7 @@ class FileChangeDeduplicator
     public function dispatch(array $uris): \Generator
     {
         foreach ($uris as $uri) {
-            $this->uris[$uri->getNormalized() . '/'] = $uri;
+            $this->uris[$uri->getNormalizedWithSlash()] = $uri;
         }
 
         if (!$this->accumulating) {
