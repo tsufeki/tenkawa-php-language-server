@@ -22,7 +22,8 @@ For Visual Studio Code extension, see [here][vsix].
 
 Either with [`composer`][composer] `create-project` (`~` directory
 is an example):
-```
+
+```sh
 $ cd ~
 $ composer create-project --no-dev --keep-vcs \
     tsufeki/tenkawa-php-language-server tenkawa/
@@ -31,7 +32,8 @@ $ composer create-project --no-dev --keep-vcs \
 [composer]: https://getcomposer.org/
 
 Or by cloning the repo:
-```
+
+```sh
 $ cd ~
 $ git clone https://github.com/tsufeki/tenkawa-php-language-server.git tenkawa/
 $ cd tenkawa/
@@ -40,12 +42,14 @@ $ cd ..
 ```
 
 Now configure your client to start the server with this command to use stdio:
-```
+
+```sh
 php ~/tenkawa/bin/tenkawa.php
 ```
 
 Or to connect to a TCP socket:
-```
+
+```sh
 php ~/tenkawa/bin/tenkawa.php --socket=tcp://127.0.0.1:12345
 ```
 
@@ -53,18 +57,18 @@ Features
 --------
 
 * ✔ Autocompletion
-    * ✔ Classes/functions (also with automatic import and within doc comments)
-    * ✔ Class members
-    * ✔ Local variables
+  * ✔ Classes/functions (also with automatic import and within doc comments)
+  * ✔ Class members
+  * ✔ Local variables
 * ✔ Diagnostics
-    * ✔ Static analysis with [PHPStan][phpstan]
+  * ✔ Static analysis with [PHPStan][phpstan]
       (see [Known issues](#known-issues))
 * ✔ Go to definition
 * ✔ Hover info
 * ✔ Document symbols
 * ✔ Code actions
-    * ✔ Import class/function
-    * ✘ More to come...
+  * ✔ Import class/function
+  * ✘ More to come...
 * ✔ Multi-root workspace
 
 Unimplemented (yet?):
@@ -77,9 +81,9 @@ Unimplemented (yet?):
 * ✘ Document highlight
 * ✘ Code lens
 * ✘ Formatting
-    * ✘ document
-    * ✘ range
-    * ✘ on type
+  * ✘ document
+  * ✘ range
+  * ✘ on type
 * ✘ Rename
 * ✘ Dynamic configuration
 
@@ -126,10 +130,12 @@ options:
   "tenkawaphp": {
     "diagnostics": {
       "phpstan": {
+        // Enable PHPStan diagnostics.
         "enabled": true
       }
     },
     "completion": {
+      // Enable automatic import (use) of completed classes.
       "autoImport": true
     }
   }
