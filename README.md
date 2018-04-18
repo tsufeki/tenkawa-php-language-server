@@ -24,7 +24,8 @@ Either with [`composer`][composer] `create-project` (`~` directory
 is an example):
 ```
 $ cd ~
-$ composer create-project --no-dev --keep-vcs tsufeki/tenkawa-php-language-server tenkawa/
+$ composer create-project --no-dev --keep-vcs \
+    tsufeki/tenkawa-php-language-server tenkawa/
 ```
 
 [composer]: https://getcomposer.org/
@@ -80,6 +81,7 @@ Unimplemented (yet?):
     * ✘ range
     * ✘ on type
 * ✘ Rename
+* ✘ Dynamic configuration
 
 Known issues
 ------------
@@ -99,6 +101,40 @@ Known issues
 * Performance & long indexing times.
 
 [stubs]: https://github.com/JetBrains/phpstorm-stubs
+
+Command line options
+--------------------
+
+* `--socket=<socket>` - connect to a socket instead of communicating through
+  STDIO. Allowed format: `tcp://127.0.0.1:12345` or `unix:///path/to/socket`.
+* `--log-stderr` - log to stderr.
+* `--log-file=<file>` - log to the given file.
+* `--log-client` - log using `window/logMessage` protocol method.
+* `--log-level=<level>` - log only messages of the given level and up.
+  `<level>` can be one of `emergency`, `alert`, `critical`, `error`,
+  `warning`, `notice`, `info`, `debug`. Defaults to `info`.
+
+Configuration
+-------------
+
+Currently, the only way to pass configuration options to the server is through
+`initializationOptions` parameter of `initialize` protocol method. Recognized
+options:
+
+```js
+{
+  "tenkawaphp": {
+    "diagnostics": {
+      "phpstan": {
+        "enabled": true
+      }
+    },
+    "completion": {
+      "autoImport": true
+    }
+  }
+}
+```
 
 Licence
 -------
