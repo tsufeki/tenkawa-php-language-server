@@ -2,6 +2,8 @@
 Tenkawa PHP Language Server
 ===========================
 
+![Tenkawa](images/tenkawa-logo.png)
+
 Tenkawa is a [language server][lsp] for PHP, with powerful static analysis
 and type inference engine borrowed without asking from [PHPStan][phpstan].
 
