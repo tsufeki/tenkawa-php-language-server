@@ -157,12 +157,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "14cd7fc017d6a079466b61ddefaa5de7455cbcb8"
+                "reference": "3f735371c41d60f6c321d5d4104d61f48dd7a0a7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/14cd7fc017d6a079466b61ddefaa5de7455cbcb8",
-                "reference": "14cd7fc017d6a079466b61ddefaa5de7455cbcb8",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/3f735371c41d60f6c321d5d4104d61f48dd7a0a7",
+                "reference": "3f735371c41d60f6c321d5d4104d61f48dd7a0a7",
                 "shasum": ""
             },
             "type": "library",
@@ -182,7 +182,7 @@
                 "stubs",
                 "type"
             ],
-            "time": "2018-04-12T09:37:52+00:00"
+            "time": "2018-04-17T14:57:22+00:00"
         },
         {
             "name": "league/html-to-markdown",
@@ -1904,16 +1904,16 @@
         },
         {
             "name": "tsufeki/kayo-json-mapper",
-            "version": "0.3.0",
+            "version": "0.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsufeki/kayo-json-mapper.git",
-                "reference": "0257537b79aaa2c8730c79ee547d9d5a7be1ea36"
+                "reference": "a6b318f85347766512fab98f71577b3195f32ad8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsufeki/kayo-json-mapper/zipball/0257537b79aaa2c8730c79ee547d9d5a7be1ea36",
-                "reference": "0257537b79aaa2c8730c79ee547d9d5a7be1ea36",
+                "url": "https://api.github.com/repos/tsufeki/kayo-json-mapper/zipball/a6b318f85347766512fab98f71577b3195f32ad8",
+                "reference": "a6b318f85347766512fab98f71577b3195f32ad8",
                 "shasum": ""
             },
             "require": {
@@ -1943,7 +1943,7 @@
                 }
             ],
             "description": "Map JSON data to PHP objects",
-            "time": "2018-04-05T19:58:37+00:00"
+            "time": "2018-04-17T15:01:02+00:00"
         },
         {
             "name": "tsufeki/php-lenient-parser",
