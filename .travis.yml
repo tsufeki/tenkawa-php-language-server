@@ -5,12 +5,12 @@ php:
     - '7.1'
     - '7.2'
 
-install:
-    - composer install --no-interaction
-
 cache:
     directories:
-        - vendor
+        - $HOME/.composer/cache
+
+install:
+    - composer install --no-interaction
 
 script:
     - ./vendor/bin/phpstan analyze --configuration=phpstan.neon --level=max --no-interaction --no-progress src/ tests/ bin/
