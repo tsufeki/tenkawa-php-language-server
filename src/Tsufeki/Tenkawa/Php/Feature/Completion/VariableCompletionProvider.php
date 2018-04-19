@@ -72,6 +72,9 @@ class VariableCompletionProvider implements CompletionProvider
 
         /** @var (Node|Comment)[] $nodes */
         $nodes = yield $this->nodeFinder->getNodePath($document, $position);
+        if (count($nodes) >= 1 && $nodes[0] instanceof Expr\Error) {
+            array_shift($nodes);
+        }
         if (count($nodes) < 1 || !($nodes[0] instanceof Expr\Variable)) {
             return $completions;
         }
