@@ -16,7 +16,7 @@ suggestions, questions are welcome.
 Installation
 ------------
 
-Requires PHP >= 7.0.
+Requires PHP >= 7.0 with pdo_sqlite extension.
 
 For Visual Studio Code extension, see [here][vsix].
 
