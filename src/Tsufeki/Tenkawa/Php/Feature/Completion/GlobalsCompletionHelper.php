@@ -171,7 +171,13 @@ class GlobalsCompletionHelper
         $item->label = $shortName;
         $item->kind = $kind === CompletionItemKind::CONSTANT ? CompletionItemKind::VARIABLE : $kind;
         $item->detail = $name;
-        $item->insertText = $shortName . ($kind === CompletionItemKind::MODULE ? '\\' : '');
+        $item->insertText = $shortName;
+
+        if ($kind === CompletionItemKind::MODULE) {
+            $item->insertText .= '\\';
+        } elseif ($kind === CompletionItemKind::FUNCTION_) {
+            $item->insertText .= '(';
+        }
 
         return $item;
     }
@@ -286,6 +292,7 @@ class GlobalsCompletionHelper
         $importKind = '';
         if ($kind === CompletionItemKind::FUNCTION_) {
             $importKind = 'function';
+            $item->insertText = $item->label . '(';
         } elseif ($kind === CompletionItemKind::CONSTANT) {
             $importKind = 'const';
         }
