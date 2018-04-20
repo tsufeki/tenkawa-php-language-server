@@ -204,4 +204,88 @@ class FunctionalTest extends TestCase
             ], $resp);
         });
     }
+
+    public function test_completion_classes()
+    {
+        $this->async(function () {
+            $args = yield $this->openAndGetPositionArgs('<?php use Foo\\SelfCompletion; new S#');
+            $resp = yield $this->rpc->call('textDocument/completion', $args);
+
+            usort($resp->items, function ($a, $b) { return strcmp($a->label, $b->label); });
+            $this->assertJsonEquivalent([
+                'isIncomplete' => false,
+                'items' => [
+                    [
+                        'label' => 'Foo',
+                        'kind' => 9,
+                        'detail' => '\\Foo',
+                        'insertText' => 'Foo\\',
+                    ],
+                    [
+                        'label' => 'SelfCompletion',
+                        'kind' => 7,
+                        'detail' => '\\Foo\\SelfCompletion',
+                        'insertText' => 'SelfCompletion',
+                    ],
+                ],
+            ], $resp);
+        });
+    }
+
+    public function test_completion_full_namespace()
+    {
+        $this->async(function () {
+            $args = yield $this->openAndGetPositionArgs('<?php new \\#');
+            $resp = yield $this->rpc->call('textDocument/completion', $args);
+
+            usort($resp->items, function ($a, $b) { return strcmp($a->label, $b->label); });
+            $this->assertJsonEquivalent([
+                'isIncomplete' => false,
+                'items' => [
+                    [
+                        'label' => 'Foo',
+                        'kind' => 9,
+                        'detail' => '\\Foo',
+                        'insertText' => 'Foo\\',
+                    ],
+                ],
+            ], $resp);
+        });
+    }
+
+    public function test_completion_classes_with_import()
+    {
+        $this->async(function () {
+            $args = yield $this->openAndGetPositionArgs('<?php
+namespace Bar;
+
+new S#');
+            $resp = yield $this->rpc->call('textDocument/completion', $args);
+
+            usort($resp->items, function ($a, $b) { return strcmp($a->label, $b->label); });
+            $this->assertJsonEquivalent([
+                'isIncomplete' => false,
+                'items' => [
+                    [
+                        'label' => 'SelfCompletion',
+                        'kind' => 7,
+                        'detail' => 'use Foo\\SelfCompletion',
+                        'additionalTextEdits' => [[
+                            'range' => [
+                                'start' => [
+                                    'line' => 3,
+                                    'character' => 0,
+                                ],
+                                'end' => [
+                                    'line' => 3,
+                                    'character' => 0,
+                                ],
+                            ],
+                            'newText' => "use Foo\\SelfCompletion;\n\n",
+                        ]],
+                    ],
+                ],
+            ], $resp);
+        });
+    }
 }
