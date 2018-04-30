@@ -1522,21 +1522,21 @@
         },
         {
             "name": "recoil/react",
-            "version": "1.0.1",
+            "version": "1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/recoilphp/react.git",
-                "reference": "d816f41180577cf815ef0e6a0655fc721a371da7"
+                "reference": "d385ab9ff8cbc99ab2d145ff9687895f9e8dcc0d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/recoilphp/react/zipball/d816f41180577cf815ef0e6a0655fc721a371da7",
-                "reference": "d816f41180577cf815ef0e6a0655fc721a371da7",
+                "url": "https://api.github.com/repos/recoilphp/react/zipball/d385ab9ff8cbc99ab2d145ff9687895f9e8dcc0d",
+                "reference": "d385ab9ff8cbc99ab2d145ff9687895f9e8dcc0d",
                 "shasum": ""
             },
             "require": {
                 "php": "^7",
-                "react/event-loop": "^0.4",
+                "react/event-loop": "^1.0 || ^0.5 || ^0.4",
                 "react/promise": "^2",
                 "recoil/api": "^1",
                 "recoil/kernel": "^1"
@@ -1582,7 +1582,7 @@
                 "promise",
                 "react"
             ],
-            "time": "2018-04-05T21:46:13+00:00"
+            "time": "2018-04-29T21:00:07+00:00"
         },
         {
             "name": "symfony/console",
