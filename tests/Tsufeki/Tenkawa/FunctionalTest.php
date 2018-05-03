@@ -2,10 +2,12 @@
 
 namespace Tests\Tsufeki\Tenkawa;
 
-use Psr\Log\NullLogger;
+use Psr\Log\LogLevel;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
 use Tsufeki\BlancheJsonRpc\JsonRpc;
 use Tsufeki\Tenkawa\Php\PhpPlugin;
+use Tsufeki\Tenkawa\Server\Logger\LevelFilteringLogger;
+use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
 use Tsufeki\Tenkawa\Server\ServerPlugin;
 use Tsufeki\Tenkawa\Server\Tenkawa;
 
@@ -34,7 +36,11 @@ class FunctionalTest extends TestCase
         parent::setUp();
 
         $this->async(function () {
-            $this->tenkawa = new Tenkawa($this->kernel, new NullLogger(), [new ServerPlugin(), new PhpPlugin()]);
+            $this->tenkawa = new Tenkawa(
+                $this->kernel,
+                new LevelFilteringLogger(new StreamLogger(STDERR), LogLevel::NOTICE),
+                [new ServerPlugin(), new PhpPlugin()]
+            );
 
             $transports = DummyTransportPair::create();
             $this->methodRegistry = new SimpleMethodRegistry();
@@ -269,7 +275,8 @@ new S#');
                     [
                         'label' => 'SelfCompletion',
                         'kind' => 7,
-                        'detail' => 'use Foo\\SelfCompletion',
+                        'detail' => "\\Foo\\SelfCompletion\n\n+ auto-import",
+                        'insertText' => 'SelfCompletion',
                         'additionalTextEdits' => [[
                             'range' => [
                                 'start' => [

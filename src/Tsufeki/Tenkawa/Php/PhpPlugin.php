@@ -41,31 +41,28 @@ use PHPStan\Type\Php\CallbackBasedArrayFunctionReturnTypeExtension;
 use PHPStan\Type\Php\CallbackBasedFunctionReturnTypeExtension;
 use Tsufeki\HmContainer\Container;
 use Tsufeki\HmContainer\Definition\Value;
-use Tsufeki\Tenkawa\Php\Feature\CodeAction\ImportCommandProvider;
-use Tsufeki\Tenkawa\Php\Feature\CodeAction\ImportDocCommentGlobalCodeActionProvider;
-use Tsufeki\Tenkawa\Php\Feature\CodeAction\ImportGlobalCodeActionProvider;
-use Tsufeki\Tenkawa\Php\Feature\Completion\DocCommentGlobalsCompletionProvider;
-use Tsufeki\Tenkawa\Php\Feature\Completion\GlobalsCompletionHelper;
-use Tsufeki\Tenkawa\Php\Feature\Completion\GlobalsCompletionProvider;
-use Tsufeki\Tenkawa\Php\Feature\Completion\ImportDocCommentGlobalsCompletionProvider;
-use Tsufeki\Tenkawa\Php\Feature\Completion\ImportGlobalsCompletionProvider;
-use Tsufeki\Tenkawa\Php\Feature\Completion\MembersCompletionProvider;
+use Tsufeki\Tenkawa\Php\Feature\CodeAction\ImportCodeActionProvider;
+use Tsufeki\Tenkawa\Php\Feature\Command\WorkspaceEditCommandProvider;
+use Tsufeki\Tenkawa\Php\Feature\Completion\GlobalSymbolCompleter;
+use Tsufeki\Tenkawa\Php\Feature\Completion\ImportSymbolCompleter;
+use Tsufeki\Tenkawa\Php\Feature\Completion\MemberSymbolCompleter;
+use Tsufeki\Tenkawa\Php\Feature\Completion\SymbolCompleter;
+use Tsufeki\Tenkawa\Php\Feature\Completion\SymbolCompletionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\VariableCompletionProvider;
-use Tsufeki\Tenkawa\Php\Feature\DocCommentHelper;
+use Tsufeki\Tenkawa\Php\Feature\DocCommentSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\DocumentSymbols\ReflectionDocumentSymbolsProvider;
-use Tsufeki\Tenkawa\Php\Feature\GlobalsHelper;
-use Tsufeki\Tenkawa\Php\Feature\GoToDefinition\GoToDocCommentProvider;
-use Tsufeki\Tenkawa\Php\Feature\GoToDefinition\GoToGlobalsProvider;
-use Tsufeki\Tenkawa\Php\Feature\GoToDefinition\GoToMembersProvider;
+use Tsufeki\Tenkawa\Php\Feature\GlobalSymbolExtractor;
+use Tsufeki\Tenkawa\Php\Feature\GoToDefinition\SymbolGoToDefinitionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Hover\ExpressionTypeHoverProvider;
-use Tsufeki\Tenkawa\Php\Feature\Hover\HoverDocCommentProvider;
 use Tsufeki\Tenkawa\Php\Feature\Hover\HoverFormatter;
-use Tsufeki\Tenkawa\Php\Feature\Hover\HoverGlobalsProvider;
-use Tsufeki\Tenkawa\Php\Feature\Hover\HoverMembersProvider;
-use Tsufeki\Tenkawa\Php\Feature\ImportHelper;
-use Tsufeki\Tenkawa\Php\Feature\MembersHelper;
+use Tsufeki\Tenkawa\Php\Feature\Hover\SymbolHoverProvider;
+use Tsufeki\Tenkawa\Php\Feature\Importer;
+use Tsufeki\Tenkawa\Php\Feature\MemberSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
+use Tsufeki\Tenkawa\Php\Feature\NodePathSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\PhpDocFormatter;
+use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
+use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Index\ComposerFileFilterFactory;
 use Tsufeki\Tenkawa\Php\Index\StubsIndexer;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
@@ -130,28 +127,40 @@ class PhpPlugin extends Plugin
         $container->setClass(ClassResolverExtension::class, MembersFromAnnotationClassResolverExtension::class, true);
         $container->setClass(ConstExprEvaluator::class);
 
-        $container->setClass(HoverFormatter::class);
+        $container->setClass(NodeFinder::class);
+
+        $container->setClass(SymbolExtractor::class);
+        $container->setClass(DocCommentSymbolExtractor::class);
+        $container->setAlias(NodePathSymbolExtractor::class, DocCommentSymbolExtractor::class, true);
+        $container->setClass(GlobalSymbolExtractor::class);
+        $container->setAlias(NodePathSymbolExtractor::class, GlobalSymbolExtractor::class, true);
+        $container->setClass(MemberSymbolExtractor::class);
+        $container->setAlias(NodePathSymbolExtractor::class, MemberSymbolExtractor::class, true);
+
+        $container->setClass(SymbolReflection::class);
+        $container->setClass(Importer::class);
+
         $container->setCallable(DocBlockFactoryInterface::class, [DocBlockFactory::class, 'createInstance'], false, [new Value([])]);
         $container->setClass(PhpDocFormatter::class);
         $container->setClass(HtmlConverter::class, null, false, [new Value([])]);
-        $container->setClass(NodeFinder::class);
-        $container->setClass(CommandProvider::class, ImportCommandProvider::class, true);
 
-        $container->setClass(GlobalsHelper::class);
-        $container->setClass(GoToDefinitionProvider::class, GoToGlobalsProvider::class, true);
-        $container->setClass(HoverProvider::class, HoverGlobalsProvider::class, true);
-        $container->setClass(GlobalsCompletionHelper::class);
-        $container->setClass(CompletionProvider::class, GlobalsCompletionProvider::class, true);
-        $container->setClass(CompletionProvider::class, ImportGlobalsCompletionProvider::class, true);
-        $container->setClass(ImportHelper::class);
-        $container->setClass(CodeActionProvider::class, ImportGlobalCodeActionProvider::class, true);
-        $container->setClass(CodeActionProvider::class, ImportDocCommentGlobalCodeActionProvider::class, true);
+        $container->setClass(CodeActionProvider::class, ImportCodeActionProvider::class, true);
 
-        $container->setClass(DocCommentHelper::class);
-        $container->setClass(GoToDefinitionProvider::class, GoToDocCommentProvider::class, true);
-        $container->setClass(HoverProvider::class, HoverDocCommentProvider::class, true);
-        $container->setClass(CompletionProvider::class, DocCommentGlobalsCompletionProvider::class, true);
-        $container->setClass(CompletionProvider::class, ImportDocCommentGlobalsCompletionProvider::class, true);
+        $container->setClass(CommandProvider::class, WorkspaceEditCommandProvider::class, true);
+
+        $container->setClass(CompletionProvider::class, VariableCompletionProvider::class, true);
+        $container->setClass(CompletionProvider::class, SymbolCompletionProvider::class, true);
+        $container->setClass(SymbolCompleter::class, GlobalSymbolCompleter::class, true);
+        $container->setClass(SymbolCompleter::class, ImportSymbolCompleter::class, true);
+        $container->setClass(SymbolCompleter::class, MemberSymbolCompleter::class, true);
+
+        $container->setClass(DocumentSymbolsProvider::class, ReflectionDocumentSymbolsProvider::class, true);
+
+        $container->setClass(GoToDefinitionProvider::class, SymbolGoToDefinitionProvider::class, true);
+
+        $container->setClass(HoverProvider::class, SymbolHoverProvider::class, true);
+        $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
+        $container->setClass(HoverFormatter::class);
 
         $container->setClass(TypeInference::class, PhpStanTypeInference::class);
         $container->setClass(NodeScopeResolver::class, null, false, [null, null, null, null, null, new Value(true), new Value(false), new Value([])]);
@@ -179,16 +188,6 @@ class PhpPlugin extends Plugin
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayFilterFunctionReturnTypeReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, CallbackBasedArrayFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, CallbackBasedFunctionReturnTypeExtension::class, true);
-
-        $container->setClass(MembersHelper::class);
-        $container->setClass(GoToDefinitionProvider::class, GoToMembersProvider::class, true);
-        $container->setClass(HoverProvider::class, HoverMembersProvider::class, true);
-        $container->setClass(CompletionProvider::class, MembersCompletionProvider::class, true);
-
-        $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
-        $container->setClass(CompletionProvider::class, VariableCompletionProvider::class, true);
-
-        $container->setClass(DocumentSymbolsProvider::class, ReflectionDocumentSymbolsProvider::class, true);
 
         $container->setClass(WorkspaceDiagnosticsProvider::class, PhpStanDiagnosticsProvider::class, true);
         $container->setClass(PropertiesClassReflectionExtension::class, UniversalObjectCratesClassReflectionExtension::class, true, [new Value(['stdClass'])]);

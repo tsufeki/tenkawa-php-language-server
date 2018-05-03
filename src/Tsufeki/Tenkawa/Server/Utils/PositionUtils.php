@@ -86,4 +86,15 @@ class PositionUtils
             self::positionFromOffset(($attributes['endFilePos'] ?? 0) + 1, $document)
         );
     }
+
+    public static function extractRange(Range $range, Document $document): string
+    {
+        $start = self::offsetFromPosition($range->start, $document);
+        $end = self::offsetFromPosition($range->end, $document);
+        if ($start >= $end) {
+            return '';
+        }
+
+        return substr($document->getText(), $start, $end - $start);
+    }
 }

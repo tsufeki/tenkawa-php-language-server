@@ -8,7 +8,7 @@ use PhpParser\Node\Expr;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeTraverser;
-use Tsufeki\Tenkawa\Php\Feature\MembersHelper;
+use Tsufeki\Tenkawa\Php\Feature\MemberSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
 use Tsufeki\Tenkawa\Php\Parser\Ast;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
@@ -42,15 +42,19 @@ class VariableCompletionProvider implements CompletionProvider
     private $typeInference;
 
     /**
-     * @var MembersHelper
+     * @var MemberSymbolExtractor
      */
-    private $membersHelper;
+    private $memberSymbolExtractor;
 
-    public function __construct(Parser $parser, TypeInference $typeInference, MembersHelper $membersHelper, NodeFinder $nodeFinder)
-    {
+    public function __construct(
+        Parser $parser,
+        TypeInference $typeInference,
+        MemberSymbolExtractor $memberSymbolExtractor,
+        NodeFinder $nodeFinder
+    ) {
         $this->parser = $parser;
         $this->typeInference = $typeInference;
-        $this->membersHelper = $membersHelper;
+        $this->memberSymbolExtractor = $memberSymbolExtractor;
         $this->nodeFinder = $nodeFinder;
     }
 
@@ -124,7 +128,7 @@ class VariableCompletionProvider implements CompletionProvider
                     $variables[$param->name] = null; // TODO: type
                 }
 
-                if ($this->membersHelper->isInObjectContext($nodes)) {
+                if ($this->memberSymbolExtractor->isInObjectContext($nodes)) {
                     $variables['this'] = null; // TODO: type
                 }
 

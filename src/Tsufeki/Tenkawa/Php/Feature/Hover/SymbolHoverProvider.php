@@ -2,10 +2,9 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\Hover;
 
-use PhpParser\Comment;
-use PhpParser\Node;
-use Tsufeki\Tenkawa\Php\Feature\DocCommentHelper;
-use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
+use Tsufeki\Tenkawa\Php\Feature\Symbol;
+use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
+use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\MarkupContent;
@@ -14,28 +13,31 @@ use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Hover\Hover;
 use Tsufeki\Tenkawa\Server\Feature\Hover\HoverProvider;
 
-class HoverDocCommentProvider implements HoverProvider
+class SymbolHoverProvider implements HoverProvider
 {
     /**
-     * @var DocCommentHelper
+     * @var SymbolExtractor
      */
-    private $docCommentHelper;
+    private $symbolExtractor;
 
     /**
-     * @var NodeFinder
+     * @var SymbolReflection
      */
-    private $nodeFinder;
+    private $symbolReflection;
 
     /**
      * @var HoverFormatter
      */
     private $formatter;
 
-    public function __construct(DocCommentHelper $docCommentHelper, HoverFormatter $formatter, NodeFinder $nodeFinder)
-    {
-        $this->docCommentHelper = $docCommentHelper;
+    public function __construct(
+        SymbolExtractor $symbolExtractor,
+        SymbolReflection $symbolReflection,
+        HoverFormatter $formatter
+    ) {
+        $this->symbolExtractor = $symbolExtractor;
+        $this->symbolReflection = $symbolReflection;
         $this->formatter = $formatter;
-        $this->nodeFinder = $nodeFinder;
     }
 
     public function getHover(Document $document, Position $position): \Generator
@@ -44,11 +46,14 @@ class HoverDocCommentProvider implements HoverProvider
             return null;
         }
 
-        /** @var (Node|Comment)[] $nodes */
-        $nodes = yield $this->nodeFinder->getNodePath($document, $position);
-        /** @var Element[] $elements */
-        $elements = yield $this->docCommentHelper->getReflectionFromNodePath($nodes, $document, $position);
+        /** @var Symbol|null */
+        $symbol = yield $this->symbolExtractor->getSymbolAt($document, $position);
+        if ($symbol === null) {
+            return null;
+        }
 
+        /** @var Element[] $elements */
+        $elements = yield $this->symbolReflection->getReflectionFromSymbol($symbol);
         if (empty($elements)) {
             return null;
         }
@@ -59,6 +64,7 @@ class HoverDocCommentProvider implements HoverProvider
         // $hover->contents->kind = MarkupKind::MARKDOWN;
         // $hover->contents->string = $this->formatter->format($elements[0]);
         $hover->contents = $this->formatter->format($elements[0]);
+        $hover->range = $symbol->range;
 
         return $hover;
     }
