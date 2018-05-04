@@ -23,36 +23,62 @@ class FindIntersectingNodesVisitor extends NodeVisitorAbstract
     private $offsetB;
 
     /**
+     * @var callable
+     */
+    private $filter;
+
+    /**
      * @var (Node|Comment)[]
      */
-    private $nodes = [];
+    private $nodeStack = [];
 
-    public function __construct(Document $document, Range $range)
+    /**
+     * @var (Node|Comment)[][]
+     */
+    private $nodePaths = [];
+
+    public function __construct(Document $document, Range $range, callable $filter)
     {
         $this->offsetA = PositionUtils::offsetFromPosition($range->start, $document);
         $this->offsetB = PositionUtils::offsetFromPosition($range->end, $document);
+        $this->filter = $filter;
     }
 
     public function enterNode(Node $node)
     {
+        $this->nodeStack[] = $node;
+
         /** @var Comment $comment */
         foreach ($node->getAttribute('comments') ?? [] as $comment) {
-            if ($this->intersects(
-                $comment->getFilePos(),
-                $comment->getFilePos() + strlen($comment->getText())
-            )) {
-                $this->nodes[] = $comment;
+            if (
+                $this->intersects(
+                    $comment->getFilePos(),
+                    $comment->getFilePos() + strlen($comment->getText())
+                ) &&
+                ($this->filter)($comment)
+            ) {
+                $this->nodeStack[] = $comment;
+                $this->nodePaths[] = array_reverse($this->nodeStack);
+                array_pop($this->nodeStack);
             }
         }
 
-        if ($this->intersects(
-            $node->getAttribute('startFilePos'),
-            $node->getAttribute('endFilePos') + 1
-        )) {
-            $this->nodes[] = $node;
+        if (
+            $this->intersects(
+                $node->getAttribute('startFilePos'),
+                $node->getAttribute('endFilePos') + 1
+            ) &&
+            ($this->filter)($node)
+        ) {
+            $this->nodePaths[] = array_reverse($this->nodeStack);
         } else {
             return NodeTraverser::DONT_TRAVERSE_CHILDREN;
         }
+    }
+
+    public function leaveNode(Node $node)
+    {
+        array_pop($this->nodeStack);
     }
 
     private function intersects(int $otherOffsetA, int $otherOffsetB): bool
@@ -61,10 +87,10 @@ class FindIntersectingNodesVisitor extends NodeVisitorAbstract
     }
 
     /**
-     * @return (Node|Comment)[]
+     * @return (Node|Comment)[][]
      */
-    public function getNodes(): array
+    public function getNodePaths(): array
     {
-        return $this->nodes;
+        return $this->nodePaths;
     }
 }

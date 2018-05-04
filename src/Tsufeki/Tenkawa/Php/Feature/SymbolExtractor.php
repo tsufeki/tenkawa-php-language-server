@@ -2,8 +2,12 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature;
 
+use PhpParser\Comment;
+use PhpParser\Node;
+use PhpParser\Node\Expr;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
+use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 
 class SymbolExtractor
 {
@@ -31,15 +35,50 @@ class SymbolExtractor
      */
     public function getSymbolAt(Document $document, Position $position): \Generator
     {
+        /** @var (Node|Comment)[] $nodes */
         $nodes = yield $this->nodeFinder->getNodePath($document, $position);
+        $firstNode = $nodes[0] ?? null;
+        if ($firstNode instanceof Expr\Error) {
+            $firstNode = $nodes[1] ?? null;
+        }
+        if ($firstNode === null) {
+            return null;
+        }
 
         foreach ($this->nodePathSymbolExtractors as $nodePathSymbolExtractor) {
-            $symbol = yield $nodePathSymbolExtractor->getSymbolAt($document, $position, $nodes);
-            if ($symbol !== null) {
-                return $symbol;
+            if ($nodePathSymbolExtractor->filterNode($firstNode)) {
+                $symbol = yield $nodePathSymbolExtractor->getSymbolAt($document, $position, $nodes);
+                if ($symbol !== null) {
+                    return $symbol;
+                }
             }
         }
 
         return null;
+    }
+
+    /**
+     * @resolve Symbol[]
+     */
+    public function getSymbolsInRange(Document $document, Range $range): \Generator
+    {
+        $symbols = [];
+
+        foreach ($this->nodePathSymbolExtractors as $nodePathSymbolExtractor) {
+            /** @var (Node|Comment)[][] $nodes */
+            $nodes = yield $this->nodeFinder->getNodePathsIntersectingWithRange(
+                $document,
+                $range,
+                [$nodePathSymbolExtractor, 'filterNode']
+            );
+
+            $symbols = array_merge($symbols, yield $nodePathSymbolExtractor->getSymbolsInRange(
+                $document,
+                $range,
+                $nodes
+            ));
+        }
+
+        return $symbols;
     }
 }

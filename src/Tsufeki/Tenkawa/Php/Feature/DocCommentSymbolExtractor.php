@@ -24,6 +24,14 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
     }
 
     /**
+     * @param Node|Comment $node
+     */
+    public function filterNode($node): bool
+    {
+        return $node instanceof Comment\Doc;
+    }
+
+    /**
      * @param (Node|Comment)[] $nodes
      *
      * @resolve Symbol|null
@@ -72,5 +80,27 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
 
         return $symbol;
         yield;
+    }
+
+    /**
+     * @param (Node|Comment)[][] $nodes
+     *
+     * @resolve Symbol[]
+     */
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes): \Generator
+    {
+        $symbols = [];
+        foreach ($nodes as $nodePath) {
+            $comment = $nodePath[0] ?? null;
+
+            // TODO extract all symbols, not just one
+            if ($comment instanceof Comment\Doc &&
+                $comment->getFilePos() < PositionUtils::offsetFromPosition($range->start, $document)
+            ) {
+                $symbols[] = yield $this->getSymbolAt($document, $range->start, $nodePath);
+            }
+        }
+
+        return array_values(array_filter($symbols));
     }
 }

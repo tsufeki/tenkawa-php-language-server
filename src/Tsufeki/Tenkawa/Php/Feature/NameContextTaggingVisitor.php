@@ -2,21 +2,20 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature;
 
-use PhpParser\Comment;
 use PhpParser\Node;
 use Tsufeki\Tenkawa\Php\Reflection\NameContextVisitor;
 
 class NameContextTaggingVisitor extends NameContextVisitor
 {
     /**
-     * @var (Node|Comment)[]
+     * @var \SplObjectStorage
      */
-    private $nodesToTag = [];
+    private $nodesToTag;
 
     /**
-     * @param (Node|Comment)[] $nodesToTag
+     * @param \SplObjectStorage $nodesToTag of Node
      */
-    public function __construct(array $nodesToTag)
+    public function __construct(\SplObjectStorage $nodesToTag)
     {
         parent::__construct();
         $this->nodesToTag = $nodesToTag;
@@ -26,7 +25,7 @@ class NameContextTaggingVisitor extends NameContextVisitor
     {
         parent::enterNode($node);
 
-        if (in_array($node, $this->nodesToTag, true)) {
+        if ($this->nodesToTag->contains($node)) {
             $node->setAttribute('nameContext', clone $this->nameContext);
         }
 

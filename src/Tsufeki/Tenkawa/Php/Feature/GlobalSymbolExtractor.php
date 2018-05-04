@@ -12,6 +12,7 @@ use PhpParser\Node\Stmt;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
+use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class GlobalSymbolExtractor implements NodePathSymbolExtractor
@@ -43,6 +44,14 @@ class GlobalSymbolExtractor implements NodePathSymbolExtractor
         Stmt\Use_::TYPE_FUNCTION => GlobalSymbol::FUNCTION_,
         Stmt\Use_::TYPE_CONSTANT => GlobalSymbol::CONST_,
     ];
+
+    /**
+     * @param Node|Comment $node
+     */
+    public function filterNode($node): bool
+    {
+        return $node instanceof Name;
+    }
 
     /**
      * @param (Node|Comment)[] $nodes
@@ -94,5 +103,17 @@ class GlobalSymbolExtractor implements NodePathSymbolExtractor
 
         return $symbol;
         yield;
+    }
+
+    /**
+     * @param (Node|Comment)[][] $nodes
+     *
+     * @resolve Symbol[]
+     */
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes): \Generator
+    {
+        return array_values(array_filter(yield array_map(function (array $nodes) use ($document, $range) {
+            return $this->getSymbolAt($document, $range->start, $nodes);
+        }, $nodes)));
     }
 }

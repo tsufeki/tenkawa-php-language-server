@@ -2,13 +2,9 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\CodeAction;
 
-use PhpParser\Comment;
-use PhpParser\Node;
-use PhpParser\Node\Name;
 use Tsufeki\Tenkawa\Php\Feature\Command\WorkspaceEditCommandProvider;
 use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
 use Tsufeki\Tenkawa\Php\Feature\Importer;
-use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
@@ -18,13 +14,11 @@ use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionContext;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionProvider;
 use Tsufeki\Tenkawa\Server\Feature\Common\Command;
-use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextDocumentEdit;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextEdit;
 use Tsufeki\Tenkawa\Server\Feature\Common\VersionedTextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Feature\Common\WorkspaceEdit;
-use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class ImportCodeActionProvider implements CodeActionProvider
 {
@@ -32,11 +26,6 @@ class ImportCodeActionProvider implements CodeActionProvider
      * @var Importer
      */
     private $importer;
-
-    /**
-     * @var NodeFinder
-     */
-    private $nodeFinder;
 
     /**
      * @var SymbolExtractor
@@ -55,13 +44,11 @@ class ImportCodeActionProvider implements CodeActionProvider
 
     public function __construct(
         Importer $importer,
-        NodeFinder $nodeFinder,
         SymbolExtractor $symbolExtractor,
         SymbolReflection $symbolReflection,
         ReflectionProvider $reflectionProvider
     ) {
         $this->importer = $importer;
-        $this->nodeFinder = $nodeFinder;
         $this->symbolExtractor = $symbolExtractor;
         $this->symbolReflection = $symbolReflection;
         $this->reflectionProvider = $reflectionProvider;
@@ -76,28 +63,14 @@ class ImportCodeActionProvider implements CodeActionProvider
             return [];
         }
 
-        /** @var (Node|Comment)[] $nodes */
-        $nodes = yield $this->nodeFinder->getNodesIntersectingWithRange($document, $range);
-
         $version = $document->getVersion();
         $commands = [];
-        foreach ($nodes as $node) {
-            if ($node instanceof Name) {
-                $nodeRange = PositionUtils::rangeFromNodeAttrs($node->getAttributes(), $document);
-                $commands = array_merge($commands, yield $this->getCodeActionsAtPosition(
-                    $nodeRange->start,
-                    $document,
-                    $version
-                ));
-            } elseif ($node instanceof Comment\Doc &&
-                $node->getFilePos() <= PositionUtils::offsetFromPosition($range->start, $document)
-            ) {
-                // TODO find all symbols within range, not just one
-                $commands = array_merge($commands, yield $this->getCodeActionsAtPosition(
-                    $range->start,
-                    $document,
-                    $version
-                ));
+
+        /** @var Symbol[] $symbols */
+        $symbols = yield $this->symbolExtractor->getSymbolsInRange($document, $range);
+        foreach ($symbols as $symbol) {
+            if ($symbol instanceof GlobalSymbol) {
+                $commands = array_merge($commands, yield $this->getCodeActionsForSymbol($symbol, $version));
             }
         }
 
@@ -107,12 +80,9 @@ class ImportCodeActionProvider implements CodeActionProvider
     /**
      * @resolve Command[]
      */
-    private function getCodeActionsAtPosition(Position $position, Document $document, int $version = null): \Generator
+    private function getCodeActionsForSymbol(GlobalSymbol $symbol, int $version = null): \Generator
     {
-        /** @var Symbol|null */
-        $symbol = yield $this->symbolExtractor->getSymbolAt($document, $position);
-        if (!($symbol instanceof GlobalSymbol) ||
-            $symbol->kind === GlobalSymbol::NAMESPACE_ ||
+        if ($symbol->kind === GlobalSymbol::NAMESPACE_ ||
             $symbol->isImport ||
             (trim($symbol->originalName)[0] ?? '\\') === '\\' ||
             !empty(yield $this->symbolReflection->getReflectionFromSymbol($symbol))
@@ -126,7 +96,7 @@ class ImportCodeActionProvider implements CodeActionProvider
         $commands = [];
 
         /** @var Element $element */
-        foreach (yield $this->getReflections($name, $symbol->kind, $document) as $element) {
+        foreach (yield $this->getReflections($name, $symbol->kind, $symbol->document) as $element) {
             $kind = $symbol->kind;
             $importParts = explode('\\', ltrim($element->name, '\\'));
             if (count($parts) > 1) {
@@ -149,7 +119,7 @@ class ImportCodeActionProvider implements CodeActionProvider
                 $command->command = WorkspaceEditCommandProvider::COMMAND;
                 $command->arguments = [
                     $command->title,
-                    $this->makeWorkspaceEdit($textEdits, $document, $version),
+                    $this->makeWorkspaceEdit($textEdits, $symbol->document, $version),
                 ];
                 $commands[] = $command;
             }

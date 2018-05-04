@@ -75,6 +75,14 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
     }
 
     /**
+     * @param Node|Comment $node
+     */
+    public function filterNode($node): bool
+    {
+        return isset(self::NODE_KINDS[get_class($node)]);
+    }
+
+    /**
      * @param (Node|Comment)[] $nodes
      *
      * @resolve Symbol|null
@@ -90,10 +98,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
         }
 
         $node = $nodes[0];
-        $kind = self::NODE_KINDS[get_class($node)] ?? null;
-        if ($kind === null) {
-            return null;
-        }
+        $kind = self::NODE_KINDS[get_class($node)];
 
         $symbol = new MemberSymbol();
         $symbol->kind = $kind;
@@ -225,5 +230,17 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
         }
 
         return false;
+    }
+
+    /**
+     * @param (Node|Comment)[][] $nodes
+     *
+     * @resolve Symbol[]
+     */
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes): \Generator
+    {
+        // TODO
+        return [];
+        yield;
     }
 }

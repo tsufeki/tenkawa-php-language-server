@@ -37,7 +37,12 @@ class NodeFinder
         $nodeTraverser->traverse($ast->nodes);
         $nodes = $visitor->getNodes();
 
-        $visitor = new NameContextTaggingVisitor($nodes);
+        $nodeStorage = new \SplObjectStorage();
+        foreach ($nodes as $node) {
+            $nodeStorage->attach($node);
+        }
+
+        $visitor = new NameContextTaggingVisitor($nodeStorage);
         $nodeTraverser = new NodeTraverser();
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($ast->nodes);
@@ -46,18 +51,32 @@ class NodeFinder
     }
 
     /**
+     * @param callable $filter (Node|Comment) -> bool
+     *
      * @resolve (Node|Comment)[]
      */
-    public function getNodesIntersectingWithRange(Document $document, Range $range): \Generator
+    public function getNodePathsIntersectingWithRange(Document $document, Range $range, callable $filter): \Generator
     {
         $ast = yield $this->parser->parse($document);
 
-        $visitor = new FindIntersectingNodesVisitor($document, $range);
+        $visitor = new FindIntersectingNodesVisitor($document, $range, $filter);
         $nodeTraverser = new NodeTraverser();
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($ast->nodes);
-        $nodes = $visitor->getNodes();
+        $nodePaths = $visitor->getNodePaths();
 
-        return $nodes;
+        $nodeStorage = new \SplObjectStorage();
+        foreach ($nodePaths as $nodes) {
+            foreach ($nodes as $node) {
+                $nodeStorage->attach($node);
+            }
+        }
+
+        $visitor = new NameContextTaggingVisitor($nodeStorage);
+        $nodeTraverser = new NodeTraverser();
+        $nodeTraverser->addVisitor($visitor);
+        $nodeTraverser->traverse($ast->nodes);
+
+        return $nodePaths;
     }
 }
