@@ -5,6 +5,7 @@ namespace Tsufeki\Tenkawa\Php\Feature;
 use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use Tsufeki\Tenkawa\Php\Parser\Ast;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
@@ -49,6 +50,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
     const STATICS = [
         Expr\StaticPropertyFetch::class => true,
         Expr\StaticCall::class => true,
+        Expr\ClassConstFetch::class => true,
     ];
 
     const SEPARATOR_TOKENS = [
@@ -121,13 +123,15 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
                 return null;
             }
             $symbol->range = $range;
-            $symbol->literalClassName = true;
         }
 
-        if ($node instanceof Expr\PropertyFetch || $node instanceof Expr\MethodCall) {
+        if (!$symbol->static) {
             $leftNode = $node->var;
         } else {
             $leftNode = $node->class;
+            if ($leftNode instanceof Name) {
+                $symbol->literalClassName = true;
+            }
         }
         $symbol->objectType = yield $this->getTypeFromNode($leftNode, $symbol->nameContext, $document);
         $symbol->isInObjectContext = $this->isInObjectContext($nodes);

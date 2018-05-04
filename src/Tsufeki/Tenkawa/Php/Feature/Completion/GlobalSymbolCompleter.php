@@ -183,7 +183,7 @@ class GlobalSymbolCompleter implements SymbolCompleter
 
             foreach ($uses as $alias => $fullName) {
                 // TODO distinguish between classes and namespaces
-                $items[] = $this->makeItem($fullName, $kind);
+                $items[] = $this->makeItem($fullName, $kind, $alias);
             }
         }
 
@@ -191,9 +191,9 @@ class GlobalSymbolCompleter implements SymbolCompleter
         yield;
     }
 
-    private function makeItem(string $name, $kind): CompletionItem
+    private function makeItem(string $name, $kind, string $shortName = null): CompletionItem
     {
-        $shortName = StringUtils::getShortName($name);
+        $shortName = $shortName ?? StringUtils::getShortName($name);
 
         $item = new CompletionItem();
         $item->label = $shortName;

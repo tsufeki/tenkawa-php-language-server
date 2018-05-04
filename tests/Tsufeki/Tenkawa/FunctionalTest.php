@@ -259,6 +259,27 @@ class FunctionalTest extends TestCase
         });
     }
 
+    public function test_completion_imported_namespace()
+    {
+        $this->async(function () {
+            $args = yield $this->openAndGetPositionArgs('<?php namespace Bar; use Foo as FooFoo; new FooFoo\\#');
+            $resp = yield $this->rpc->call('textDocument/completion', $args);
+
+            usort($resp->items, function ($a, $b) { return strcmp($a->label, $b->label); });
+            $this->assertJsonEquivalent([
+                'isIncomplete' => false,
+                'items' => [
+                    [
+                        'label' => 'SelfCompletion',
+                        'kind' => 7,
+                        'detail' => '\\Foo\\SelfCompletion',
+                        'insertText' => 'SelfCompletion',
+                    ],
+                ],
+            ], $resp);
+        });
+    }
+
     public function test_completion_classes_with_import()
     {
         $this->async(function () {

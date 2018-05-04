@@ -87,6 +87,7 @@ class GlobalSymbolExtractor implements NodePathSymbolExtractor
             }
         } elseif ($node instanceof Stmt\UseUse && $parentNode instanceof Stmt\Use_) {
             $symbol->kind = self::USE_KINDS[$parentNode->type] ?? GlobalSymbol::CLASS_;
+            $symbol->isImport = true;
         } elseif ($node instanceof Stmt\UseUse && $parentNode instanceof Stmt\GroupUse) {
             $symbol->kind = self::USE_KINDS[$parentNode->type] ?? self::USE_KINDS[$node->type] ?? GlobalSymbol::CLASS_;
             $symbol->isImport = true;

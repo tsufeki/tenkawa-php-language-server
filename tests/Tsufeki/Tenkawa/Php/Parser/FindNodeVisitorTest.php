@@ -4,6 +4,7 @@ namespace Tests\Tsufeki\Tenkawa\Php\Parser;
 
 use PhpLenientParser\LenientParserFactory;
 use PhpParser\Comment;
+use PhpParser\ErrorHandler;
 use PhpParser\Lexer;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Name;
@@ -34,7 +35,7 @@ class FindNodeVisitorTest extends TestCase
         ]]);
 
         $parser = (new LenientParserFactory())->create(LenientParserFactory::ONLY_PHP7, $lexer);
-        $nodes = $parser->parse($source) ?? [];
+        $nodes = $parser->parse($source, new ErrorHandler\Collecting()) ?? [];
 
         $document = new Document(Uri::fromString('file:///foo'), 'php');
         $document->update($source);
@@ -83,6 +84,18 @@ class FindNodeVisitorTest extends TestCase
                 '<?php $;',
                 0, 7,
                 [Expr\Error::class, Expr\Variable::class],
+                true,
+            ],
+            [
+                '<?php if (!($a))',
+                0, 13,
+                [Expr\Variable::class, Expr\BooleanNot::class, Stmt\If_::class],
+                true,
+            ],
+            [
+                '<?php Ee\\;',
+                0, 9,
+                [Name::class, Expr\ConstFetch::class],
                 true,
             ],
             [
