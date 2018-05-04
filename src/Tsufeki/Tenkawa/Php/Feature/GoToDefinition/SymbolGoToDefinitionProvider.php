@@ -5,6 +5,7 @@ namespace Tsufeki\Tenkawa\Php\Feature\GoToDefinition;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
+use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
@@ -44,6 +45,12 @@ class SymbolGoToDefinitionProvider implements GoToDefinitionProvider
 
         /** @var Element[] $elements */
         $elements = yield $this->symbolReflection->getReflectionFromSymbol($symbol);
+        if (empty($elements) || (
+            $elements[0] instanceof Const_ &&
+            in_array(strtolower($elements[0]->name), ['\\null', '\\true', '\\false'], true)
+        )) {
+            return [];
+        }
 
         return array_values(array_filter(array_map(function (Element $element) {
             return $element->location;
