@@ -14,9 +14,11 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
+use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextEdit;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItem;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItemKind;
+use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class MemberSymbolCompleter implements SymbolCompleter
 {
@@ -56,6 +58,14 @@ class MemberSymbolCompleter implements SymbolCompleter
             return [];
         }
 
+        $kind = $symbol->kind;
+        $offset = PositionUtils::offsetFromPosition($position, $symbol->document);
+        if ($offset > 0 && trim($symbol->document->getText()[$offset - 1]) === '') {
+            // Treat whitespace as separators, this should give better results on
+            // partial input (it won't glue unrelated tokens from the next line, etc.)
+            $kind = $symbol->static ? MemberSymbol::CLASS_CONST : MemberSymbol::PROPERTY;
+        }
+
         /** @var ClassConst[] $consts */
         $consts = yield $this->getMembers($symbol, MemberSymbol::CLASS_CONST);
         /** @var Property[] $properties */
@@ -65,7 +75,7 @@ class MemberSymbolCompleter implements SymbolCompleter
 
         /** @var Element[][] $allElements */
         $allElements = [];
-        if ($symbol->kind === MemberSymbol::CLASS_CONST) {
+        if ($kind === MemberSymbol::CLASS_CONST) {
             $allElements[] = $consts;
             $allElements[] = $this->filterStaticMembers($methods, true);
             $allElements[] = $this->filterStaticMembers($properties, true);
@@ -83,14 +93,14 @@ class MemberSymbolCompleter implements SymbolCompleter
                 $classConst->static = true;
                 $allElements[] = [$classConst];
             }
-        } elseif ($symbol->kind === MemberSymbol::PROPERTY && !$symbol->static) {
+        } elseif ($kind === MemberSymbol::PROPERTY && !$symbol->static) {
             $allElements[] = $this->filterStaticMembers($properties, false);
             $allElements[] = $methods;
-        } elseif ($symbol->kind === MemberSymbol::PROPERTY && $symbol->static) {
+        } elseif ($kind === MemberSymbol::PROPERTY && $symbol->static) {
             $allElements[] = $this->filterStaticMembers($properties, true);
-        } elseif ($symbol->kind === MemberSymbol::METHOD && !$symbol->static) {
+        } elseif ($kind === MemberSymbol::METHOD && !$symbol->static) {
             $allElements[] = $methods;
-        } elseif ($symbol->kind === MemberSymbol::METHOD && $symbol->static) {
+        } elseif ($kind === MemberSymbol::METHOD && $symbol->static) {
             $allElements[] = $this->filterStaticMembers($methods, true);
 
             if (yield $this->isStaticCallToNonStaticAllowed($symbol)) {
@@ -110,8 +120,8 @@ class MemberSymbolCompleter implements SymbolCompleter
             }));
         }
 
-        return array_map(function (Element $element) use ($symbol) {
-            return $this->makeItem($element, $symbol, $symbol->kind !== MemberSymbol::METHOD);
+        return array_map(function (Element $element) use ($symbol, $kind) {
+            return $this->makeItem($element, $kind, $symbol->range, $kind !== MemberSymbol::METHOD);
         }, $elements);
     }
 
@@ -202,7 +212,7 @@ class MemberSymbolCompleter implements SymbolCompleter
         return false;
     }
 
-    private function makeItem(Element $element, MemberSymbol $symbol, bool $addTrailingParen): CompletionItem
+    private function makeItem(Element $element, $symbolKind, Range $range, bool $addTrailingParen): CompletionItem
     {
         $item = new CompletionItem();
         $item->label = $element->name;
@@ -222,12 +232,12 @@ class MemberSymbolCompleter implements SymbolCompleter
             $item->sortText = $item->label;
             $item->label = '$' . $item->label;
             if ($element->static) {
-                if ($symbol->kind === MemberSymbol::CLASS_CONST) {
+                if ($symbolKind === MemberSymbol::CLASS_CONST) {
                     $item->insertText = '$' . $item->insertText;
                 }
 
                 $item->textEdit = new TextEdit();
-                $item->textEdit->range = $symbol->range;
+                $item->textEdit->range = $range;
                 $item->textEdit->newText = '$' . $element->name;
             }
         }

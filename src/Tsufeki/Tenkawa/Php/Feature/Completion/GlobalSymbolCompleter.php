@@ -117,11 +117,26 @@ class GlobalSymbolCompleter implements SymbolCompleter
 
         $beforeCount = substr_count($symbol->originalName, '\\', 0, $offsetWithinName);
 
-        $parts = array_map('trim', explode('\\', $symbol->originalName));
+        $parts = explode('\\', $symbol->originalName);
         $before = array_slice($parts, 0, $beforeCount);
         $after = array_slice($parts, $beforeCount);
 
-        if ($beforeCount !== 0 || $symbol->isImport || $symbol->kind === GlobalSymbol::NAMESPACE_) {
+        $part = $after[0];
+        $beforeLength = array_sum(array_map('strlen', $before)) + count($before);
+        $offsetWithinPart = $offsetWithinName - $beforeLength;
+        $leadingWhiteSpace = strlen($part) - strlen(ltrim($part));
+        $trailingWhiteSpace = strlen($part) - strlen(rtrim($part));
+
+        // Treat whitespace as separators, this should give better results on
+        // partial input (it won't glue unrelated tokens from the next line, etc.)
+        if ($leadingWhiteSpace > 0 && $offsetWithinPart >= $leadingWhiteSpace) {
+            $before = [];
+        }
+        if ($trailingWhiteSpace > 0) {
+            $after = [$after[0]];
+        }
+
+        if (count($before) !== 0 || $symbol->isImport || $symbol->kind === GlobalSymbol::NAMESPACE_) {
             $resolvedParts = explode('\\', $symbol->referencedNames[0]);
             $resolvedCount = count($resolvedParts) - count($after);
             if (end($after) === '' && end($resolvedParts) !== '') {
@@ -130,7 +145,7 @@ class GlobalSymbolCompleter implements SymbolCompleter
             $before = array_slice($resolvedParts, 0, $resolvedCount);
         }
 
-        return [$before, $after];
+        return [$before, array_map('trim', $after)];
     }
 
     private function query(
