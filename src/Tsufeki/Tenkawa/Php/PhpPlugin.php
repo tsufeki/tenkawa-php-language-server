@@ -61,7 +61,10 @@ use Tsufeki\Tenkawa\Php\Feature\MemberSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
 use Tsufeki\Tenkawa\Php\Feature\NodePathSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\PhpDocFormatter;
+use Tsufeki\Tenkawa\Php\Feature\References\GlobalReferenceFinder;
 use Tsufeki\Tenkawa\Php\Feature\References\GlobalReferencesIndexDataProvider;
+use Tsufeki\Tenkawa\Php\Feature\References\ReferenceFinder;
+use Tsufeki\Tenkawa\Php\Feature\References\SymbolReferencesProvider;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Index\ComposerFileFilterFactory;
@@ -96,6 +99,7 @@ use Tsufeki\Tenkawa\Server\Feature\Diagnostics\WorkspaceDiagnosticsProvider;
 use Tsufeki\Tenkawa\Server\Feature\DocumentSymbols\DocumentSymbolsProvider;
 use Tsufeki\Tenkawa\Server\Feature\GoToDefinition\GoToDefinitionProvider;
 use Tsufeki\Tenkawa\Server\Feature\Hover\HoverProvider;
+use Tsufeki\Tenkawa\Server\Feature\References\ReferencesProvider;
 use Tsufeki\Tenkawa\Server\Index\FileFilterFactory;
 use Tsufeki\Tenkawa\Server\Index\GlobalIndexer;
 use Tsufeki\Tenkawa\Server\Index\IndexDataProvider;
@@ -163,6 +167,9 @@ class PhpPlugin extends Plugin
         $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
         $container->setClass(HoverFormatter::class);
 
+        $container->setClass(ReferencesProvider::class, SymbolReferencesProvider::class, true);
+        $container->setClass(GlobalReferenceFinder::class);
+        $container->setAlias(ReferenceFinder::class, GlobalReferenceFinder::class, true);
         $container->setClass(IndexDataProvider::class, GlobalReferencesIndexDataProvider::class, true);
 
         $container->setClass(TypeInference::class, PhpStanTypeInference::class);
