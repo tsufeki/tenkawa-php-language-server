@@ -61,6 +61,7 @@ use Tsufeki\Tenkawa\Php\Feature\MemberSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
 use Tsufeki\Tenkawa\Php\Feature\NodePathSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\PhpDocFormatter;
+use Tsufeki\Tenkawa\Php\Feature\References\GlobalReferencesIndexDataProvider;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Index\ComposerFileFilterFactory;
@@ -161,6 +162,8 @@ class PhpPlugin extends Plugin
         $container->setClass(HoverProvider::class, SymbolHoverProvider::class, true);
         $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
         $container->setClass(HoverFormatter::class);
+
+        $container->setClass(IndexDataProvider::class, GlobalReferencesIndexDataProvider::class, true);
 
         $container->setClass(TypeInference::class, PhpStanTypeInference::class);
         $container->setClass(NodeScopeResolver::class, null, false, [null, null, null, null, null, new Value(true), new Value(false), new Value([])]);
