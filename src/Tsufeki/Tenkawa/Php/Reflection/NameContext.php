@@ -33,7 +33,7 @@ class NameContext
 
     public function resolveClass(string $name): string
     {
-        return $this->resolveUse($name, $this->uses) ?? $this->namespace . '\\' . $name;
+        return $this->resolve($name, $this->uses, false)[0];
     }
 
     /**
@@ -41,11 +41,7 @@ class NameContext
      */
     public function resolveFunction(string $name): array
     {
-        $resolved = $this->resolveUse($name, $this->functionUses);
-
-        return $resolved !== null
-            ? [$resolved]
-            : [$this->namespace . '\\' . $name, '\\' . $name];
+        return $this->resolve($name, $this->functionUses, true);
     }
 
     /**
@@ -53,25 +49,49 @@ class NameContext
      */
     public function resolveConst(string $name): array
     {
-        $resolved = $this->resolveUse($name, $this->constUses);
-
-        return $resolved !== null
-            ? [$resolved]
-            : [$this->namespace . '\\' . $name, '\\' . $name];
+        return $this->resolve($name, $this->constUses, true);
     }
 
     /**
      * @param array<string,string> $uses alias => fully qualified name
      *
-     * @return string|null
+     * @return string[]
      */
-    private function resolveUse(string $name, array $uses)
+    private function resolve(string $name, array $uses, bool $addGlobal): array
     {
         if (($name[0] ?? '') === '\\') {
-            return $name;
+            return [$name];
         }
 
         $parts = explode('\\', $name);
+        if (count($parts) !== 1) {
+            $uses = $this->uses;
+            $addGlobal = false;
+        }
+
+        $result = [];
+        $resolved = $this->resolveUses($parts, $uses);
+
+        if ($resolved !== null) {
+            $result[] = $resolved;
+        } else {
+            $result[] = $this->namespace . '\\' . $name;
+            if ($addGlobal) {
+                $result[] = '\\' . $name;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string[]             $parts
+     * @param array<string,string> $uses  alias => fully qualified name
+     *
+     * @return string|null
+     */
+    private function resolveUses(array $parts, array $uses)
+    {
         $first = $parts[0];
         if (isset($uses[$first])) {
             $parts[0] = $uses[$first];

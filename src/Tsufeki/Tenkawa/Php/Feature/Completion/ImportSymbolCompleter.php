@@ -43,24 +43,24 @@ class ImportSymbolCompleter implements SymbolCompleter
      */
     public function getCompletions(Symbol $symbol, Position $position): \Generator
     {
-        if (!($symbol instanceof GlobalSymbol)) {
-            return [];
-        }
-
-        if (strpos($symbol->originalName, '\\') !== false) {
+        if (!($symbol instanceof GlobalSymbol) ||
+            strpos($symbol->originalName, '\\') !== false ||
+            $symbol->isImport ||
+            $symbol->kind === GlobalSymbol::NAMESPACE_
+        ) {
             return [];
         }
 
         /** @var CompletionItem[] $items */
         $items = [];
         $importData = yield $this->importer->getImportEditData($symbol);
-        foreach (GlobalSymbolCompleter::SEARCH_KINDS[$symbol->kind] ?? [] as $kind) {
+        foreach (GlobalSymbolCompleter::SEARCH_KINDS as $kind) {
             $names = yield $this->query($kind, $symbol->document);
 
             foreach ($names as $name) {
                 $textEdits = yield $this->importer->getImportEditWithData($symbol, $importData, $name, $kind);
                 if ($textEdits !== null) {
-                    $items[] = $this->makeItem($name, $kind, $textEdits);
+                    $items[] = $this->makeItem($name, $kind, $textEdits, $symbol->kind !== GlobalSymbol::FUNCTION_);
                 }
             }
         }
@@ -94,7 +94,7 @@ class ImportSymbolCompleter implements SymbolCompleter
     /**
      * @param TextEdit[] $textEdits
      */
-    private function makeItem(string $name, $kind, array $textEdits): CompletionItem
+    private function makeItem(string $name, $kind, array $textEdits, bool $addTrailingParen): CompletionItem
     {
         $shortName = StringUtils::getShortName($name);
 
@@ -104,7 +104,7 @@ class ImportSymbolCompleter implements SymbolCompleter
         $item->detail = "$name\n\n+ auto-import";
         $item->insertText = $shortName;
 
-        if ($kind === GlobalSymbol::FUNCTION_) {
+        if ($kind === GlobalSymbol::FUNCTION_ && $addTrailingParen) {
             $item->insertText .= '(';
         }
 

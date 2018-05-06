@@ -40,18 +40,9 @@ class GlobalSymbolCompleter implements SymbolCompleter
     ];
 
     const SEARCH_KINDS = [
-        GlobalSymbol::CLASS_ => [GlobalSymbol::CLASS_],
-        GlobalSymbol::FUNCTION_ => [GlobalSymbol::FUNCTION_],
-        GlobalSymbol::CONST_ => [ // const fetch may be partial function or class
-            GlobalSymbol::CLASS_,
-            GlobalSymbol::FUNCTION_,
-            GlobalSymbol::CONST_,
-        ],
-        GlobalSymbol::NAMESPACE_ => [
-            GlobalSymbol::CLASS_,
-            GlobalSymbol::FUNCTION_,
-            GlobalSymbol::CONST_,
-        ],
+        GlobalSymbol::CLASS_,
+        GlobalSymbol::FUNCTION_,
+        GlobalSymbol::CONST_,
     ];
 
     public function __construct(Index $index)
@@ -73,75 +64,99 @@ class GlobalSymbolCompleter implements SymbolCompleter
             return [];
         }
 
-        list($namespaces, $isUnqualified) = $this->getNamespaces($symbol, $position);
-        $items = [];
-        foreach ($namespaces as $namespace) {
-            $items = array_merge($items, yield $this->query(
-                $namespace,
-                self::SEARCH_KINDS[$symbol->kind] ?? [],
-                $symbol->document,
-                $symbol->kind === GlobalSymbol::NAMESPACE_
-            ));
+        list($before, $after) = $this->splitName($symbol, $position);
+        $unqualified = empty($before);
+        $addTrailingParen = false;
+        $addTrailingBackslash = true;
+        $kinds = [$symbol->kind];
+
+        if (count($after) > 1) {
+            $kinds = [GlobalSymbol::NAMESPACE_];
+            $addTrailingBackslash = false;
         }
 
-        if ($isUnqualified &&
-            $symbol->kind !== GlobalSymbol::NAMESPACE_ &&
-            !$symbol->isImport
-        ) {
-            $items = array_merge($items, yield $this->getAliases(
-                $symbol->nameContext,
-                self::SEARCH_KINDS[$symbol->kind] ?? []
-            ));
+        if ($kinds === [GlobalSymbol::CONST_] && !$symbol->isImport) {
+            $kinds = self::SEARCH_KINDS;
+            $addTrailingParen = true;
+        }
+
+        if (!in_array(GlobalSymbol::NAMESPACE_, $kinds, true)) {
+            $kinds[] = GlobalSymbol::NAMESPACE_;
+        }
+
+        $result = [];
+        $namespace = implode('\\', $before) ?: '\\';
+
+        if ($unqualified) {
+            $result = yield $this->getAliases($symbol->nameContext, $kinds);
+            $namespace = $symbol->nameContext->namespace;
+        }
+
+        yield $this->query($namespace, $kinds, $symbol->document, $result);
+
+        if ($unqualified) {
+            $kinds = array_diff($kinds, [GlobalSymbol::CLASS_, GlobalSymbol::NAMESPACE_]);
+            yield $this->query('\\', $kinds, $symbol->document, $result);
+        }
+
+        $items = [];
+        foreach ($result as $kind => $kindResult) {
+            foreach ($kindResult as $shortName => $fullName) {
+                $items[] = $this->makeItem($fullName, $kind, $shortName, $addTrailingBackslash, $addTrailingParen);
+            }
         }
 
         return $items;
     }
 
-    private function getNamespaces(GlobalSymbol $symbol, Position $position): array
+    private function splitName(GlobalSymbol $symbol, Position $position): array
     {
         $offset = PositionUtils::offsetFromPosition($position, $symbol->document);
         $startOffset = PositionUtils::offsetFromPosition($symbol->range->start, $symbol->document);
         $offsetWithinName = $offset - $startOffset;
 
         $beforeCount = substr_count($symbol->originalName, '\\', 0, $offsetWithinName);
-        $afterCount = substr_count($symbol->originalName, '\\') + 1 - $beforeCount;
-        $isUnqualified = $beforeCount === 0;
 
-        if (substr($symbol->originalName, -1) === '\\') {
-            $afterCount--;
+        $parts = array_map('trim', explode('\\', $symbol->originalName));
+        $before = array_slice($parts, 0, $beforeCount);
+        $after = array_slice($parts, $beforeCount);
+
+        if ($beforeCount !== 0 || $symbol->isImport || $symbol->kind === GlobalSymbol::NAMESPACE_) {
+            $resolvedParts = explode('\\', $symbol->referencedNames[0]);
+            $resolvedCount = count($resolvedParts) - count($after);
+            if (end($after) === '' && end($resolvedParts) !== '') {
+                $resolvedCount++;
+            }
+            $before = array_slice($resolvedParts, 0, $resolvedCount);
         }
 
-        $namespaces = [];
-        foreach ($symbol->referencedNames as $name) {
-            $parts = explode('\\', $name);
-            $parts = array_slice($parts, 0, count($parts) - $afterCount);
-            $namespaces[] = implode('\\', $parts);
-        }
-
-        return [$namespaces, $isUnqualified];
+        return [$before, $after];
     }
 
-    /**
-     * @resolve CompletionItem[]
-     */
     private function query(
         string $namespace,
         array $kinds,
         Document $document,
-        bool $namespaceOnly = false
+        array &$result
     ): \Generator {
-        $namespace = rtrim($namespace, '\\') . '\\';
-
-        /** @var CompletionItem[] $namespaces */
-        $namespaces = [];
-        /** @var CompletionItem[] $elements */
-        $elements = [];
+        if (empty($kinds)) {
+            return;
+        }
 
         // TODO search case insensitive
+        $namespace = rtrim($namespace, '\\') . '\\';
         $query = new Query();
         $query->key = $namespace;
         $query->match = Query::PREFIX;
         $query->includeData = false;
+
+        $withNamespaces = in_array(GlobalSymbol::NAMESPACE_, $kinds, true);
+        $withElements = true;
+        $kinds = array_diff($kinds, [GlobalSymbol::NAMESPACE_]);
+        if ($kinds === []) {
+            $withElements = false;
+            $kinds = self::SEARCH_KINDS;
+        }
 
         foreach ($kinds as $kind) {
             $query->category = self::INDEX_CATEGORIES[$kind];
@@ -150,29 +165,31 @@ class GlobalSymbolCompleter implements SymbolCompleter
             $entries = yield $this->index->search($document, $query);
             $namespaceLength = strlen($namespace);
             foreach ($entries as $entry) {
+                $itemFullName = null;
+                $itemKind = null;
                 $backslashPos = strpos($entry->key, '\\', $namespaceLength);
-                if ($backslashPos !== false) {
-                    $nsName = substr($entry->key, 0, $backslashPos);
-                    if (!isset($namespaces[$nsName])) {
-                        $namespaces[$nsName] = $this->makeItem($nsName, GlobalSymbol::NAMESPACE_);
-                    }
-                } elseif (!$namespaceOnly) {
-                    $elements[] = $this->makeItem($entry->key, $kind);
+                if ($backslashPos !== false && $withNamespaces) {
+                    $itemFullName = substr($entry->key, 0, $backslashPos);
+                    $itemKind = GlobalSymbol::NAMESPACE_;
+                } elseif ($backslashPos === false && $withElements) {
+                    $itemFullName = $entry->key;
+                    $itemKind = $kind;
+                }
+
+                $itemShortName = StringUtils::getShortName($itemFullName ?: '');
+                if ($itemFullName !== null && !isset($result[$itemKind][$itemShortName])) {
+                    $result[$itemKind][$itemShortName] = $itemFullName;
                 }
             }
         }
-
-        return array_merge(array_values($namespaces), $elements);
     }
 
-    /**
-     * @resolve CompletionItem[]
-     */
     private function getAliases(NameContext $nameContext, array $kinds): \Generator
     {
         $items = [];
         foreach ($kinds as $kind) {
             $uses = [];
+            // TODO distinguish between classes and namespaces
             if ($kind === GlobalSymbol::CLASS_) {
                 $uses = $nameContext->uses;
             } elseif ($kind === GlobalSymbol::FUNCTION_) {
@@ -182,8 +199,7 @@ class GlobalSymbolCompleter implements SymbolCompleter
             }
 
             foreach ($uses as $alias => $fullName) {
-                // TODO distinguish between classes and namespaces
-                $items[] = $this->makeItem($fullName, $kind, $alias);
+                $items[$kind][$alias] = $fullName;
             }
         }
 
@@ -191,8 +207,13 @@ class GlobalSymbolCompleter implements SymbolCompleter
         yield;
     }
 
-    private function makeItem(string $name, $kind, string $shortName = null): CompletionItem
-    {
+    private function makeItem(
+        string $name,
+        $kind,
+        string $shortName,
+        bool $addTrailingBackslash,
+        bool $addTrailingParen
+    ): CompletionItem {
         $shortName = $shortName ?? StringUtils::getShortName($name);
 
         $item = new CompletionItem();
@@ -201,9 +222,9 @@ class GlobalSymbolCompleter implements SymbolCompleter
         $item->detail = $name;
         $item->insertText = $shortName;
 
-        if ($kind === GlobalSymbol::NAMESPACE_) {
+        if ($kind === GlobalSymbol::NAMESPACE_ && $addTrailingBackslash) {
             $item->insertText .= '\\';
-        } elseif ($kind === GlobalSymbol::FUNCTION_) {
+        } elseif ($kind === GlobalSymbol::FUNCTION_ && $addTrailingParen) {
             $item->insertText .= '(';
         }
 

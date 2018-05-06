@@ -111,7 +111,7 @@ class MemberSymbolCompleter implements SymbolCompleter
         }
 
         return array_map(function (Element $element) use ($symbol) {
-            return $this->makeItem($element, $symbol);
+            return $this->makeItem($element, $symbol, $symbol->kind !== MemberSymbol::METHOD);
         }, $elements);
     }
 
@@ -137,7 +137,7 @@ class MemberSymbolCompleter implements SymbolCompleter
         /** @var string[] $parentClassNames */
         $parentClassNames = [];
         if ($nameContext->class !== null) {
-            /** @var ResolvedClassLike $resolveClass */
+            /** @var ResolvedClassLike $resolvedClass */
             $resolvedClass = yield $this->classResolver->resolve($nameContext->class, $document);
             while ($resolvedClass !== null) {
                 $parentClassNames[] = strtolower($resolvedClass->name);
@@ -202,7 +202,7 @@ class MemberSymbolCompleter implements SymbolCompleter
         return false;
     }
 
-    private function makeItem(Element $element, MemberSymbol $symbol): CompletionItem
+    private function makeItem(Element $element, MemberSymbol $symbol, bool $addTrailingParen): CompletionItem
     {
         $item = new CompletionItem();
         $item->label = $element->name;
