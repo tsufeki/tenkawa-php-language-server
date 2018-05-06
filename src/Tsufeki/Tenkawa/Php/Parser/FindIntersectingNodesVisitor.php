@@ -63,16 +63,15 @@ class FindIntersectingNodesVisitor extends NodeVisitorAbstract
             }
         }
 
-        if (
-            $this->intersects(
-                $node->getAttribute('startFilePos'),
-                $node->getAttribute('endFilePos') + 1
-            ) &&
-            ($this->filter)($node)
-        ) {
-            $this->nodePaths[] = array_reverse($this->nodeStack);
-        } else {
+        if (!$this->intersects(
+            $node->getAttribute('startFilePos'),
+            $node->getAttribute('endFilePos') + 1
+        )) {
             return NodeTraverser::DONT_TRAVERSE_CHILDREN;
+        }
+
+        if (($this->filter)($node)) {
+            $this->nodePaths[] = array_reverse($this->nodeStack);
         }
     }
 
