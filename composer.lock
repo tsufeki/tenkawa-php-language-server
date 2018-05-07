@@ -1951,21 +1951,21 @@
         },
         {
             "name": "tsufeki/php-lenient-parser",
-            "version": "0.1.1",
+            "version": "0.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsufeki/php-lenient-parser.git",
-                "reference": "6a1731e09d879e882d077ef231b5390c68e4e6e7"
+                "reference": "3033c1add265e3558c20bb43b86ea2190a47b57e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsufeki/php-lenient-parser/zipball/6a1731e09d879e882d077ef231b5390c68e4e6e7",
-                "reference": "6a1731e09d879e882d077ef231b5390c68e4e6e7",
+                "url": "https://api.github.com/repos/tsufeki/php-lenient-parser/zipball/3033c1add265e3558c20bb43b86ea2190a47b57e",
+                "reference": "3033c1add265e3558c20bb43b86ea2190a47b57e",
                 "shasum": ""
             },
             "require": {
                 "ext-tokenizer": "*",
-                "nikic/php-parser": "^4.0-dev || ^3.0.5",
+                "nikic/php-parser": "^4.0 || ^3.0.5",
                 "php": ">=7.0"
             },
             "require-dev": {
@@ -1994,7 +1994,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2018-01-31T20:32:11+00:00"
+            "time": "2018-05-04T14:40:02+00:00"
         },
         {
             "name": "tsufeki/react-filesystem-monitor",
