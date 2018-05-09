@@ -91,6 +91,41 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
      */
     public function getSymbolAt(Document $document, Position $position, array $nodes): \Generator
     {
+        /** @var MemberSymbol|null $symbol */
+        $symbol = yield $this->getSymbolFromNodes($nodes, $document);
+
+        if ($symbol !== null) {
+            $offset = PositionUtils::offsetFromPosition($position, $document);
+            $start = PositionUtils::offsetFromPosition($symbol->range->start, $document);
+            $end = PositionUtils::offsetFromPosition($symbol->range->end, $document);
+
+            if ($offset < $start || $offset > $end) {
+                $symbol = null;
+            }
+        }
+
+        return $symbol;
+    }
+
+    /**
+     * @param (Node|Comment)[][] $nodes
+     *
+     * @resolve Symbol[]
+     */
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes): \Generator
+    {
+        return array_values(array_filter(yield array_map(function (array $nodes) use ($document) {
+            return $this->getSymbolFromNodes($nodes, $document);
+        }, $nodes)));
+    }
+
+    /**
+     * @param (Node|Comment)[] $nodes
+     *
+     * @resolve MemberSymbol|null
+     */
+    private function getSymbolFromNodes(array $nodes, Document $document): \Generator
+    {
         if (($nodes[0] ?? null) instanceof Expr\Error) {
             array_shift($nodes);
         }
@@ -119,7 +154,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
         } else {
             $symbol->referencedNames = [(string)$name];
             /** @var Range|null $range */
-            $range = yield $this->getRangeFromTokens($node, $document, $position);
+            $range = yield $this->getNameRange($node, $document);
             if ($range === null) {
                 return null;
             }
@@ -145,7 +180,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve Range|null
      */
-    private function getRangeFromTokens(Node $node, Document $document, Position $position): \Generator
+    private function getNameRange(Node $node, Document $document): \Generator
     {
         if ($node instanceof Expr\PropertyFetch || $node instanceof Expr\MethodCall) {
             $leftNode = $node->var;
@@ -155,8 +190,6 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
 
         /** @var Ast $ast */
         $ast = yield $this->parser->parse($document);
-        $stickToRightEnd = true;
-        $offset = PositionUtils::offsetFromPosition($position, $document);
 
         $tokenIndex = $leftNode->getAttribute('endTokenPos') + 1;
         $lastTokenIndex = $node->getAttribute('endTokenPos');
@@ -173,15 +206,9 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
             return null;
         }
 
-        $nameOffset = $iterator->getOffset();
-        $nameOffsetEnd = $nameOffset + strlen($iterator->getValue());
-        if ($offset < $nameOffset || $offset >= $nameOffsetEnd + (int)$stickToRightEnd) {
-            return null;
-        }
-
         return new Range(
-            PositionUtils::positionFromOffset($nameOffset, $document),
-            PositionUtils::positionFromOffset($nameOffsetEnd, $document)
+            PositionUtils::positionFromOffset($iterator->getOffset(), $document),
+            PositionUtils::positionFromOffset($iterator->getOffset() + strlen($iterator->getValue()), $document)
         );
     }
 
@@ -235,17 +262,5 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
         }
 
         return false;
-    }
-
-    /**
-     * @param (Node|Comment)[][] $nodes
-     *
-     * @resolve Symbol[]
-     */
-    public function getSymbolsInRange(Document $document, Range $range, array $nodes): \Generator
-    {
-        // TODO
-        return [];
-        yield;
     }
 }

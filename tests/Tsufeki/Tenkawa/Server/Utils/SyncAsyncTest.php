@@ -7,7 +7,7 @@ use Recoil\React\ReactKernel;
 use Tsufeki\Tenkawa\Server\Utils\NestedKernelsSyncAsync;
 
 /**
- * @covers \Tsufeki\Tenkawa\Server\Utils\NestedKernelsSyncAsyncKernel
+ * @covers \Tsufeki\Tenkawa\Server\Utils\NestedKernelsSyncAsync
  * @covers \Tsufeki\Tenkawa\Server\Utils\SyncCallContext
  */
 class SyncAsyncTest extends TestCase

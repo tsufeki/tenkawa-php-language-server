@@ -83,6 +83,13 @@ class TokenIterator
         }
     }
 
+    public function eatIfType(...$tokenTypes)
+    {
+        if ($this->isType(...$tokenTypes)) {
+            $this->eat();
+        }
+    }
+
     public static function fromNode(Node $node, array $documentTokens): self
     {
         $index = $node->getAttribute('startTokenPos');

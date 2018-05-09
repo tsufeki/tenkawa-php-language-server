@@ -60,6 +60,31 @@ class GlobalSymbolExtractor implements NodePathSymbolExtractor
      */
     public function getSymbolAt(Document $document, Position $position, array $nodes): \Generator
     {
+        /** @var GlobalSymbol|null $symbol */
+        $symbol = yield $this->getSymbolFromNodes($nodes, $document);
+
+        return $symbol;
+    }
+
+    /**
+     * @param (Node|Comment)[][] $nodes
+     *
+     * @resolve Symbol[]
+     */
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes): \Generator
+    {
+        return array_values(array_filter(yield array_map(function (array $nodes) use ($document) {
+            return $this->getSymbolFromNodes($nodes, $document);
+        }, $nodes)));
+    }
+
+    /**
+     * @param (Node|Comment)[] $nodes
+     *
+     * @resolve GlobalSymbol|null
+     */
+    private function getSymbolFromNodes(array $nodes, Document $document): \Generator
+    {
         if (count($nodes) < 2 || !($nodes[0] instanceof Name)) {
             return null;
         }
@@ -104,17 +129,5 @@ class GlobalSymbolExtractor implements NodePathSymbolExtractor
 
         return $symbol;
         yield;
-    }
-
-    /**
-     * @param (Node|Comment)[][] $nodes
-     *
-     * @resolve Symbol[]
-     */
-    public function getSymbolsInRange(Document $document, Range $range, array $nodes): \Generator
-    {
-        return array_values(array_filter(yield array_map(function (array $nodes) use ($document, $range) {
-            return $this->getSymbolAt($document, $range->start, $nodes);
-        }, $nodes)));
     }
 }
