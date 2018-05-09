@@ -112,8 +112,12 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve Symbol[]
      */
-    public function getSymbolsInRange(Document $document, Range $range, array $nodes): \Generator
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes, string $symbolClass = null): \Generator
     {
+        if ($symbolClass !== null && $symbolClass !== MemberSymbol::class) {
+            return [];
+        }
+
         return array_values(array_filter(yield array_map(function (array $nodes) use ($document) {
             return $this->getSymbolFromNodes($nodes, $document);
         }, $nodes)));

@@ -48,7 +48,7 @@ class GlobalReferencesIndexDataProvider implements IndexDataProvider
         );
 
         /** @var Symbol[] $symbols */
-        $symbols = yield $this->symbolExtractor->getSymbolsInRange($document, $wholeDocumentRange);
+        $symbols = yield $this->symbolExtractor->getSymbolsInRange($document, $wholeDocumentRange, GlobalSymbol::class);
         $entries = [];
 
         foreach ($symbols as $symbol) {

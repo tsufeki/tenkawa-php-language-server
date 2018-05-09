@@ -87,8 +87,12 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve Symbol[]
      */
-    public function getSymbolsInRange(Document $document, Range $range, array $nodes): \Generator
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes, string $symbolClass = null): \Generator
     {
+        if ($symbolClass !== null && $symbolClass !== GlobalSymbol::class) {
+            return [];
+        }
+
         $symbols = [];
         foreach ($nodes as $nodePath) {
             $comment = $nodePath[0] ?? null;

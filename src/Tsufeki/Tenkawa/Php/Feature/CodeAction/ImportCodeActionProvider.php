@@ -5,7 +5,6 @@ namespace Tsufeki\Tenkawa\Php\Feature\CodeAction;
 use Tsufeki\Tenkawa\Php\Feature\Command\WorkspaceEditCommandProvider;
 use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
 use Tsufeki\Tenkawa\Php\Feature\Importer;
-use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
@@ -66,12 +65,10 @@ class ImportCodeActionProvider implements CodeActionProvider
         $version = $document->getVersion();
         $commands = [];
 
-        /** @var Symbol[] $symbols */
-        $symbols = yield $this->symbolExtractor->getSymbolsInRange($document, $range);
+        /** @var GlobalSymbol[] $symbols */
+        $symbols = yield $this->symbolExtractor->getSymbolsInRange($document, $range, GlobalSymbol::class);
         foreach ($symbols as $symbol) {
-            if ($symbol instanceof GlobalSymbol) {
-                $commands = array_merge($commands, yield $this->getCodeActionsForSymbol($symbol, $version));
-            }
+            $commands = array_merge($commands, yield $this->getCodeActionsForSymbol($symbol, $version));
         }
 
         return array_values(array_unique($commands, SORT_REGULAR));
