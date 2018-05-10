@@ -20,6 +20,7 @@ use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\Range;
+use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class MemberSymbolExtractor implements NodePathSymbolExtractor
@@ -118,8 +119,10 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
             return [];
         }
 
-        return array_values(array_filter(yield array_map(function (array $nodes) use ($document) {
-            return $this->getSymbolFromNodes($nodes, $document);
+        $cache = new Cache();
+
+        return array_values(array_filter(yield array_map(function (array $nodes) use ($document, $cache) {
+            return $this->getSymbolFromNodes($nodes, $document, $cache);
         }, $nodes)));
     }
 
@@ -128,7 +131,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve MemberSymbol|null
      */
-    private function getSymbolFromNodes(array $nodes, Document $document): \Generator
+    private function getSymbolFromNodes(array $nodes, Document $document, Cache $cache = null): \Generator
     {
         if (($nodes[0] ?? null) instanceof Expr\Error) {
             array_shift($nodes);
@@ -173,7 +176,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
                 $symbol->literalClassName = true;
             }
         }
-        $symbol->objectType = yield $this->getTypeFromNode($leftNode, $symbol->nameContext, $document);
+        $symbol->objectType = yield $this->getTypeFromNode($leftNode, $symbol->nameContext, $document, $cache);
         $symbol->isInObjectContext = $this->isInObjectContext($nodes);
 
         return $symbol;
@@ -219,9 +222,13 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
     /**
      * @resolve Type
      */
-    private function getTypeFromNode(Node $node, NameContext $nameContext, Document $document): \Generator
-    {
-        yield $this->typeInference->infer($document);
+    private function getTypeFromNode(
+        Node $node,
+        NameContext $nameContext,
+        Document $document,
+        Cache $cache = null
+    ): \Generator {
+        yield $this->typeInference->infer($document, $cache);
 
         $type = new BasicType();
         if ($node instanceof Node\Name) {

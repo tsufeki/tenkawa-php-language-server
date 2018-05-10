@@ -112,7 +112,7 @@ class SymbolDocumentSymbolsProvider implements DocumentSymbolsProvider
      */
     private function sort(array &$symbols)
     {
-        usort($elements, function (DefinitionSymbol $a, DefinitionSymbol $b) {
+        usort($symbols, function (DefinitionSymbol $a, DefinitionSymbol $b) {
             return $this->order($a) <=> $this->order($b);
         });
     }
