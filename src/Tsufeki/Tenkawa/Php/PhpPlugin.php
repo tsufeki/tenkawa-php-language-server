@@ -64,6 +64,7 @@ use Tsufeki\Tenkawa\Php\Feature\NodePathSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\PhpDocFormatter;
 use Tsufeki\Tenkawa\Php\Feature\References\GlobalReferenceFinder;
 use Tsufeki\Tenkawa\Php\Feature\References\GlobalReferencesIndexDataProvider;
+use Tsufeki\Tenkawa\Php\Feature\References\MemberReferenceFinder;
 use Tsufeki\Tenkawa\Php\Feature\References\ReferenceFinder;
 use Tsufeki\Tenkawa\Php\Feature\References\SymbolReferencesProvider;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
@@ -174,6 +175,8 @@ class PhpPlugin extends Plugin
         $container->setClass(GlobalReferenceFinder::class);
         $container->setAlias(ReferenceFinder::class, GlobalReferenceFinder::class, true);
         $container->setClass(IndexDataProvider::class, GlobalReferencesIndexDataProvider::class, true);
+        $container->setClass(MemberReferenceFinder::class);
+        $container->setAlias(ReferenceFinder::class, MemberReferenceFinder::class, true);
 
         $container->setClass(TypeInference::class, PhpStanTypeInference::class);
         $container->setClass(NodeScopeResolver::class, null, false, [null, null, null, null, null, new Value(true), new Value(false), new Value([])]);
