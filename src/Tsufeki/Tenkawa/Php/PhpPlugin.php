@@ -49,8 +49,9 @@ use Tsufeki\Tenkawa\Php\Feature\Completion\MemberSymbolCompleter;
 use Tsufeki\Tenkawa\Php\Feature\Completion\SymbolCompleter;
 use Tsufeki\Tenkawa\Php\Feature\Completion\SymbolCompletionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\VariableCompletionProvider;
+use Tsufeki\Tenkawa\Php\Feature\DefinitionSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\DocCommentSymbolExtractor;
-use Tsufeki\Tenkawa\Php\Feature\DocumentSymbols\ReflectionDocumentSymbolsProvider;
+use Tsufeki\Tenkawa\Php\Feature\DocumentSymbols\SymbolDocumentSymbolsProvider;
 use Tsufeki\Tenkawa\Php\Feature\GlobalSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\GoToDefinition\SymbolGoToDefinitionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Hover\ExpressionTypeHoverProvider;
@@ -141,6 +142,8 @@ class PhpPlugin extends Plugin
         $container->setAlias(NodePathSymbolExtractor::class, GlobalSymbolExtractor::class, true);
         $container->setClass(MemberSymbolExtractor::class);
         $container->setAlias(NodePathSymbolExtractor::class, MemberSymbolExtractor::class, true);
+        $container->setClass(DefinitionSymbolExtractor::class);
+        $container->setAlias(NodePathSymbolExtractor::class, DefinitionSymbolExtractor::class, true);
 
         $container->setClass(SymbolReflection::class);
         $container->setClass(Importer::class);
@@ -159,7 +162,7 @@ class PhpPlugin extends Plugin
         $container->setClass(SymbolCompleter::class, ImportSymbolCompleter::class, true);
         $container->setClass(SymbolCompleter::class, MemberSymbolCompleter::class, true);
 
-        $container->setClass(DocumentSymbolsProvider::class, ReflectionDocumentSymbolsProvider::class, true);
+        $container->setClass(DocumentSymbolsProvider::class, SymbolDocumentSymbolsProvider::class, true);
 
         $container->setClass(GoToDefinitionProvider::class, SymbolGoToDefinitionProvider::class, true);
 
