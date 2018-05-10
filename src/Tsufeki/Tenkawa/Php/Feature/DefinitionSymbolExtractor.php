@@ -135,12 +135,7 @@ class DefinitionSymbolExtractor implements NodePathSymbolExtractor
     {
         /** @var Ast $ast */
         $ast = yield $this->parser->parse($document);
-
-        $tokenIndex = $node->getAttribute('startTokenPos');
-        $lastTokenIndex = $node->getAttribute('endTokenPos');
-        $tokenOffset = $node->getAttribute('startFilePos');
-
-        $iterator = new TokenIterator(array_slice($ast->tokens, $tokenIndex, $lastTokenIndex - $tokenIndex + 1), 0, $tokenOffset);
+        $iterator = TokenIterator::fromNode($node, $ast->tokens);
 
         if (!empty($precedingTokens)) {
             while ($iterator->valid()) {

@@ -70,9 +70,6 @@ class MemberReferenceFinder implements ReferenceFinder
     public function getReferences(Symbol $symbol, bool $includeDeclaration = false): \Generator
     {
         // TODO includeDeclaration
-        if (!($symbol instanceof MemberSymbol)) {
-            return [];
-        }
 
         /** @var Reference[] $references */
         $references = [];
@@ -114,7 +111,7 @@ class MemberReferenceFinder implements ReferenceFinder
     /**
      * @return GlobalSymbol[]
      */
-    private function getClassSymbolsFromMemberSymbol(MemberSymbol $symbol): array
+    private function getClassSymbolsFromMemberSymbol(Symbol $symbol): array
     {
         return array_map(function (string $class) use ($symbol) {
             $classSymbol = new GlobalSymbol();
@@ -124,7 +121,22 @@ class MemberReferenceFinder implements ReferenceFinder
             $classSymbol->nameContext = $symbol->nameContext;
 
             return $classSymbol;
-        }, $this->getClassesFromType($symbol->objectType));
+        }, $this->getClassesFromMemberSymbol($symbol));
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getClassesFromMemberSymbol(Symbol $symbol): array
+    {
+        $classes = [];
+        if ($symbol instanceof MemberSymbol) {
+            $classes = $this->getClassesFromType($symbol->objectType);
+        } elseif ($symbol instanceof DefinitionSymbol && in_array($symbol->kind, self::MEMBER_KINDS, true)) {
+            $classes = [$symbol->nameContext->class ?? ''];
+        }
+
+        return $classes;
     }
 
     /**
@@ -171,7 +183,7 @@ class MemberReferenceFinder implements ReferenceFinder
      * @param (GlobalSymbol|DefinitionSymbol)[] $currentSymbols
      */
     private function analyzeSymbols(
-        MemberSymbol $needleSymbol,
+        Symbol $needleSymbol,
         array $symbols,
         array &$references,
         array &$currentSymbols
@@ -187,22 +199,17 @@ class MemberReferenceFinder implements ReferenceFinder
         }
     }
 
-    private function checkSymbol(MemberSymbol $needleSymbol, Symbol $symbol): bool
+    private function checkSymbol(Symbol $needleSymbol, Symbol $symbol): bool
     {
         // TODO inheritance
         if ($needleSymbol->referencedNames !== $symbol->referencedNames) {
             return false;
         }
 
-        if ($symbol instanceof MemberSymbol) {
-            $classes = $this->getClassesFromType($symbol->objectType);
-        } elseif ($symbol instanceof DefinitionSymbol && in_array($symbol->kind, self::MEMBER_KINDS, true)) {
-            $classes = [$symbol->nameContext->class ?? ''];
-        } else {
-            return false;
-        }
-
-        return !empty(array_intersect($classes, $this->getClassesFromType($needleSymbol->objectType)));
+        return !empty(array_intersect(
+            $this->getClassesFromMemberSymbol($needleSymbol),
+            $this->getClassesFromMemberSymbol($symbol)
+        ));
     }
 
     private function makeReference(Symbol $symbol): Reference
