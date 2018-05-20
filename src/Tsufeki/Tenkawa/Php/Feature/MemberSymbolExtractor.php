@@ -12,7 +12,7 @@ use Tsufeki\Tenkawa\Php\Parser\Parser;
 use Tsufeki\Tenkawa\Php\Parser\TokenIterator;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
-use Tsufeki\Tenkawa\Php\Reflection\ResolvedClassLike;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 use Tsufeki\Tenkawa\Php\TypeInference\BasicType;
 use Tsufeki\Tenkawa\Php\TypeInference\ObjectType;
 use Tsufeki\Tenkawa\Php\TypeInference\Type;

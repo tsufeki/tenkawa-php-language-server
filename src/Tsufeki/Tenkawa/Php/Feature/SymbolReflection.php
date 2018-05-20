@@ -4,9 +4,10 @@ namespace Tsufeki\Tenkawa\Php\Feature;
 
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassConst;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedMethod;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedProperty;
 use Tsufeki\Tenkawa\Php\TypeInference\IntersectionType;
 use Tsufeki\Tenkawa\Php\TypeInference\ObjectType;
 use Tsufeki\Tenkawa\Php\TypeInference\Type;
@@ -92,7 +93,7 @@ class SymbolReflection
     }
 
     /**
-     * @resolve Element[][] member name => member array
+     * @resolve (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[][] member name => member array
      */
     public function getMemberReflectionForType(Type $type, string $kind, Document $document): \Generator
     {

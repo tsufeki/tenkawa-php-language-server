@@ -1,11 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\Reflection;
+namespace Tsufeki\Tenkawa\Php\Reflection\Resolved;
 
-use Tsufeki\Tenkawa\Php\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
+use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Server\Feature\Common\Location;
 
 class ResolvedClassLike
@@ -46,17 +44,17 @@ class ResolvedClassLike
     public $isTrait = false;
 
     /**
-     * @var ClassConst[]
+     * @var ResolvedClassConst[]
      */
     public $consts = [];
 
     /**
-     * @var Property[]
+     * @var ResolvedProperty[]
      */
     public $properties = [];
 
     /**
-     * @var Method[]
+     * @var ResolvedMethod[]
      */
     public $methods = [];
 
