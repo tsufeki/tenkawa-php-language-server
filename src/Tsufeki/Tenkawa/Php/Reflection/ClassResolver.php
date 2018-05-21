@@ -64,6 +64,21 @@ class ClassResolver
         $class = $classes[0];
 
         $resolved = new ResolvedClassLike();
+        $this->copyDetails($resolved, $class);
+        yield $this->resolveSupers($resolved, $class, $document, $cache);
+        $this->resolveMembers($resolved, $class);
+
+        foreach ($this->classResolverExtensions as $extension) {
+            yield $extension->resolve($resolved, $document);
+        }
+
+        $cache->set($className, $resolved);
+
+        return $resolved;
+    }
+
+    private function copyDetails(ResolvedClassLike $resolved, ClassLike $class)
+    {
         $resolved->name = $class->name;
         $resolved->location = $class->location;
         $resolved->docComment = $class->docComment;
@@ -73,7 +88,10 @@ class ClassResolver
         $resolved->isTrait = $class->isTrait;
         $resolved->abstract = $class->abstract;
         $resolved->final = $class->final;
+    }
 
+    private function resolveSupers(ResolvedClassLike $resolved, ClassLike $class, Document $document, Cache $cache): \Generator
+    {
         if ($class->parentClass !== null) {
             $resolved->parentClass = yield $this->resolve($class->parentClass, $document, $cache);
         }
@@ -105,10 +123,17 @@ class ClassResolver
             $resolved->traits[] = yield $this->resolve($traitName, $document, $cache);
         }
         $resolved->traits = array_filter($resolved->traits);
+    }
 
-        foreach ($resolved->interfaces as $interface) {
-            $resolved->methods = $this->mergeSuperMembers($resolved->methods, $interface->methods);
-            $resolved->consts = $this->mergeSuperMembers($resolved->consts, $interface->consts);
+    private function resolveMembers(ResolvedClassLike $resolved, ClassLike $class)
+    {
+        $resolved->methods = $this->getSelfMembers($class->methods);
+        $resolved->properties = $this->getSelfMembers($class->properties);
+        $resolved->consts = $this->getSelfMembers($class->consts);
+
+        foreach ($resolved->traits as $trait) {
+            $resolved->properties = $this->mergeTraitProperties($resolved->properties, $trait, $class);
+            $resolved->methods = $this->mergeTraitMethods($resolved->methods, $trait, $class);
         }
 
         if ($resolved->parentClass !== null) {
@@ -117,22 +142,10 @@ class ClassResolver
             $resolved->consts = $this->mergeSuperMembers($resolved->consts, $resolved->parentClass->consts);
         }
 
-        foreach ($resolved->traits as $trait) {
-            $resolved->properties = $this->mergeTraitProperties($resolved->properties, $trait, $class);
-            $resolved->methods = $this->mergeTraitMethods($resolved->methods, $trait, $class);
+        foreach ($resolved->interfaces as $interface) {
+            $resolved->methods = $this->mergeSuperMembers($resolved->methods, $interface->methods);
+            $resolved->consts = $this->mergeSuperMembers($resolved->consts, $interface->consts);
         }
-
-        $resolved->methods = $this->mergeSelfMembers($resolved->methods, $class->methods);
-        $resolved->properties = $this->mergeSelfMembers($resolved->properties, $class->properties);
-        $resolved->consts = $this->mergeSelfMembers($resolved->consts, $class->consts);
-
-        foreach ($this->classResolverExtensions as $extension) {
-            yield $extension->resolve($resolved, $document);
-        }
-
-        $cache->set($className, $resolved);
-
-        return $resolved;
     }
 
     /**
@@ -206,9 +219,17 @@ class ClassResolver
 
     /**
      * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $members
-     * @param (ClassConst|Property|Method)[]                         $selfMembers
+     * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $superMembers
      */
-    private function mergeSelfMembers(array $members, array $selfMembers): array
+    private function mergeMembers(array $members, array $superMembers): array
+    {
+        return $members + $superMembers;
+    }
+
+    /**
+     * @param (ClassConst|Property|Method)[] $selfMembers
+     */
+    private function getSelfMembers(array $selfMembers): array
     {
         /** @var (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $resolvedMembers */
         $resolvedMembers = [];
@@ -222,7 +243,7 @@ class ClassResolver
             $resolvedMembers[] = $resolved;
         }
 
-        return $this->mergeMembers($members, $this->indexMembers($resolvedMembers));
+        return $this->indexMembers($resolvedMembers);
     }
 
     /**
@@ -237,14 +258,5 @@ class ClassResolver
         }
 
         return $indexedMembers;
-    }
-
-    /**
-     * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $members
-     * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $superMembers
-     */
-    private function mergeMembers(array $members, array $superMembers): array
-    {
-        return array_replace($members, $superMembers);
     }
 }
