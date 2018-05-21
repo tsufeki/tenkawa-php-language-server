@@ -157,12 +157,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "d5fd088949a717b477a08ed8e24e7e64a814ae10"
+                "reference": "33bd0966389d83034b165569c3a30e3392921a17"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/d5fd088949a717b477a08ed8e24e7e64a814ae10",
-                "reference": "d5fd088949a717b477a08ed8e24e7e64a814ae10",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/33bd0966389d83034b165569c3a30e3392921a17",
+                "reference": "33bd0966389d83034b165569c3a30e3392921a17",
                 "shasum": ""
             },
             "require-dev": {
@@ -187,20 +187,20 @@
                 "stubs",
                 "type"
             ],
-            "time": "2018-04-25T12:26:46+00:00"
+            "time": "2018-05-07T13:01:28+00:00"
         },
         {
             "name": "league/html-to-markdown",
-            "version": "4.6.2",
+            "version": "4.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/html-to-markdown.git",
-                "reference": "3af14d8f44838257a75822819784e83819b34e2e"
+                "reference": "76c076483cef89860d32a3fd25312f5a42848a8c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/html-to-markdown/zipball/3af14d8f44838257a75822819784e83819b34e2e",
-                "reference": "3af14d8f44838257a75822819784e83819b34e2e",
+                "url": "https://api.github.com/repos/thephpleague/html-to-markdown/zipball/76c076483cef89860d32a3fd25312f5a42848a8c",
+                "reference": "76c076483cef89860d32a3fd25312f5a42848a8c",
                 "shasum": ""
             },
             "require": {
@@ -219,7 +219,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "4.7-dev"
+                    "dev-master": "4.8-dev"
                 }
             },
             "autoload": {
@@ -251,7 +251,7 @@
                 "html",
                 "markdown"
             ],
-            "time": "2018-01-07T19:45:06+00:00"
+            "time": "2018-05-19T23:47:12+00:00"
         },
         {
             "name": "nette/bootstrap",
