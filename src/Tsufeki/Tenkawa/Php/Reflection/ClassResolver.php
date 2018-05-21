@@ -137,14 +137,14 @@ class ClassResolver
         }
 
         if ($resolved->parentClass !== null) {
-            $resolved->methods = $this->mergeSuperMembers($resolved->methods, $resolved->parentClass->methods);
-            $resolved->properties = $this->mergeSuperMembers($resolved->properties, $resolved->parentClass->properties);
-            $resolved->consts = $this->mergeSuperMembers($resolved->consts, $resolved->parentClass->consts);
+            $resolved->methods = $this->mergeSuperMembers($resolved->methods, $resolved->parentClass->methods, $class);
+            $resolved->properties = $this->mergeSuperMembers($resolved->properties, $resolved->parentClass->properties, $class);
+            $resolved->consts = $this->mergeSuperMembers($resolved->consts, $resolved->parentClass->consts, $class);
         }
 
         foreach ($resolved->interfaces as $interface) {
-            $resolved->methods = $this->mergeSuperMembers($resolved->methods, $interface->methods);
-            $resolved->consts = $this->mergeSuperMembers($resolved->consts, $interface->consts);
+            $resolved->methods = $this->mergeSuperMembers($resolved->methods, $interface->methods, $class);
+            $resolved->consts = $this->mergeSuperMembers($resolved->consts, $interface->consts, $class);
         }
     }
 
@@ -152,13 +152,13 @@ class ClassResolver
      * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $members
      * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $superMembers
      */
-    private function mergeSuperMembers(array $members, array $superMembers): array
+    private function mergeSuperMembers(array $members, array $superMembers, ClassLike $class): array
     {
         $superMembers = array_filter($superMembers, function ($member) {
             return $member->accessibility !== ClassLike::M_PRIVATE;
         });
 
-        return $this->mergeMembers($members, $superMembers);
+        return $this->mergeMembers($members, $superMembers, $class);
     }
 
     /**
@@ -177,7 +177,7 @@ class ClassResolver
         }
         unset($property);
 
-        return $this->mergeMembers($properties, $traitProperties);
+        return $this->mergeMembers($properties, $traitProperties, $class);
     }
 
     /**
@@ -214,16 +214,24 @@ class ClassResolver
         }
         unset($method);
 
-        return $this->mergeMembers($methods, $traitMethods);
+        return $this->mergeMembers($methods, $traitMethods, $class);
     }
 
     /**
      * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $members
      * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $superMembers
      */
-    private function mergeMembers(array $members, array $superMembers): array
+    private function mergeMembers(array $members, array $superMembers, ClassLike $class): array
     {
-        return $members + $superMembers;
+        foreach ($superMembers as $name => $superMember) {
+            if (empty($members[$name])) {
+                $members[$name] = $superMember;
+            } elseif ($members[$name]->nameContext->class === $class->name) {
+                $members[$name]->inheritsFrom[] = $superMember;
+            }
+        }
+
+        return $members;
     }
 
     /**
