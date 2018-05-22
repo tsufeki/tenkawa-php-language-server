@@ -134,4 +134,22 @@ class IndexReflectionProvider implements ReflectionProvider
 
         return yield $this->search($query, $document);
     }
+
+    /**
+     * Get class-likes extending, implementing or using (for traits) given class-like.
+     *
+     * @resolve string[]
+     */
+    public function getInheritingClasses(Document $document, string $fullyQualifiedName): \Generator
+    {
+        $query = new Query();
+        $query->category = ReflectionIndexDataProvider::CATEGORY_INHERITS;
+        $query->key = '\\' . ltrim($fullyQualifiedName, '\\');
+
+        $entries = yield $this->search($query, $document);
+
+        return array_values(array_unique(array_map(function (IndexEntry $entry) {
+            return $entry->data;
+        }, $entries)));
+    }
 }

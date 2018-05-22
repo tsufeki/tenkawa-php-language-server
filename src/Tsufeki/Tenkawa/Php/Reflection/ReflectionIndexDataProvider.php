@@ -14,6 +14,7 @@ class ReflectionIndexDataProvider implements IndexDataProvider
     const CATEGORY_CLASS = 'reflection.class';
     const CATEGORY_FUNCTION = 'reflection.function';
     const CATEGORY_CONST = 'reflection.const';
+    const CATEGORY_INHERITS = 'reflection.inherits';
 
     /**
      * @var Parser
@@ -33,7 +34,7 @@ class ReflectionIndexDataProvider implements IndexDataProvider
 
     public function getVersion(): int
     {
-        return 13;
+        return 14;
     }
 
     /**
@@ -52,10 +53,13 @@ class ReflectionIndexDataProvider implements IndexDataProvider
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($ast->nodes);
 
+        $classes = $visitor->getClasses();
+
         $entries = array_merge(
-            $this->makeEntries($visitor->getClasses(), self::CATEGORY_CLASS, $document, $origin),
+            $this->makeEntries($classes, self::CATEGORY_CLASS, $document, $origin),
             $this->makeEntries($visitor->getFunctions(), self::CATEGORY_FUNCTION, $document, $origin),
-            $this->makeEntries($visitor->getConsts(), self::CATEGORY_CONST, $document, $origin)
+            $this->makeEntries($visitor->getConsts(), self::CATEGORY_CONST, $document, $origin),
+            $this->makeInheritEntries($classes, $document)
         );
 
         return $entries;
@@ -83,5 +87,31 @@ class ReflectionIndexDataProvider implements IndexDataProvider
 
             return $entry;
         }, $elements);
+    }
+
+    /**
+     * @param Element\ClassLike[] $classes
+     *
+     * @return IndexEntry[]
+     */
+    private function makeInheritEntries(
+        array $classes,
+        Document $document
+    ): array {
+        $entries = [];
+
+        foreach ($classes as $class) {
+            $inherits = array_filter(array_merge([$class->parentClass], $class->interfaces, $class->traits));
+            foreach ($inherits as $inherit) {
+                $entry = new IndexEntry();
+                $entry->sourceUri = $document->getUri();
+                $entry->category = self::CATEGORY_INHERITS;
+                $entry->key = $inherit;
+                $entry->data = $class->name;
+                $entries[] = $entry;
+            }
+        }
+
+        return $entries;
     }
 }
