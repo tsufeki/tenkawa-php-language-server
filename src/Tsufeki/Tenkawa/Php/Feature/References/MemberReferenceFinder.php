@@ -7,6 +7,12 @@ use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
 use Tsufeki\Tenkawa\Php\Feature\MemberSymbol;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
+use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
+use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
+use Tsufeki\Tenkawa\Php\Reflection\InheritanceTreeTraverser;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassConst;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedMethod;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedProperty;
 use Tsufeki\Tenkawa\Php\TypeInference\IntersectionType;
 use Tsufeki\Tenkawa\Php\TypeInference\ObjectType;
 use Tsufeki\Tenkawa\Php\TypeInference\Type;
@@ -24,6 +30,16 @@ class MemberReferenceFinder implements ReferenceFinder
      * @var SymbolExtractor
      */
     private $symbolExtractor;
+
+    /**
+     * @var SymbolReflection
+     */
+    private $symbolReflection;
+
+    /**
+     * @var InheritanceTreeTraverser
+     */
+    private $inheritanceTreeTraverser;
 
     /**
      * @var GlobalReferenceFinder
@@ -54,11 +70,15 @@ class MemberReferenceFinder implements ReferenceFinder
 
     public function __construct(
         SymbolExtractor $symbolExtractor,
+        SymbolReflection $symbolReflection,
+        InheritanceTreeTraverser $inheritanceTreeTraverser,
         GlobalReferenceFinder $globalReferenceFinder,
         DocumentStore $documentStore,
         FileReader $fileReader
     ) {
         $this->symbolExtractor = $symbolExtractor;
+        $this->symbolReflection = $symbolReflection;
+        $this->inheritanceTreeTraverser = $inheritanceTreeTraverser;
         $this->globalReferenceFinder = $globalReferenceFinder;
         $this->documentStore = $documentStore;
         $this->fileReader = $fileReader;
@@ -77,6 +97,8 @@ class MemberReferenceFinder implements ReferenceFinder
         $analyzedSymbols = [];
         /** @var array<string,bool> $analyzedUris */
         $analyzedUris = [];
+        /** @var array<string,string[]> $targetNames member name => class names */
+        $targetNames = yield $this->getAllRelatedMembers($symbol);
         /** @var (GlobalSymbol|DefinitionSymbol)[] $currentSymbols */
         $currentSymbols = $this->getClassSymbolsFromMemberSymbol($symbol);
 
@@ -101,11 +123,59 @@ class MemberReferenceFinder implements ReferenceFinder
                 yield;
                 /** @var Symbol[] $fileSymbols */
                 $fileSymbols = yield $this->getSymbolsFromUri($globalRef->uri);
-                $this->analyzeSymbols($symbol, $fileSymbols, $references, $currentSymbols);
+                $this->analyzeSymbols($fileSymbols, $targetNames, $references, $currentSymbols);
             }
         }
 
         return $references;
+    }
+
+    /**
+     * @resolve array<string,string[]> member name => class names
+     */
+    public function getAllRelatedMembers(Symbol $symbol): \Generator
+    {
+        /** @var ResolvedProperty[]|ResolvedClassConst[]|ResolvedMethod[] $topMostMembers */
+        $topMostMembers = yield $this->getTopMostMembers($symbol);
+        $result = [];
+
+        foreach ($topMostMembers as $member) {
+            $visitor = new FindInheritedMembersVisitor([$member]);
+            $this->inheritanceTreeTraverser->traverse($member->nameContext->class ?? '', [$visitor], $symbol->document);
+            $result = array_merge_recursive($result, $visitor->getInheritedMembers());
+        }
+
+        return $result;
+    }
+
+    /**
+     * @resolve Element[]
+     */
+    private function getTopMostMembers(Symbol $symbol): \Generator
+    {
+        /** @var Element[] $members */
+        $members = yield $this->symbolReflection->getReflectionFromSymbol($symbol);
+
+        return $this->getTopMostMembersFromElements($members);
+    }
+
+    /**
+     * @return Element[]
+     */
+    private function getTopMostMembersFromElements(array $members): array
+    {
+        $result = [];
+        foreach ($members as $member) {
+            if ($member instanceof ResolvedProperty || $member instanceof ResolvedClassConst || $member instanceof ResolvedMethod) {
+                if (empty($member->inheritsFrom)) {
+                    $result[] = $member;
+                } else {
+                    $result = array_merge($result, $this->getTopMostMembersFromElements($member->inheritsFrom));
+                }
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -179,12 +249,13 @@ class MemberReferenceFinder implements ReferenceFinder
 
     /**
      * @param Symbol[]                          $symbols
+     * @param array<string,string[]>            $targetNames    member name => class names
      * @param Reference[]                       $references
      * @param (GlobalSymbol|DefinitionSymbol)[] $currentSymbols
      */
     private function analyzeSymbols(
-        Symbol $needleSymbol,
         array $symbols,
+        array $targetNames,
         array &$references,
         array &$currentSymbols
     ) {
@@ -193,23 +264,26 @@ class MemberReferenceFinder implements ReferenceFinder
                 $currentSymbols[] = $symbol;
             }
 
-            if ($this->checkSymbol($needleSymbol, $symbol)) {
+            if ($this->checkSymbol($symbol, $targetNames)) {
                 $references[] = $this->makeReference($symbol);
             }
         }
     }
 
-    private function checkSymbol(Symbol $needleSymbol, Symbol $symbol): bool
+    /**
+     * @param array<string,string[]> $targetNames member name => class names
+     */
+    private function checkSymbol(Symbol $symbol, array $targetNames): bool
     {
-        // TODO inheritance
-        if ($needleSymbol->referencedNames !== $symbol->referencedNames) {
-            return false;
+        $classes = $this->getClassesFromMemberSymbol($symbol);
+        foreach ($symbol->referencedNames as $name) {
+            // TODO method case insensitivity
+            if (!empty(array_intersect($classes, $targetNames[$name] ?? []))) {
+                return true;
+            }
         }
 
-        return !empty(array_intersect(
-            $this->getClassesFromMemberSymbol($needleSymbol),
-            $this->getClassesFromMemberSymbol($symbol)
-        ));
+        return false;
     }
 
     private function makeReference(Symbol $symbol): Reference
