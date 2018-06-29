@@ -45,13 +45,25 @@ class SymbolReflection
             return yield $this->getMemberReflectionFromSymbol($symbol);
         }
 
+        if ($symbol instanceof DefinitionSymbol) {
+            if (in_array($symbol->kind, GlobalSymbol::KINDS, true)) {
+                return yield $this->getGlobalReflectionFromSymbol($symbol);
+            }
+
+            if (in_array($symbol->kind, MemberSymbol::KINDS, true)) {
+                return yield $this->getMemberReflectionFromSymbol($symbol);
+            }
+        }
+
         return [];
     }
 
     /**
+     * @param GlobalSymbol|DefinitionSymbol $symbol
+     *
      * @resolve Element[]
      */
-    private function getGlobalReflectionFromSymbol(GlobalSymbol $symbol): \Generator
+    private function getGlobalReflectionFromSymbol(Symbol $symbol): \Generator
     {
         foreach ($symbol->referencedNames as $name) {
             $elements = null;
@@ -72,11 +84,14 @@ class SymbolReflection
     }
 
     /**
+     * @param MemberSymbol|DefinitionSymbol $symbol
+     *
      * @resolve Element[]
      */
-    private function getMemberReflectionFromSymbol(MemberSymbol $symbol): \Generator
+    private function getMemberReflectionFromSymbol(Symbol $symbol): \Generator
     {
-        $allElements = yield $this->getMemberReflectionForType($symbol->objectType, $symbol->kind, $symbol->document);
+        $objectType = $symbol instanceof MemberSymbol ? $symbol->objectType : new ObjectType($symbol->nameContext->class);
+        $allElements = yield $this->getMemberReflectionForType($objectType, $symbol->kind, $symbol->document);
 
         foreach ($symbol->referencedNames as $name) {
             if ($symbol->kind === MemberSymbol::METHOD) {

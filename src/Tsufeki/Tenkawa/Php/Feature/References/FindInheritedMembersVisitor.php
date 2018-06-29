@@ -41,7 +41,11 @@ class FindInheritedMembersVisitor implements InheritanceTreeVisitor
             foreach ($parentMembers as $parentMember) {
                 if ($this->isInheritedFrom($member, $parentMember)) {
                     $members[] = $member;
-                    $this->members[$member->name][] = $class->name;
+                    $memberName = $member->name;
+                    if ($member instanceof ResolvedMethod) {
+                        $memberName = strtolower($memberName);
+                    }
+                    $this->members[$memberName][] = $class->name;
                 }
             }
         }

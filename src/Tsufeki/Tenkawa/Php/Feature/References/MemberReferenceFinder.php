@@ -56,18 +56,6 @@ class MemberReferenceFinder implements ReferenceFinder
      */
     private $fileReader;
 
-    const GLOBAL_KINDS = [
-        GlobalSymbol::CLASS_,
-        GlobalSymbol::FUNCTION_,
-        GlobalSymbol::CONST_,
-    ];
-
-    const MEMBER_KINDS = [
-        MemberSymbol::CLASS_CONST,
-        MemberSymbol::PROPERTY,
-        MemberSymbol::METHOD,
-    ];
-
     public function __construct(
         SymbolExtractor $symbolExtractor,
         SymbolReflection $symbolReflection,
@@ -89,41 +77,40 @@ class MemberReferenceFinder implements ReferenceFinder
      */
     public function getReferences(Symbol $symbol, bool $includeDeclaration = false): \Generator
     {
-        // TODO includeDeclaration
-
-        /** @var Reference[] $references */
-        $references = [];
-        /** @var array<string,bool> $analyzedSymbols */
-        $analyzedSymbols = [];
-        /** @var array<string,bool> $analyzedUris */
-        $analyzedUris = [];
         /** @var array<string,string[]> $targetNames member name => class names */
         $targetNames = yield $this->getAllRelatedMembers($symbol);
-        /** @var (GlobalSymbol|DefinitionSymbol)[] $currentSymbols */
-        $currentSymbols = $this->getClassSymbols($targetNames, $symbol);
+        /** @var Reference[] $references */
+        $references = [];
+        /** @var array<string,true> $analyzedUris */
+        $analyzedUris = [];
+        /** @var Uri[] $uriQueue */
+        $uriQueue = yield $this->getClassUris($targetNames, $symbol);
 
-        while (!empty($currentSymbols)) {
-            /** @var GlobalSymbol|DefinitionSymbol $currentSymbol */
-            $currentSymbol = array_pop($currentSymbols);
-            if (isset($analyzedSymbols[$currentSymbol->referencedNames[0]])) {
+        while (!empty($uriQueue)) {
+            /** @var Uri $uri */
+            $uri = array_pop($uriQueue);
+            $uriString = $uri->getNormalized();
+            if (isset($analyzedUris[$uriString])) {
                 continue;
             }
-            $analyzedSymbols[$currentSymbol->referencedNames[0]] = true;
+            $analyzedUris[$uriString] = true;
 
             yield;
-            /** @var Reference[] $globalRefs */
-            $globalRefs = yield $this->globalReferenceFinder->getReferences($currentSymbol, true);
-            foreach ($globalRefs as $globalRef) {
-                $uriString = $globalRef->uri->getNormalized();
-                if (isset($analyzedUris[$uriString])) {
-                    continue;
+            /** @var Symbol[] $fileSymbols */
+            $fileSymbols = yield $this->getSymbolsFromUri($uri);
+            foreach ($fileSymbols as $fileSymbol) {
+                if ($fileSymbol instanceof DefinitionSymbol && in_array($fileSymbol->kind, GlobalSymbol::KINDS, true)) {
+                    yield;
+                    /** @var Reference[] $refs */
+                    $refs = yield $this->globalReferenceFinder->getReferences($fileSymbol);
+                    foreach ($refs as $ref) {
+                        $uriQueue[] = $ref->uri;
+                    }
                 }
-                $analyzedUris[$uriString] = true;
 
-                yield;
-                /** @var Symbol[] $fileSymbols */
-                $fileSymbols = yield $this->getSymbolsFromUri($globalRef->uri);
-                $this->analyzeSymbols($fileSymbols, $targetNames, $references, $currentSymbols);
+                if ($this->checkSymbol($fileSymbol, $targetNames, $symbol->kind, $includeDeclaration)) {
+                    $references[] = $this->makeReference($fileSymbol);
+                }
             }
         }
 
@@ -179,7 +166,27 @@ class MemberReferenceFinder implements ReferenceFinder
     }
 
     /**
-     * @param array<string,string[]>            $targetNames    member name => class names
+     * @param array<string,string[]> $targetNames member name => class names
+     *
+     * @resolve Uri[]
+     */
+    private function getClassUris(array $targetNames, Symbol $symbol): \Generator
+    {
+        $uris = [];
+        foreach ($this->getClassSymbols($targetNames, $symbol) as $classSymbol) {
+            /** @var Element $class */
+            foreach (yield $this->symbolReflection->getReflectionFromSymbol($classSymbol) as $class) {
+                if ($class->location !== null) {
+                    $uris[] = $class->location->uri;
+                }
+            }
+        }
+
+        return $uris;
+    }
+
+    /**
+     * @param array<string,string[]> $targetNames member name => class names
      *
      * @return GlobalSymbol[]
      */
@@ -210,7 +217,7 @@ class MemberReferenceFinder implements ReferenceFinder
         $classes = [];
         if ($symbol instanceof MemberSymbol) {
             $classes = $this->getClassesFromType($symbol->objectType);
-        } elseif ($symbol instanceof DefinitionSymbol && in_array($symbol->kind, self::MEMBER_KINDS, true)) {
+        } elseif ($symbol instanceof DefinitionSymbol && in_array($symbol->kind, MemberSymbol::KINDS, true)) {
             $classes = [$symbol->nameContext->class ?? ''];
         }
 
@@ -256,37 +263,22 @@ class MemberReferenceFinder implements ReferenceFinder
     }
 
     /**
-     * @param Symbol[]                          $symbols
-     * @param array<string,string[]>            $targetNames    member name => class names
-     * @param Reference[]                       $references
-     * @param (GlobalSymbol|DefinitionSymbol)[] $currentSymbols
-     */
-    private function analyzeSymbols(
-        array $symbols,
-        array $targetNames,
-        array &$references,
-        array &$currentSymbols
-    ) {
-        foreach ($symbols as $symbol) {
-            if ($symbol instanceof DefinitionSymbol && in_array($symbol->kind, self::GLOBAL_KINDS, true)) {
-                $currentSymbols[] = $symbol;
-            }
-
-            if ($this->checkSymbol($symbol, $targetNames)) {
-                $references[] = $this->makeReference($symbol);
-            }
-        }
-    }
-
-    /**
      * @param array<string,string[]> $targetNames member name => class names
      */
-    private function checkSymbol(Symbol $symbol, array $targetNames): bool
+    private function checkSymbol(Symbol $symbol, array $targetNames, $kind, bool $includeDeclaration): bool
     {
+        if ($symbol->kind !== $kind) {
+            return false;
+        }
+        if (!$includeDeclaration && $symbol instanceof DefinitionSymbol) {
+            return false;
+        }
+
         $classes = $this->getClassesFromMemberSymbol($symbol);
         foreach ($symbol->referencedNames as $name) {
-            // TODO method case insensitivity
-            // TODO $includeDeclaration
+            if ($kind === MemberSymbol::METHOD) {
+                $name = strtolower($name);
+            }
             if (!empty(array_intersect($classes, $targetNames[$name] ?? []))) {
                 return true;
             }

@@ -73,7 +73,7 @@ class GlobalReferenceFinder implements ReferenceFinder
                     $altSymbol->document = $symbol->document;
 
                     $altElements = yield $this->symbolReflection->getReflectionFromSymbol($altSymbol);
-                    $altNameExistsCache[$referencedName] = empty($altElements);
+                    $altNameExistsCache[$referencedName] = !empty($altElements);
                 }
 
                 if ($altNameExistsCache[$referencedName]) {
