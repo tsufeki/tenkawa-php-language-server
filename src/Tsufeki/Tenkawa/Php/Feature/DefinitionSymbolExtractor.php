@@ -104,7 +104,13 @@ class DefinitionSymbolExtractor implements NodePathSymbolExtractor
             return null;
         }
 
-        $name = isset($node->name) ? $node->name : null;
+        $name = null;
+        if (isset($node->namespacedName)) {
+            $name = '\\' . (string)$node->namespacedName;
+        } elseif (isset($node->name)) {
+            $name = $node->name;
+        }
+
         $range = yield $this->getNameRange($node, $document, self::TOKENS[get_class($node)] ?? []);
         $kind = self::NODE_KINDS[get_class($node)] ?? null;
         if ($node instanceof Const_ && isset($nodes[1])) {

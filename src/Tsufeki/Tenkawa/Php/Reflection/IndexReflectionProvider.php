@@ -146,7 +146,7 @@ class IndexReflectionProvider implements ReflectionProvider
         $query->category = ReflectionIndexDataProvider::CATEGORY_INHERITS;
         $query->key = '\\' . ltrim($fullyQualifiedName, '\\');
 
-        $entries = yield $this->search($query, $document);
+        $entries = yield $this->index->search($document, $query);
 
         return array_values(array_unique(array_map(function (IndexEntry $entry) {
             return $entry->data;

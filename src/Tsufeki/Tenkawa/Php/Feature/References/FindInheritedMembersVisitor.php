@@ -47,11 +47,17 @@ class FindInheritedMembersVisitor implements InheritanceTreeVisitor
         }
 
         $this->memberStack[] = $members;
+
+        return;
+        yield;
     }
 
     public function leave(ResolvedClassLike $class): \Generator
     {
         array_pop($this->memberStack);
+
+        return;
+        yield;
     }
 
     /**

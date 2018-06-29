@@ -100,7 +100,7 @@ class MemberReferenceFinder implements ReferenceFinder
         /** @var array<string,string[]> $targetNames member name => class names */
         $targetNames = yield $this->getAllRelatedMembers($symbol);
         /** @var (GlobalSymbol|DefinitionSymbol)[] $currentSymbols */
-        $currentSymbols = $this->getClassSymbolsFromMemberSymbol($symbol);
+        $currentSymbols = $this->getClassSymbols($targetNames, $symbol);
 
         while (!empty($currentSymbols)) {
             /** @var GlobalSymbol|DefinitionSymbol $currentSymbol */
@@ -141,7 +141,7 @@ class MemberReferenceFinder implements ReferenceFinder
 
         foreach ($topMostMembers as $member) {
             $visitor = new FindInheritedMembersVisitor([$member]);
-            $this->inheritanceTreeTraverser->traverse($member->nameContext->class ?? '', [$visitor], $symbol->document);
+            yield $this->inheritanceTreeTraverser->traverse($member->nameContext->class ?? '', [$visitor], $symbol->document);
             $result = array_merge_recursive($result, $visitor->getInheritedMembers());
         }
 
@@ -179,10 +179,18 @@ class MemberReferenceFinder implements ReferenceFinder
     }
 
     /**
+     * @param array<string,string[]>            $targetNames    member name => class names
+     *
      * @return GlobalSymbol[]
      */
-    private function getClassSymbolsFromMemberSymbol(Symbol $symbol): array
+    private function getClassSymbols(array $targetNames, Symbol $symbol): array
     {
+        if (empty($targetNames)) {
+            return [];
+        }
+
+        $classNames = array_values(array_unique(array_merge(...array_values($targetNames))));
+
         return array_map(function (string $class) use ($symbol) {
             $classSymbol = new GlobalSymbol();
             $classSymbol->referencedNames = [$class];
@@ -191,7 +199,7 @@ class MemberReferenceFinder implements ReferenceFinder
             $classSymbol->nameContext = $symbol->nameContext;
 
             return $classSymbol;
-        }, $this->getClassesFromMemberSymbol($symbol));
+        }, $classNames);
     }
 
     /**
@@ -278,6 +286,7 @@ class MemberReferenceFinder implements ReferenceFinder
         $classes = $this->getClassesFromMemberSymbol($symbol);
         foreach ($symbol->referencedNames as $name) {
             // TODO method case insensitivity
+            // TODO $includeDeclaration
             if (!empty(array_intersect($classes, $targetNames[$name] ?? []))) {
                 return true;
             }
