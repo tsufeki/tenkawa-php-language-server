@@ -54,4 +54,11 @@ interface ReflectionProvider
      * @resolve Const_[]
      */
     public function getConstsByShortName(Document $document, string $shortName): \Generator;
+
+    /**
+     * Get class-likes extending, implementing or using (for traits) given class-like.
+     *
+     * @resolve string[]
+     */
+    public function getInheritingClasses(Document $document, string $fullyQualifiedName): \Generator;
 }

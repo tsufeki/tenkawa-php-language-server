@@ -14,7 +14,7 @@ use PHPStan\Reflection\Php\PhpPropertyReflection;
 use PHPStan\Reflection\PropertiesClassReflectionExtension;
 use PHPStan\Reflection\PropertyReflection;
 use PHPStan\ShouldNotHappenException;
-use Tsufeki\Tenkawa\Php\Reflection\ResolvedClassLike;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 
 class IndexClassReflection extends ClassReflection
 {

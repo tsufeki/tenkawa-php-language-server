@@ -33,6 +33,13 @@ class ServerCapabilities
     public $definitionProvider = false;
 
     /**
+     * The server provides find references support.
+     *
+     * @var bool
+     */
+    public $referencesProvider = false;
+
+    /**
      * The server provides document symbol support.
      *
      * @var bool

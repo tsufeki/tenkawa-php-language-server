@@ -49,8 +49,9 @@ use Tsufeki\Tenkawa\Php\Feature\Completion\MemberSymbolCompleter;
 use Tsufeki\Tenkawa\Php\Feature\Completion\SymbolCompleter;
 use Tsufeki\Tenkawa\Php\Feature\Completion\SymbolCompletionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\VariableCompletionProvider;
+use Tsufeki\Tenkawa\Php\Feature\DefinitionSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\DocCommentSymbolExtractor;
-use Tsufeki\Tenkawa\Php\Feature\DocumentSymbols\ReflectionDocumentSymbolsProvider;
+use Tsufeki\Tenkawa\Php\Feature\DocumentSymbols\SymbolDocumentSymbolsProvider;
 use Tsufeki\Tenkawa\Php\Feature\GlobalSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\GoToDefinition\SymbolGoToDefinitionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Hover\ExpressionTypeHoverProvider;
@@ -61,6 +62,11 @@ use Tsufeki\Tenkawa\Php\Feature\MemberSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
 use Tsufeki\Tenkawa\Php\Feature\NodePathSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\PhpDocFormatter;
+use Tsufeki\Tenkawa\Php\Feature\References\GlobalReferenceFinder;
+use Tsufeki\Tenkawa\Php\Feature\References\GlobalReferencesIndexDataProvider;
+use Tsufeki\Tenkawa\Php\Feature\References\MemberReferenceFinder;
+use Tsufeki\Tenkawa\Php\Feature\References\ReferenceFinder;
+use Tsufeki\Tenkawa\Php\Feature\References\SymbolReferencesProvider;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Index\ComposerFileFilterFactory;
@@ -79,6 +85,7 @@ use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolverExtension;
 use Tsufeki\Tenkawa\Php\Reflection\ConstExprEvaluator;
 use Tsufeki\Tenkawa\Php\Reflection\IndexReflectionProvider;
+use Tsufeki\Tenkawa\Php\Reflection\InheritanceTreeTraverser;
 use Tsufeki\Tenkawa\Php\Reflection\InheritPhpDocClassResolverExtension;
 use Tsufeki\Tenkawa\Php\Reflection\MembersFromAnnotationClassResolverExtension;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionIndexDataProvider;
@@ -95,6 +102,7 @@ use Tsufeki\Tenkawa\Server\Feature\Diagnostics\WorkspaceDiagnosticsProvider;
 use Tsufeki\Tenkawa\Server\Feature\DocumentSymbols\DocumentSymbolsProvider;
 use Tsufeki\Tenkawa\Server\Feature\GoToDefinition\GoToDefinitionProvider;
 use Tsufeki\Tenkawa\Server\Feature\Hover\HoverProvider;
+use Tsufeki\Tenkawa\Server\Feature\References\ReferencesProvider;
 use Tsufeki\Tenkawa\Server\Index\FileFilterFactory;
 use Tsufeki\Tenkawa\Server\Index\GlobalIndexer;
 use Tsufeki\Tenkawa\Server\Index\IndexDataProvider;
@@ -122,6 +130,7 @@ class PhpPlugin extends Plugin
         $container->setClass(IndexDataProvider::class, ReflectionIndexDataProvider::class, true);
         $container->setClass(ReflectionTransformer::class, StubsReflectionTransformer::class, true);
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
+        $container->setClass(InheritanceTreeTraverser::class);
         $container->setClass(ClassResolver::class);
         $container->setClass(ClassResolverExtension::class, InheritPhpDocClassResolverExtension::class, true);
         $container->setClass(ClassResolverExtension::class, MembersFromAnnotationClassResolverExtension::class, true);
@@ -136,6 +145,8 @@ class PhpPlugin extends Plugin
         $container->setAlias(NodePathSymbolExtractor::class, GlobalSymbolExtractor::class, true);
         $container->setClass(MemberSymbolExtractor::class);
         $container->setAlias(NodePathSymbolExtractor::class, MemberSymbolExtractor::class, true);
+        $container->setClass(DefinitionSymbolExtractor::class);
+        $container->setAlias(NodePathSymbolExtractor::class, DefinitionSymbolExtractor::class, true);
 
         $container->setClass(SymbolReflection::class);
         $container->setClass(Importer::class);
@@ -154,13 +165,20 @@ class PhpPlugin extends Plugin
         $container->setClass(SymbolCompleter::class, ImportSymbolCompleter::class, true);
         $container->setClass(SymbolCompleter::class, MemberSymbolCompleter::class, true);
 
-        $container->setClass(DocumentSymbolsProvider::class, ReflectionDocumentSymbolsProvider::class, true);
+        $container->setClass(DocumentSymbolsProvider::class, SymbolDocumentSymbolsProvider::class, true);
 
         $container->setClass(GoToDefinitionProvider::class, SymbolGoToDefinitionProvider::class, true);
 
         $container->setClass(HoverProvider::class, SymbolHoverProvider::class, true);
         $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
         $container->setClass(HoverFormatter::class);
+
+        $container->setClass(ReferencesProvider::class, SymbolReferencesProvider::class, true);
+        $container->setClass(GlobalReferenceFinder::class);
+        $container->setAlias(ReferenceFinder::class, GlobalReferenceFinder::class, true);
+        $container->setClass(IndexDataProvider::class, GlobalReferencesIndexDataProvider::class, true);
+        $container->setClass(MemberReferenceFinder::class);
+        $container->setAlias(ReferenceFinder::class, MemberReferenceFinder::class, true);
 
         $container->setClass(TypeInference::class, PhpStanTypeInference::class);
         $container->setClass(NodeScopeResolver::class, null, false, [null, null, null, null, null, new Value(true), new Value(false), new Value([])]);

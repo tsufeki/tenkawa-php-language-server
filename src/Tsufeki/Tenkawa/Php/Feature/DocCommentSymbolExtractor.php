@@ -4,7 +4,11 @@ namespace Tsufeki\Tenkawa\Php\Feature;
 
 use PhpParser\Comment;
 use PhpParser\Node;
+use PHPStan\PhpDocParser\Ast\Node as PhpDocNode;
+use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\PhpDocParser\Parser\PhpDocParser;
+use PHPStan\PhpDocParser\Parser\TokenIterator;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
@@ -18,9 +22,15 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
      */
     private $lexer;
 
-    public function __construct(Lexer $lexer)
+    /**
+     * @var PhpDocParser
+     */
+    private $phpDocParser;
+
+    public function __construct(Lexer $lexer, PhpDocParser $phpDocParser)
     {
         $this->lexer = $lexer;
+        $this->phpDocParser = $phpDocParser;
     }
 
     /**
@@ -67,18 +77,15 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
             return null;
         }
 
-        $symbol = new GlobalSymbol();
-        $symbol->kind = GlobalSymbol::CLASS_;
-        $symbol->nameContext = $node->getAttribute('nameContext') ?? new NameContext();
-        $symbol->referencedNames = [$symbol->nameContext->resolveClass($name)];
-        $symbol->originalName = $name;
-        $symbol->document = $document;
-        $symbol->range = new Range(
-            PositionUtils::positionFromOffset($currentOffset, $document),
-            PositionUtils::positionFromOffset($currentOffset + $length, $document)
+        return $this->makeSymbol(
+            $name,
+            $node,
+            $document,
+            new Range(
+                PositionUtils::positionFromOffset($currentOffset, $document),
+                PositionUtils::positionFromOffset($currentOffset + $length, $document)
+            )
         );
-
-        return $symbol;
         yield;
     }
 
@@ -87,20 +94,78 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve Symbol[]
      */
-    public function getSymbolsInRange(Document $document, Range $range, array $nodes): \Generator
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes, string $symbolClass = null): \Generator
     {
+        if ($symbolClass !== null && $symbolClass !== GlobalSymbol::class) {
+            return [];
+        }
+
         $symbols = [];
         foreach ($nodes as $nodePath) {
             $comment = $nodePath[0] ?? null;
+            $node = $nodePath[1] ?? null;
 
-            // TODO extract all symbols, not just one
-            if ($comment instanceof Comment\Doc &&
-                $comment->getFilePos() < PositionUtils::offsetFromPosition($range->start, $document)
-            ) {
-                $symbols[] = yield $this->getSymbolAt($document, $range->start, $nodePath);
+            if ($comment instanceof Comment\Doc && $node instanceof Node) {
+                $tokens = new TokenIterator($this->lexer->tokenize($comment->getText()));
+                $phpDocNode = $this->phpDocParser->parse($tokens);
+                $tokens->consumeTokenType(Lexer::TOKEN_END);
+
+                foreach ($this->extractClasses($phpDocNode) as $name) {
+                    $symbols[] = $this->makeSymbol(
+                        $name,
+                        $node,
+                        $document,
+                        // TODO more precise range
+                        new Range(
+                            PositionUtils::positionFromOffset($comment->getFilePos(), $document),
+                            PositionUtils::positionFromOffset($comment->getFilePos() + strlen($comment->getText()), $document)
+                        )
+                    );
+                }
             }
         }
 
-        return array_values(array_filter($symbols));
+        return $symbols;
+        yield;
+    }
+
+    /**
+     * @param PhpDocNode|PhpDocNode[]|mixed $phpDocNode
+     *
+     * @return string[]
+     */
+    private function extractClasses($phpDocNode): array
+    {
+        if ($phpDocNode instanceof IdentifierTypeNode) {
+            return [$phpDocNode->name];
+        }
+
+        if ($phpDocNode instanceof PhpDocNode) {
+            $phpDocNode = get_object_vars($phpDocNode);
+        }
+
+        if (is_array($phpDocNode)) {
+            $result = [];
+            foreach ($phpDocNode as $child) {
+                $result = array_merge($result, $this->extractClasses($child));
+            }
+
+            return $result;
+        }
+
+        return [];
+    }
+
+    private function makeSymbol(string $className, Node $node, Document $document, Range $range): GlobalSymbol
+    {
+        $symbol = new GlobalSymbol();
+        $symbol->kind = GlobalSymbol::CLASS_;
+        $symbol->nameContext = $node->getAttribute('nameContext') ?? new NameContext();
+        $symbol->referencedNames = [$symbol->nameContext->resolveClass($className)];
+        $symbol->originalName = $className;
+        $symbol->document = $document;
+        $symbol->range = $range;
+
+        return $symbol;
     }
 }

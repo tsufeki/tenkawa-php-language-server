@@ -36,6 +36,7 @@ use Tsufeki\Tenkawa\Server\Feature\GoToDefinition\GoToDefinitionFeature;
 use Tsufeki\Tenkawa\Server\Feature\Hover\HoverFeature;
 use Tsufeki\Tenkawa\Server\Feature\LanguageServer;
 use Tsufeki\Tenkawa\Server\Feature\Message\MessageFeature;
+use Tsufeki\Tenkawa\Server\Feature\References\ReferencesFeature;
 use Tsufeki\Tenkawa\Server\Feature\Registration\RegistrationFeature;
 use Tsufeki\Tenkawa\Server\Feature\TextDocument\TextDocumentFeature;
 use Tsufeki\Tenkawa\Server\Feature\Workspace\WorkspaceFeature;
@@ -144,6 +145,10 @@ class ServerPlugin extends Plugin
 
         $container->setClass(MessageFeature::class);
         $container->setAlias(Feature::class, MessageFeature::class, true);
+
+        $container->setClass(ReferencesFeature::class);
+        $container->setAlias(Feature::class, ReferencesFeature::class, true);
+        $container->setAlias(MethodProvider::class, ReferencesFeature::class, true);
 
         $container->setClass(RegistrationFeature::class);
         $container->setAlias(Feature::class, RegistrationFeature::class, true);

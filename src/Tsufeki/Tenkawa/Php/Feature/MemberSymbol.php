@@ -10,6 +10,12 @@ class MemberSymbol extends Symbol
     const METHOD = 'method';
     const CLASS_CONST = 'class_const';
 
+    const KINDS = [
+        self::CLASS_CONST,
+        self::PROPERTY,
+        self::METHOD,
+    ];
+
     /**
      * @var bool
      */

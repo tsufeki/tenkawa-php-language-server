@@ -17,6 +17,7 @@ use Tsufeki\Tenkawa\Php\TypeInference\Type;
 use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\Php\TypeInference\UnionType;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Utils\Cache;
 
 class PhpStanTypeInference implements TypeInference
 {
@@ -35,10 +36,18 @@ class PhpStanTypeInference implements TypeInference
         $this->analyser = $analyser;
     }
 
-    public function infer(Document $document): \Generator
+    public function infer(Document $document, Cache $cache = null): \Generator
     {
         if ($document->getLanguage() !== 'php') {
             return;
+        }
+
+        if ($cache !== null) {
+            $key = 'phpstan_type_inference.' . $document->getUri()->getNormalized();
+            if ($cache->get($key)) {
+                return;
+            }
+            $cache->set($key, true);
         }
 
         yield $this->analyser->analyse(

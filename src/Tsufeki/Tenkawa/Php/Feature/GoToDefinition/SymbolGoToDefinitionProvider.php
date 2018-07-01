@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\GoToDefinition;
 
+use Tsufeki\Tenkawa\Php\Feature\DefinitionSymbol;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
@@ -39,7 +40,7 @@ class SymbolGoToDefinitionProvider implements GoToDefinitionProvider
 
         /** @var Symbol|null */
         $symbol = yield $this->symbolExtractor->getSymbolAt($document, $position);
-        if ($symbol === null) {
+        if ($symbol === null || $symbol instanceof DefinitionSymbol) {
             return [];
         }
 

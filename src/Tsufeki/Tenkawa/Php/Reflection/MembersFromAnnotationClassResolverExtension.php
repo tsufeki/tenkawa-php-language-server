@@ -11,9 +11,10 @@ use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TokenIterator;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedMethod;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedProperty;
 use Tsufeki\Tenkawa\Server\Document\Document;
 
 class MembersFromAnnotationClassResolverExtension implements ClassResolverExtension
@@ -70,7 +71,7 @@ class MembersFromAnnotationClassResolverExtension implements ClassResolverExtens
 
     private function createProperty(ResolvedClassLike $class, PropertyTagValueNode $tag, bool $readable, bool $writable)
     {
-        $property = new Property();
+        $property = new ResolvedProperty();
         $property->name = substr($tag->propertyName, 1);
         $property->accessibility = ClassLike::M_PUBLIC;
         $property->location = $class->location; // TODO be more precise
@@ -89,7 +90,7 @@ class MembersFromAnnotationClassResolverExtension implements ClassResolverExtens
 
     private function createMethod(ResolvedClassLike $class, MethodTagValueNode $tag)
     {
-        $method = new Method();
+        $method = new ResolvedMethod();
         $method->name = $tag->methodName;
         $method->accessibility = ClassLike::M_PUBLIC;
         $method->location = $class->location; // TODO be more precise

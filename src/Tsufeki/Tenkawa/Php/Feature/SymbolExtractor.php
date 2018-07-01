@@ -60,7 +60,7 @@ class SymbolExtractor
     /**
      * @resolve Symbol[]
      */
-    public function getSymbolsInRange(Document $document, Range $range): \Generator
+    public function getSymbolsInRange(Document $document, Range $range, string $symbolClass = null): \Generator
     {
         $symbols = [];
 
@@ -75,7 +75,8 @@ class SymbolExtractor
             $symbols = array_merge($symbols, yield $nodePathSymbolExtractor->getSymbolsInRange(
                 $document,
                 $range,
-                $nodes
+                $nodes,
+                $symbolClass
             ));
         }
 

@@ -78,7 +78,14 @@ class TokenIterator
 
     public function eatWhitespace()
     {
-        while (in_array($this->getType(), self::WHITESPACE_TOKENS, true)) {
+        while (isset(self::WHITESPACE_TOKENS[$this->getType()])) {
+            $this->eat();
+        }
+    }
+
+    public function eatIfType(...$tokenTypes)
+    {
+        if ($this->isType(...$tokenTypes)) {
             $this->eat();
         }
     }

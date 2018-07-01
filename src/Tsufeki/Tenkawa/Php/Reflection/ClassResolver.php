@@ -2,9 +2,14 @@
 
 namespace Tsufeki\Tenkawa\Php\Reflection;
 
+use Tsufeki\Tenkawa\Php\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassConst;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedMethod;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedProperty;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\InfiniteRecursionMarker;
@@ -20,6 +25,12 @@ class ClassResolver
      * @var ClassResolverExtension[]
      */
     private $classResolverExtensions;
+
+    const RESOLVED_CLASS_MAP = [
+        ClassConst::class => ResolvedClassConst::class,
+        Property::class => ResolvedProperty::class,
+        Method::class => ResolvedMethod::class,
+    ];
 
     /**
      * @param ClassResolverExtension[] $classResolverExtensions
@@ -53,6 +64,21 @@ class ClassResolver
         $class = $classes[0];
 
         $resolved = new ResolvedClassLike();
+        $this->copyDetails($resolved, $class);
+        yield $this->resolveSupers($resolved, $class, $document, $cache);
+        $this->resolveMembers($resolved, $class);
+
+        foreach ($this->classResolverExtensions as $extension) {
+            yield $extension->resolve($resolved, $document);
+        }
+
+        $cache->set($className, $resolved);
+
+        return $resolved;
+    }
+
+    private function copyDetails(ResolvedClassLike $resolved, ClassLike $class)
+    {
         $resolved->name = $class->name;
         $resolved->location = $class->location;
         $resolved->docComment = $class->docComment;
@@ -62,7 +88,10 @@ class ClassResolver
         $resolved->isTrait = $class->isTrait;
         $resolved->abstract = $class->abstract;
         $resolved->final = $class->final;
+    }
 
+    private function resolveSupers(ResolvedClassLike $resolved, ClassLike $class, Document $document, Cache $cache): \Generator
+    {
         if ($class->parentClass !== null) {
             $resolved->parentClass = yield $this->resolve($class->parentClass, $document, $cache);
         }
@@ -94,49 +123,48 @@ class ClassResolver
             $resolved->traits[] = yield $this->resolve($traitName, $document, $cache);
         }
         $resolved->traits = array_filter($resolved->traits);
+    }
 
-        foreach ($resolved->interfaces as $interface) {
-            $resolved->methods = $this->mergeMembers($resolved->methods, $interface->methods);
-            $resolved->consts = $this->mergeMembers($resolved->consts, $interface->consts);
-        }
-
-        if ($resolved->parentClass !== null) {
-            $resolved->methods = $this->mergeMembers($resolved->methods, $resolved->parentClass->methods);
-            $resolved->properties = $this->mergeMembers($resolved->properties, $resolved->parentClass->properties);
-            $resolved->consts = $this->mergeMembers($resolved->consts, $resolved->parentClass->consts);
-        }
+    private function resolveMembers(ResolvedClassLike $resolved, ClassLike $class)
+    {
+        $resolved->methods = $this->getSelfMembers($class->methods);
+        $resolved->properties = $this->getSelfMembers($class->properties);
+        $resolved->consts = $this->getSelfMembers($class->consts);
 
         foreach ($resolved->traits as $trait) {
             $resolved->properties = $this->mergeTraitProperties($resolved->properties, $trait, $class);
             $resolved->methods = $this->mergeTraitMethods($resolved->methods, $trait, $class);
         }
 
-        $resolved->methods = array_replace($resolved->methods, $this->indexMembers($class->methods, true));
-        $resolved->properties = array_replace($resolved->properties, $this->indexMembers($class->properties));
-        $resolved->consts = array_replace($resolved->consts, $this->indexMembers($class->consts));
-
-        foreach ($this->classResolverExtensions as $extension) {
-            yield $extension->resolve($resolved, $document);
+        if ($resolved->parentClass !== null) {
+            $resolved->methods = $this->mergeSuperMembers($resolved->methods, $resolved->parentClass->methods, $class);
+            $resolved->properties = $this->mergeSuperMembers($resolved->properties, $resolved->parentClass->properties, $class);
+            $resolved->consts = $this->mergeSuperMembers($resolved->consts, $resolved->parentClass->consts, $class);
         }
 
-        $cache->set($className, $resolved);
-
-        return $resolved;
+        foreach ($resolved->interfaces as $interface) {
+            $resolved->methods = $this->mergeSuperMembers($resolved->methods, $interface->methods, $class);
+            $resolved->consts = $this->mergeSuperMembers($resolved->consts, $interface->consts, $class);
+        }
     }
 
-    private function mergeMembers(array $members, array $superMembers): array
+    /**
+     * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $members
+     * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $superMembers
+     */
+    private function mergeSuperMembers(array $members, array $superMembers, ClassLike $class): array
     {
         $superMembers = array_filter($superMembers, function ($member) {
             return $member->accessibility !== ClassLike::M_PRIVATE;
         });
 
-        return array_replace($members, $superMembers);
+        return $this->mergeMembers($members, $superMembers, $class);
     }
 
     /**
-     * @param Property[] $properties
+     * @param ResolvedProperty[] $properties
      *
-     * @return Property[]
+     * @return ResolvedProperty[]
      */
     private function mergeTraitProperties(array $properties, ResolvedClassLike $trait, ClassLike $class): array
     {
@@ -149,13 +177,13 @@ class ClassResolver
         }
         unset($property);
 
-        return array_replace($properties, $traitProperties);
+        return $this->mergeMembers($properties, $traitProperties, $class);
     }
 
     /**
-     * @param Method[] $methods
+     * @param ResolvedMethod[] $methods
      *
-     * @return Method[]
+     * @return ResolvedMethod[]
      */
     private function mergeTraitMethods(array $methods, ResolvedClassLike $trait, ClassLike $class): array
     {
@@ -186,14 +214,54 @@ class ClassResolver
         }
         unset($method);
 
-        return array_replace($methods, $traitMethods);
+        return $this->mergeMembers($methods, $traitMethods, $class);
     }
 
-    private function indexMembers(array $members, bool $lowercase = false): array
+    /**
+     * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $members
+     * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $superMembers
+     */
+    private function mergeMembers(array $members, array $superMembers, ClassLike $class): array
+    {
+        foreach ($superMembers as $name => $superMember) {
+            if (empty($members[$name])) {
+                $members[$name] = $superMember;
+            } elseif ($members[$name]->nameContext->class === $class->name) {
+                $members[$name]->inheritsFrom[] = $superMember;
+            }
+        }
+
+        return $members;
+    }
+
+    /**
+     * @param (ClassConst|Property|Method)[] $selfMembers
+     */
+    private function getSelfMembers(array $selfMembers): array
+    {
+        /** @var (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $resolvedMembers */
+        $resolvedMembers = [];
+        foreach ($selfMembers as $member) {
+            $resolvedClass = self::RESOLVED_CLASS_MAP[get_class($member)];
+            $resolved = new $resolvedClass();
+            foreach (get_object_vars($member) as $name => $value) {
+                $resolved->$name = $value;
+            }
+
+            $resolvedMembers[] = $resolved;
+        }
+
+        return $this->indexMembers($resolvedMembers);
+    }
+
+    /**
+     * @param (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[] $members
+     */
+    private function indexMembers(array $members): array
     {
         $indexedMembers = [];
         foreach ($members as $member) {
-            $name = $lowercase ? strtolower($member->name) : $member->name;
+            $name = $member instanceof ResolvedMethod ? strtolower($member->name) : $member->name;
             $indexedMembers[$name] = $member;
         }
 

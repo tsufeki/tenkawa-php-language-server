@@ -6,12 +6,15 @@ use Tsufeki\Tenkawa\Php\Feature\MemberSymbol;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
-use Tsufeki\Tenkawa\Php\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassConst;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedMethod;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedProperty;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\Range;
@@ -33,9 +36,9 @@ class MemberSymbolCompleter implements SymbolCompleter
     private $classResolver;
 
     const COMPLETION_KINDS = [
-        Property::class => CompletionItemKind::PROPERTY,
-        Method::class => CompletionItemKind::METHOD,
-        ClassConst::class => CompletionItemKind::VARIABLE,
+        ResolvedProperty::class => CompletionItemKind::PROPERTY,
+        ResolvedMethod::class => CompletionItemKind::METHOD,
+        ResolvedClassConst::class => CompletionItemKind::VARIABLE,
     ];
 
     public function __construct(SymbolReflection $symbolReflection, ClassResolver $classResolver)
@@ -66,11 +69,11 @@ class MemberSymbolCompleter implements SymbolCompleter
             $kind = $symbol->static ? MemberSymbol::CLASS_CONST : MemberSymbol::PROPERTY;
         }
 
-        /** @var ClassConst[] $consts */
+        /** @var ResolvedClassConst[] $consts */
         $consts = yield $this->getMembers($symbol, MemberSymbol::CLASS_CONST);
-        /** @var Property[] $properties */
+        /** @var ResolvedProperty[] $properties */
         $properties = yield $this->getMembers($symbol, MemberSymbol::PROPERTY);
-        /** @var Method[] $methods */
+        /** @var ResolvedMethod[] $methods */
         $methods = yield $this->getMembers($symbol, MemberSymbol::METHOD);
 
         /** @var Element[][] $allElements */
@@ -85,7 +88,7 @@ class MemberSymbolCompleter implements SymbolCompleter
             }
 
             if ($symbol->literalClassName) {
-                $classConst = new ClassConst();
+                $classConst = new ResolvedClassConst();
                 $classConst->name = 'class';
                 $classConst->nameContext = new NameContext();
                 $classConst->nameContext->class = (string)$symbol->objectType;
@@ -126,21 +129,21 @@ class MemberSymbolCompleter implements SymbolCompleter
     }
 
     /**
-     * @resolve (ClassConst|Method|Property)[]
+     * @resolve (ResolvedClassConst|ResolvedMethod|ResolvedProperty)[]
      */
     private function getMembers(MemberSymbol $symbol, string $kind): \Generator
     {
-        /** @var array<string,(ClassConst|Method|Property)[]> $elements */
+        /** @var array<string,(ResolvedClassConst|ResolvedMethod|ResolvedProperty)[]> $elements */
         $elements = yield $this->symbolReflection->getMemberReflectionForType($symbol->objectType, $kind, $symbol->document);
 
         return empty($elements) ? [] : array_merge(...array_values($elements));
     }
 
     /**
-     * @param (ClassConst|Method|Property)[] $members
-     * @param NameContext                    $nameContext
+     * @param (ResolvedClassConst|ResolvedMethod|ResolvedProperty)[] $members
+     * @param NameContext                                            $nameContext
      *
-     * @resolve (ClassConst|Method|Property)[]
+     * @resolve (ResolvedClassConst|ResolvedMethod|ResolvedProperty)[]
      */
     private function filterAccessibleMembers(array $members, NameContext $nameContext, Document $document): \Generator
     {
@@ -171,9 +174,9 @@ class MemberSymbolCompleter implements SymbolCompleter
     }
 
     /**
-     * @param (ClassConst|Method|Property)[] $members
+     * @param (ResolvedClassConst|ResolvedMethod|ResolvedProperty)[] $members
      *
-     * @return (ClassConst|Method|Property)[]
+     * @return (ResolvedClassConst|ResolvedMethod|ResolvedProperty)[]
      */
     private function filterStaticMembers(array $members, bool $static = true): array
     {

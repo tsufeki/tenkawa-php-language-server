@@ -9,6 +9,12 @@ class GlobalSymbol extends Symbol
     const CONST_ = 'const';
     const NAMESPACE_ = 'namespace';
 
+    const KINDS = [
+        self::CLASS_,
+        self::FUNCTION_,
+        self::CONST_,
+    ];
+
     /**
      * @var string
      */

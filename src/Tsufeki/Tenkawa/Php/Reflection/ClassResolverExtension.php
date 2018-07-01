@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\Reflection;
 
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 use Tsufeki\Tenkawa\Server\Document\Document;
 
 interface ClassResolverExtension
