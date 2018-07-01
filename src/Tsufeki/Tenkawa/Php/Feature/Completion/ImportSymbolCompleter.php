@@ -101,7 +101,7 @@ class ImportSymbolCompleter implements SymbolCompleter
         $item = new CompletionItem();
         $item->label = $shortName;
         $item->kind = GlobalSymbolCompleter::COMPLETION_KINDS[$kind];
-        $item->detail = "$name\n\n+ auto-import";
+        $item->detail = "use $name\n\n(auto-import)";
         $item->insertText = $shortName;
 
         if ($kind === GlobalSymbol::FUNCTION_ && $addTrailingParen) {

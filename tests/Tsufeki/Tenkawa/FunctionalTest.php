@@ -296,7 +296,7 @@ new S#');
                     [
                         'label' => 'SelfCompletion',
                         'kind' => 7,
-                        'detail' => "\\Foo\\SelfCompletion\n\n+ auto-import",
+                        'detail' => "use \\Foo\\SelfCompletion\n\n(auto-import)",
                         'insertText' => 'SelfCompletion',
                         'additionalTextEdits' => [[
                             'range' => [
