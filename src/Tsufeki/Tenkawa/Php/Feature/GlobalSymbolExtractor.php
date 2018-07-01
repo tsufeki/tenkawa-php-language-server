@@ -9,6 +9,7 @@ use PhpParser\Node\Name;
 use PhpParser\Node\NullableType;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt;
+use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
@@ -44,6 +45,16 @@ class GlobalSymbolExtractor implements NodePathSymbolExtractor
         Stmt\Use_::TYPE_FUNCTION => GlobalSymbol::FUNCTION_,
         Stmt\Use_::TYPE_CONSTANT => GlobalSymbol::CONST_,
     ];
+
+    /**
+     * @var ClassResolver
+     */
+    private $classResolver;
+
+    public function __construct(ClassResolver $classResolver)
+    {
+        $this->classResolver = $classResolver;
+    }
 
     /**
      * @param Node|Comment $node
@@ -108,6 +119,14 @@ class GlobalSymbolExtractor implements NodePathSymbolExtractor
         if ($kind !== null) {
             $symbol->kind = $kind;
 
+            if ($kind === GlobalSymbol::CLASS_) {
+                $symbol->referencedNames = [yield $this->resolveClass(
+                    $symbol->referencedNames[0],
+                    $symbol->nameContext,
+                    $document
+                )];
+            }
+
             // Unqualified function or const name can't be resolved on document
             // level. Store both alternatives.
             if ($name->getAttribute('namespacedName') instanceof Name) {
@@ -133,5 +152,22 @@ class GlobalSymbolExtractor implements NodePathSymbolExtractor
 
         return $symbol;
         yield;
+    }
+
+    /**
+     * @resolve string
+     */
+    private function resolveClass(string $className, NameContext $nameContext, Document $document): \Generator
+    {
+        $lowercaseName = strtolower($className);
+        if ($lowercaseName === '\\self' || $lowercaseName === '\\static') {
+            $className = $nameContext->class ?? $className;
+        } elseif ($lowercaseName === '\\parent') {
+            if ($nameContext->class !== null) {
+                $className = (yield $this->classResolver->getParent($nameContext->class, $document)) ?? $className;
+            }
+        }
+
+        return $className;
     }
 }

@@ -9,6 +9,7 @@ use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TokenIterator;
+use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
@@ -27,10 +28,19 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
      */
     private $phpDocParser;
 
-    public function __construct(Lexer $lexer, PhpDocParser $phpDocParser)
-    {
+    /**
+     * @var ClassResolver
+     */
+    private $classResolver;
+
+    public function __construct(
+        Lexer $lexer,
+        PhpDocParser $phpDocParser,
+        ClassResolver $classResolver
+    ) {
         $this->lexer = $lexer;
         $this->phpDocParser = $phpDocParser;
+        $this->classResolver = $classResolver;
     }
 
     /**
@@ -77,7 +87,7 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
             return null;
         }
 
-        return $this->makeSymbol(
+        return yield $this->makeSymbol(
             $name,
             $node,
             $document,
@@ -111,7 +121,7 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
                 $tokens->consumeTokenType(Lexer::TOKEN_END);
 
                 foreach ($this->extractClasses($phpDocNode) as $name) {
-                    $symbols[] = $this->makeSymbol(
+                    $symbols[] = yield $this->makeSymbol(
                         $name,
                         $node,
                         $document,
@@ -156,13 +166,30 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
         return [];
     }
 
-    private function makeSymbol(string $className, Node $node, Document $document, Range $range): GlobalSymbol
+    /**
+     * @resolve GlobalSymbol
+     */
+    private function makeSymbol(string $className, Node $node, Document $document, Range $range): \Generator
     {
+        /** @var NameContext $nameContext */
+        $nameContext = $node->getAttribute('nameContext') ?? new NameContext();
+        $originalName = $className;
+        $lowercaseName = strtolower($className);
+        if ($lowercaseName === 'self' || $lowercaseName === 'static') {
+            $className = $nameContext->class ?? $className;
+        } elseif ($lowercaseName === 'parent') {
+            if ($nameContext->class !== null) {
+                $className = (yield $this->classResolver->getParent($nameContext->class, $document)) ?? $className;
+            }
+        } else {
+            $className = $nameContext->resolveClass($className);
+        }
+
         $symbol = new GlobalSymbol();
         $symbol->kind = GlobalSymbol::CLASS_;
-        $symbol->nameContext = $node->getAttribute('nameContext') ?? new NameContext();
-        $symbol->referencedNames = [$symbol->nameContext->resolveClass($className)];
-        $symbol->originalName = $className;
+        $symbol->nameContext = $nameContext;
+        $symbol->referencedNames = [$className];
+        $symbol->originalName = $originalName;
         $symbol->document = $document;
         $symbol->range = $range;
 

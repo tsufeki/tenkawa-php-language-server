@@ -42,6 +42,17 @@ class ClassResolver
     }
 
     /**
+     * @resolve string|null
+     */
+    public function getParent(string $className, Document $document): \Generator
+    {
+        /** @var ClassLike[] $classes */
+        $classes = yield $this->reflectionProvider->getClass($document, $className);
+
+        return $classes[0]->parentClass ?? null;
+    }
+
+    /**
      * @resolve ResolvedClassLike|null
      */
     public function resolve(string $className, Document $document, Cache $cache = null): \Generator
