@@ -165,6 +165,12 @@ class DiagnosticsFeature implements Feature, OnOpen, OnChange, OnIndexingFinishe
      */
     private function sendDiagnostics($provider, array $diagnostics): \Generator
     {
+        foreach ($diagnostics as $uriDiagnostics) {
+            foreach ($uriDiagnostics as $diag) {
+                $this->fixDiagnostic($diag);
+            }
+        }
+
         /** @var Document[] $documents */
         $documents = yield $this->documentStore->getDocuments();
         $providerId = spl_object_hash($provider);
@@ -182,6 +188,16 @@ class DiagnosticsFeature implements Feature, OnOpen, OnChange, OnIndexingFinishe
                 );
             } catch (DocumentNotOpenException $e) {
             }
+        }
+    }
+
+    private function fixDiagnostic(Diagnostic $diagnostic)
+    {
+        // Multiline squiggles are somewhat annoying.
+        $range = $diagnostic->range;
+        if ($range->start->line !== $range->end->line) {
+            $range->end->line = $range->start->line + 1;
+            $range->end->character = 0;
         }
     }
 }

@@ -8,6 +8,8 @@ use Recoil\React\ReactKernel;
 use Tsufeki\BlancheJsonRpc\MappedJsonRpc;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
+use Tsufeki\Tenkawa\Server\Feature\Common\Position;
+use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 use Tsufeki\Tenkawa\Server\Feature\Diagnostics\Diagnostic;
 use Tsufeki\Tenkawa\Server\Feature\Diagnostics\DiagnosticsFeature;
 use Tsufeki\Tenkawa\Server\Feature\Diagnostics\DiagnosticsProvider;
@@ -27,6 +29,7 @@ class DiagnosticsFeatureTest extends TestCase
 
         foreach (range(0, 1) as $i) {
             $diag = new Diagnostic();
+            $diag->range = new Range(new Position(0, 0), new Position(0, 0));
             $provider = $this->createMock(DiagnosticsProvider::class);
             $provider
                 ->expects($this->once())
