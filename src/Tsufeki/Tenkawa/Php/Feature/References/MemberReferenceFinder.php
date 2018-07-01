@@ -293,6 +293,7 @@ class MemberReferenceFinder implements ReferenceFinder
         $reference->referencedNames = $symbol->referencedNames;
         $reference->uri = $symbol->document->getUri();
         $reference->range = $symbol->range;
+        $reference->isDefinition = $symbol instanceof DefinitionSymbol;
 
         return $reference;
     }

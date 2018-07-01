@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\References;
 
+use Tsufeki\Tenkawa\Php\Feature\DefinitionSymbol;
 use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
@@ -9,6 +10,7 @@ use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 use Tsufeki\Tenkawa\Server\Index\IndexDataProvider;
 use Tsufeki\Tenkawa\Server\Index\IndexEntry;
+use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class GlobalReferencesIndexDataProvider implements IndexDataProvider
@@ -47,8 +49,25 @@ class GlobalReferencesIndexDataProvider implements IndexDataProvider
             PositionUtils::positionFromOffset(strlen($document->getText()), $document)
         );
 
+        $entries = [];
+
         /** @var Symbol[] $symbols */
         $symbols = yield $this->symbolExtractor->getSymbolsInRange($document, $wholeDocumentRange, GlobalSymbol::class);
+        $entries = $this->makeEntries($symbols, $document->getUri());
+
+        $symbols = yield $this->symbolExtractor->getSymbolsInRange($document, $wholeDocumentRange, DefinitionSymbol::class);
+        $entries = array_merge($entries, $this->makeEntries($symbols, $document->getUri()));
+
+        return $entries;
+    }
+
+    /**
+     * @param Symbol[] $symbols
+     *
+     * @return IndexEntry[]
+     */
+    private function makeEntries(array $symbols, Uri $uri): array
+    {
         $entries = [];
 
         foreach ($symbols as $symbol) {
@@ -56,8 +75,9 @@ class GlobalReferencesIndexDataProvider implements IndexDataProvider
             if ($category !== null) {
                 $reference = new Reference();
                 $reference->referencedNames = $symbol->referencedNames;
-                $reference->uri = $document->getUri();
+                $reference->uri = $uri;
                 $reference->range = $symbol->range;
+                $reference->isDefinition = $symbol instanceof DefinitionSymbol;
 
                 foreach ($reference->referencedNames as $referencedName) {
                     $entry = new IndexEntry();
@@ -76,6 +96,6 @@ class GlobalReferencesIndexDataProvider implements IndexDataProvider
 
     public function getVersion(): int
     {
-        return 1;
+        return 2;
     }
 }

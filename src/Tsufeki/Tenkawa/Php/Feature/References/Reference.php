@@ -23,4 +23,9 @@ class Reference
      * @var Range
      */
     public $range;
+
+    /**
+     * @var bool
+     */
+    public $isDefinition = false;
 }

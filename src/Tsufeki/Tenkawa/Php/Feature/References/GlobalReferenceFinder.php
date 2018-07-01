@@ -2,7 +2,6 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\References;
 
-use Tsufeki\Tenkawa\Php\Feature\DefinitionSymbol;
 use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
@@ -34,8 +33,7 @@ class GlobalReferenceFinder implements ReferenceFinder
      */
     public function getReferences(Symbol $symbol, bool $includeDeclaration = false): \Generator
     {
-        // TODO includeDeclaration
-        if (!($symbol instanceof GlobalSymbol) && !($symbol instanceof DefinitionSymbol)) {
+        if (!in_array($symbol->kind, GlobalSymbol::KINDS, true)) {
             return [];
         }
 
@@ -60,6 +58,10 @@ class GlobalReferenceFinder implements ReferenceFinder
         foreach (yield $this->index->search($symbol->document, $query) as $entry) {
             /** @var Reference $reference */
             $reference = $entry->data;
+            if (!$includeDeclaration && $reference->isDefinition) {
+                continue;
+            }
+
             foreach ($reference->referencedNames as $referencedName) {
                 if ($name === $referencedName) {
                     $references[] = $reference;
