@@ -20,14 +20,19 @@ class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen, OnProject
     private $fileWatchers;
 
     /**
+     * @var FileWatcher[]
+     */
+    private $backupFileWatchers;
+
+    /**
      * @var EventDispatcher
      */
     private $eventDispatcher;
 
     /**
-     * @var FileWatcher|null
+     * @var FileWatcher[]
      */
-    private $activeFileWatcher;
+    private $activeFileWatchers = [];
 
     /**
      * @var bool
@@ -41,25 +46,34 @@ class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen, OnProject
 
     /**
      * @param FileWatcher[] $fileWatchers
+     * @param FileWatcher[] $backupFileWatchers
      */
-    public function __construct(array $fileWatchers, EventDispatcher $eventDispatcher)
+    public function __construct(array $fileWatchers, array $backupFileWatchers, EventDispatcher $eventDispatcher)
     {
         $this->fileWatchers = $fileWatchers;
+        $this->backupFileWatchers = $backupFileWatchers;
         $this->eventDispatcher = $eventDispatcher;
     }
 
     public function onInit(): \Generator
     {
-        $this->activeFileWatcher = null;
+        $this->activeFileWatchers = [];
+
         foreach ($this->fileWatchers as $fileWatcher) {
             if ($fileWatcher->isAvailable()) {
-                $this->activeFileWatcher = $fileWatcher;
+                $this->activeFileWatchers[] = $fileWatcher;
                 break;
             }
         }
 
-        if ($this->activeFileWatcher !== null) {
-            yield $this->activeFileWatcher->start();
+        foreach ($this->backupFileWatchers as $fileWatcher) {
+            if ($fileWatcher->isAvailable()) {
+                $this->activeFileWatchers[] = $fileWatcher;
+            }
+        }
+
+        foreach ($this->activeFileWatchers as $fileWatcher) {
+            yield $fileWatcher->start();
         }
 
         $this->started = true;
@@ -80,23 +94,23 @@ class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen, OnProject
 
     public function onProjectClose(Project $project): \Generator
     {
-        if ($this->activeFileWatcher !== null) {
-            yield $this->activeFileWatcher->removeDirectory($project->getRootUri());
+        foreach ($this->activeFileWatchers as $fileWatcher) {
+            yield $fileWatcher->removeDirectory($project->getRootUri());
         }
     }
 
     public function onShutdown(): \Generator
     {
-        if ($this->activeFileWatcher !== null) {
-            yield $this->activeFileWatcher->stop();
+        foreach ($this->activeFileWatchers as $fileWatcher) {
+            yield $fileWatcher->stop();
         }
     }
 
     private function initProject(Project $project): \Generator
     {
         if (!$project->isClosed()) {
-            if ($this->activeFileWatcher !== null) {
-                yield $this->activeFileWatcher->addDirectory($project->getRootUri());
+            foreach ($this->activeFileWatchers as $fileWatcher) {
+                yield $fileWatcher->addDirectory($project->getRootUri());
             }
 
             yield $this->eventDispatcher->dispatch(OnFileChange::class, [$project->getRootUri()]);

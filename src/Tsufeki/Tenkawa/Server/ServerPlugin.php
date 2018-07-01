@@ -9,6 +9,8 @@ use Tsufeki\BlancheJsonRpc\Dispatcher\MethodRegistry;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
 use Tsufeki\BlancheJsonRpc\MappedJsonRpc;
 use Tsufeki\HmContainer\Container;
+use Tsufeki\HmContainer\Definition\Callable_;
+use Tsufeki\HmContainer\Definition\Value;
 use Tsufeki\KayoJsonMapper\Mapper;
 use Tsufeki\KayoJsonMapper\MapperBuilder;
 use Tsufeki\KayoJsonMapper\NameMangler\NullNameMangler;
@@ -51,7 +53,7 @@ use Tsufeki\Tenkawa\Server\Io\Directories;
 use Tsufeki\Tenkawa\Server\Io\FileLister\FileLister;
 use Tsufeki\Tenkawa\Server\Io\FileLister\LocalFileLister;
 use Tsufeki\Tenkawa\Server\Io\FileReader;
-use Tsufeki\Tenkawa\Server\Io\FileWatcher\FileWatcher;
+use Tsufeki\Tenkawa\Server\Io\FileWatcher\ClosedDocumentFileWatcher;
 use Tsufeki\Tenkawa\Server\Io\FileWatcher\InotifyWaitFileWatcher;
 use Tsufeki\Tenkawa\Server\Io\LocalFileReader;
 use Tsufeki\Tenkawa\Server\Logger\ClientLogger;
@@ -92,11 +94,30 @@ class ServerPlugin extends Plugin
         $container->setClass(Index::class);
 
         $container->setClass(InotifyWaitFileWatcher::class);
+        $container->setClass(ClosedDocumentFileWatcher::class);
         $container->setClass(FilesystemMonitorFactoryInterface::class, FilesystemMonitorFactory::class);
         if ($options['file_watcher'] ?? true) {
-            $container->setCallable(FileWatcher::class, [$this, 'createFileWatchers']);
+            $container->setClass(FileWatcherHandler::class, null, false, [
+                new Callable_(function (
+                    FileWatcherFeature $clientFileWatcher,
+                    InotifyWaitFileWatcher $inotifyWaitFileWatcher
+                ) {
+                    return [$clientFileWatcher, $inotifyWaitFileWatcher];
+                }),
+                new Callable_(function (
+                    ClosedDocumentFileWatcher $closedDocumentFileWatcher
+                ) {
+                    return [$closedDocumentFileWatcher];
+                }),
+                null,
+            ]);
+        } else {
+            $container->setClass(FileWatcherHandler::class, null, false, [
+                new Value([]),
+                new Value([]),
+                null,
+            ]);
         }
-        $container->setClass(FileWatcherHandler::class);
         $container->setAlias(OnInit::class, FileWatcherHandler::class, true);
         $container->setAlias(OnShutdown::class, FileWatcherHandler::class, true);
         $container->setAlias(OnProjectOpen::class, FileWatcherHandler::class, true);
@@ -185,15 +206,5 @@ class ServerPlugin extends Plugin
             ->addLoader($uriMapper)
             ->addDumper($uriMapper)
             ->getMapper();
-    }
-
-    /**
-     * @internal
-     */
-    public function createFileWatchers(
-        FileWatcherFeature $clientFileWatcher,
-        InotifyWaitFileWatcher $inotifyWaitFileWatcher
-    ): array {
-        return [$clientFileWatcher, $inotifyWaitFileWatcher];
     }
 }

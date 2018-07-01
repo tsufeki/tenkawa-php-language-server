@@ -21,6 +21,7 @@ Unreleased
 
 * Completion immediately after `$`.
 * Don't show hovers for `true`, `false` and `null`.
+* Reindex files when closed in client, to mitigate missing changes.
 
 0.1.0 - 2018-04-18
 ------------------
