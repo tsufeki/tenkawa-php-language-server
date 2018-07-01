@@ -4,6 +4,10 @@ Changelog
 Unreleased
 ----------
 
+### Added
+
+* "Find references" for global and member symbols.
+
 ### Deprecated
 
 * PHP 7.0 support, as some of our dependencies will soon be >= 7.1 only.
@@ -11,6 +15,7 @@ Unreleased
 ### Changed
 
 * Completion should be a bit smarter.
+* Diagnostic squiggles don't span multiple lines.
 
 ### Fixed
 

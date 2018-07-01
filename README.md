@@ -16,7 +16,8 @@ suggestions, questions are welcome.
 Installation
 ------------
 
-Requires PHP >= 7.0 with pdo_sqlite extension.
+Requires PHP >= 7.1 (7.0 is deprecated but still supported) with pdo_sqlite
+extension.
 
 For Visual Studio Code extension, see [here][vsix].
 
@@ -67,6 +68,7 @@ Features
       (see [Known issues](#known-issues))
 * ✔ Go to definition
 * ✔ Hover info
+* ✔ References
 * ✔ Document symbols
 * ✔ Code actions
   * ✔ Import class/function
@@ -79,7 +81,6 @@ Unimplemented (yet?):
 * ✘ Go to type definition
 * ✘ Signature help
 * ✘ Workspace symbols
-* ✘ References
 * ✘ Document highlight
 * ✘ Code lens
 * ✘ Formatting
