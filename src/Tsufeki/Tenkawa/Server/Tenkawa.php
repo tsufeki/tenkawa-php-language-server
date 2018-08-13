@@ -12,6 +12,7 @@ use Tsufeki\BlancheJsonRpc\Transport\Transport;
 use Tsufeki\HmContainer\Container;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnStart;
+use Tsufeki\Tenkawa\Server\Exception\IoException;
 use Tsufeki\Tenkawa\Server\Logger\CompositeLogger;
 use Tsufeki\Tenkawa\Server\Logger\LevelFilteringLogger;
 use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
@@ -21,7 +22,6 @@ use Tsufeki\Tenkawa\Server\Utils\NestedKernelsSyncAsync;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
-use Tsufeki\Tenkawa\Server\Exception\IoException;
 
 class Tenkawa
 {

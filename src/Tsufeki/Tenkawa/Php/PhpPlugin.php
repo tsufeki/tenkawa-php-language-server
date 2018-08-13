@@ -93,7 +93,6 @@ use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionTransformer;
 use Tsufeki\Tenkawa\Php\Reflection\StubsReflectionTransformer;
 use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
-use Tsufeki\Tenkawa\Server\Event\OnStart;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionProvider;
 use Tsufeki\Tenkawa\Server\Feature\Command\CommandProvider;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionProvider;

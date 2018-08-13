@@ -5,11 +5,9 @@ namespace Tsufeki\Tenkawa\Php\Feature;
 use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
-use Tsufeki\Tenkawa\Php\Parser\Ast;
-use Tsufeki\Tenkawa\Php\Parser\Parser;
-use Tsufeki\Tenkawa\Php\Parser\TokenIterator;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
@@ -31,11 +29,6 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
     private $classResolver;
 
     /**
-     * @var Parser
-     */
-    private $parser;
-
-    /**
      * @var TypeInference
      */
     private $typeInference;
@@ -48,32 +41,9 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
         Expr\ClassConstFetch::class => MemberSymbol::CLASS_CONST,
     ];
 
-    private const STATICS = [
-        Expr\StaticPropertyFetch::class => true,
-        Expr\StaticCall::class => true,
-        Expr\ClassConstFetch::class => true,
-    ];
-
-    private const SEPARATOR_TOKENS = [
-        Expr\PropertyFetch::class => T_OBJECT_OPERATOR,
-        Expr\StaticPropertyFetch::class => T_PAAMAYIM_NEKUDOTAYIM,
-        Expr\MethodCall::class => T_OBJECT_OPERATOR,
-        Expr\StaticCall::class => T_PAAMAYIM_NEKUDOTAYIM,
-        Expr\ClassConstFetch::class => T_PAAMAYIM_NEKUDOTAYIM,
-    ];
-
-    private const NAME_TOKENS = [
-        Expr\PropertyFetch::class => [T_STRING],
-        Expr\StaticPropertyFetch::class => [T_VARIABLE, '$'],
-        Expr\MethodCall::class => [T_STRING],
-        Expr\StaticCall::class => [T_STRING],
-        Expr\ClassConstFetch::class => [T_STRING],
-    ];
-
-    public function __construct(ClassResolver $classResolver, Parser $parser, TypeInference $typeInference)
+    public function __construct(ClassResolver $classResolver, TypeInference $typeInference)
     {
         $this->classResolver = $classResolver;
-        $this->parser = $parser;
         $this->typeInference = $typeInference;
     }
 
@@ -147,78 +117,30 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
 
         $symbol = new MemberSymbol();
         $symbol->kind = $kind;
-        $symbol->static = self::STATICS[get_class($node)] ?? false;
         $symbol->nameContext = $node->getAttribute('nameContext') ?? new NameContext();
         $symbol->document = $document;
-
-        $name = $node->name;
-        // TODO
-        if ($name instanceof Node) {
-            $symbol->referencedNames = [];
-            $symbol->range = PositionUtils::rangeFromNodeAttrs($name->getAttributes(), $document);
-            if ($node instanceof Expr\StaticPropertyFetch) {
-                // account for '$' TODO: there may be whitespace or {}
-                $symbol->range->start->character--;
-            }
-        } else {
-            $symbol->referencedNames = [(string)$name];
-            /** @var Range|null $range */
-            $range = yield $this->getNameRange($node, $document);
-            if ($range === null) {
-                return null;
-            }
-            $symbol->range = $range;
+        $symbol->referencedNames = $node->name instanceof Identifier ? [$node->name->name] : [];
+        $symbol->range = PositionUtils::rangeFromNodeAttrs($node->name->getAttributes(), $document);
+        if ($node instanceof Expr\StaticPropertyFetch) {
+            // account for '$' TODO: there may be whitespace or {}
+            $symbol->range->start->character--;
         }
 
-        if (!$symbol->static) {
+        if ($node instanceof Expr\PropertyFetch || $node instanceof Expr\MethodCall) {
+            $symbol->static = false;
             $leftNode = $node->var;
         } else {
+            $symbol->static = true;
             $leftNode = $node->class;
             if ($leftNode instanceof Name) {
                 $symbol->literalClassName = true;
             }
         }
+
         $symbol->objectType = yield $this->getTypeFromNode($leftNode, $symbol->nameContext, $document, $cache);
         $symbol->isInObjectContext = $this->isInObjectContext($nodes);
 
         return $symbol;
-    }
-
-    /**
-     * @param Expr\PropertyFetch|Expr\StaticPropertyFetch|Expr\MethodCall|Expr\StaticCall|Expr\ClassConstFetch $node
-     *
-     * @resolve Range|null
-     */
-    private function getNameRange(Node $node, Document $document): \Generator
-    {
-        if ($node instanceof Expr\PropertyFetch || $node instanceof Expr\MethodCall) {
-            $leftNode = $node->var;
-        } else {
-            $leftNode = $node->class;
-        }
-
-        /** @var Ast $ast */
-        $ast = yield $this->parser->parse($document);
-
-        $tokenIndex = $leftNode->getAttribute('endTokenPos') + 1;
-        $lastTokenIndex = $node->getAttribute('endTokenPos');
-        $tokenOffset = $leftNode->getAttribute('endFilePos') + 1;
-
-        $iterator = new TokenIterator(array_slice($ast->tokens, $tokenIndex, $lastTokenIndex - $tokenIndex + 1), 0, $tokenOffset);
-        $iterator->eatWhitespace();
-        if (!$iterator->isType(self::SEPARATOR_TOKENS[get_class($node)])) {
-            return null;
-        }
-        $iterator->eat();
-        $iterator->eatWhitespace();
-        if (!$iterator->isType(...self::NAME_TOKENS[get_class($node)])) {
-            return null;
-        }
-
-        return new Range(
-            PositionUtils::positionFromOffset($iterator->getOffset(), $document),
-            PositionUtils::positionFromOffset($iterator->getOffset() + strlen($iterator->getValue()), $document)
-        );
     }
 
     /**

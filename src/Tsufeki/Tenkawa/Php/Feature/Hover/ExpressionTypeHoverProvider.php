@@ -50,18 +50,15 @@ class ExpressionTypeHoverProvider implements HoverProvider
             array_shift($nodes);
         }
 
-        /** @var Type|null $type */
-        $type = null;
         if (!empty($nodes) && $nodes[0] instanceof Node) {
             $type = $nodes[0]->getAttribute('type', null);
-        }
+            if ($type !== null) {
+                $hover = new Hover();
+                $hover->contents = $this->formatter->formatExpression($type);
+                $hover->range = PositionUtils::rangeFromNodeAttrs($nodes[0]->getAttributes(), $document);
 
-        if ($type !== null) {
-            $hover = new Hover();
-            $hover->contents = $this->formatter->formatExpression($type);
-            $hover->range = PositionUtils::rangeFromNodeAttrs($nodes[0]->getAttributes(), $document);
-
-            return $hover;
+                return $hover;
+            }
         }
 
         return null;

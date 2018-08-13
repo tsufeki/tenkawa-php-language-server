@@ -10,6 +10,7 @@ use PHPStan\Type\IntersectionType as PhpStanIntersectionType;
 use PHPStan\Type\Type as PhpStanType;
 use PHPStan\Type\TypeWithClassName;
 use PHPStan\Type\UnionType as PhpStanUnionType;
+use PHPStan\Type\VerbosityLevel;
 use Tsufeki\Tenkawa\Php\TypeInference\BasicType;
 use Tsufeki\Tenkawa\Php\TypeInference\IntersectionType;
 use Tsufeki\Tenkawa\Php\TypeInference\ObjectType;
@@ -18,7 +19,6 @@ use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\Php\TypeInference\UnionType;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
-use PHPStan\Type\VerbosityLevel;
 
 class PhpStanTypeInference implements TypeInference
 {

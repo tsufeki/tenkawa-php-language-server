@@ -16,9 +16,4 @@ class Ast
      * @var Error[]
      */
     public $errors = [];
-
-    /**
-     * @var array
-     */
-    public $tokens = [];
 }

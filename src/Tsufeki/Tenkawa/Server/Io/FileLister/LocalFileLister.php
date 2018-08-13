@@ -42,15 +42,12 @@ class LocalFileLister implements FileLister
 
     /**
      * @param \RecursiveDirectoryIterator $iterator
-     * @param FileFilter[]                                              $filters
+     * @param FileFilter[]                $filters
      */
     private function iterate(\RecursiveDirectoryIterator $iterator, array $filters, string $baseUri): \Iterator
     {
         try {
-            /**
-             * @var string $path
-             * @var \SplFileInfo $info
-             */
+            /** @var \SplFileInfo $info */
             foreach ($iterator as $path => $info) {
                 $uri = Uri::fromFilesystemPath($path)->getNormalized();
                 if ($info->isDir()) {

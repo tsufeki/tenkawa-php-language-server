@@ -6,6 +6,7 @@ use PhpParser\Node;
 use PhpParser\Node\Const_ as ConstNode;
 use PhpParser\Node\Expr;
 use PhpParser\Node\FunctionLike;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Name\Relative;
@@ -28,7 +29,6 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Type;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Location;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
-use PhpParser\Node\Identifier;
 
 class ReflectionVisitor extends NameContextVisitor
 {

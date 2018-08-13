@@ -5,10 +5,8 @@ namespace Tsufeki\Tenkawa\Php\Feature;
 use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\Node\Const_;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Stmt;
-use Tsufeki\Tenkawa\Php\Parser\Ast;
-use Tsufeki\Tenkawa\Php\Parser\Parser;
-use Tsufeki\Tenkawa\Php\Parser\TokenIterator;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
@@ -17,11 +15,6 @@ use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class DefinitionSymbolExtractor implements NodePathSymbolExtractor
 {
-    /**
-     * @var Parser
-     */
-    private $parser;
-
     private const NODE_KINDS = [
         Const_::class => null,
         Stmt\Function_::class => GlobalSymbol::FUNCTION_,
@@ -31,19 +24,6 @@ class DefinitionSymbolExtractor implements NodePathSymbolExtractor
         Stmt\PropertyProperty::class => MemberSymbol::PROPERTY,
         Stmt\ClassMethod::class => MemberSymbol::METHOD,
     ];
-
-    private const TOKENS = [
-        Stmt\Function_::class => [T_FUNCTION, '&'],
-        Stmt\Class_::class => [T_CLASS],
-        Stmt\Interface_::class => [T_INTERFACE],
-        Stmt\Trait_::class => [T_TRAIT],
-        Stmt\ClassMethod::class => [T_FUNCTION, '&'],
-    ];
-
-    public function __construct(Parser $parser)
-    {
-        $this->parser = $parser;
-    }
 
     /**
      * @param Node|Comment $node
@@ -105,13 +85,16 @@ class DefinitionSymbolExtractor implements NodePathSymbolExtractor
         }
 
         $name = null;
+        $range = null;
+        if (isset($node->name)) {
+            assert($node->name instanceof Identifier);
+            $name = $node->name->name;
+            $range = PositionUtils::rangeFromNodeAttrs($node->name->getAttributes(), $document);
+        }
         if (isset($node->namespacedName)) {
             $name = '\\' . (string)$node->namespacedName;
-        } elseif (isset($node->name)) {
-            $name = $node->name;
         }
 
-        $range = yield $this->getNameRange($node, $document, self::TOKENS[get_class($node)] ?? []);
         $kind = self::NODE_KINDS[get_class($node)] ?? null;
         if ($node instanceof Const_ && isset($nodes[1])) {
             $kind = ($nodes[1] instanceof Stmt\ClassConst) ? MemberSymbol::CLASS_CONST : GlobalSymbol::CONST_;
@@ -130,41 +113,6 @@ class DefinitionSymbolExtractor implements NodePathSymbolExtractor
         $symbol->definitionRange = PositionUtils::rangeFromNodeAttrs($node->getAttributes(), $document);
 
         return $symbol;
-    }
-
-    /**
-     * @param (int|string)[] $precedingTokens
-     *
-     * @resolve Range|null
-     */
-    private function getNameRange(Node $node, Document $document, array $precedingTokens = []): \Generator
-    {
-        /** @var Ast $ast */
-        $ast = yield $this->parser->parse($document);
-        $iterator = TokenIterator::fromNode($node, $ast->tokens);
-
-        if (!empty($precedingTokens)) {
-            while ($iterator->valid()) {
-                if ($iterator->isType($precedingTokens[0])) {
-                    break;
-                }
-                $iterator->eat();
-            }
-
-            foreach ($precedingTokens as $precedingToken) {
-                $iterator->eatWhitespace();
-                $iterator->eatIfType($precedingToken);
-            }
-        }
-
-        $iterator->eatWhitespace();
-        if (!$iterator->valid()) {
-            return null;
-        }
-
-        return new Range(
-            PositionUtils::positionFromOffset($iterator->getOffset(), $document),
-            PositionUtils::positionFromOffset($iterator->getOffset() + strlen($iterator->getValue()), $document)
-        );
+        yield;
     }
 }

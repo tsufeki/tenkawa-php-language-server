@@ -4,6 +4,7 @@ namespace Tsufeki\Tenkawa\Php\Reflection;
 
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BinaryOp;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Scalar;
 use PhpParser\Node\Scalar\MagicConst;
@@ -12,7 +13,6 @@ use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\InfiniteRecursionMarker;
-use PhpParser\Node\Identifier;
 
 class ConstExprEvaluation
 {
