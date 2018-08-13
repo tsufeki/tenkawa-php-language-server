@@ -157,12 +157,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "1508824b38f726e4ca11b2985a5d22989936d770"
+                "reference": "435257758651096093209ff56fa0ae1a6e63ec56"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/1508824b38f726e4ca11b2985a5d22989936d770",
-                "reference": "1508824b38f726e4ca11b2985a5d22989936d770",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/435257758651096093209ff56fa0ae1a6e63ec56",
+                "reference": "435257758651096093209ff56fa0ae1a6e63ec56",
                 "shasum": ""
             },
             "require-dev": {
@@ -187,7 +187,7 @@
                 "stubs",
                 "type"
             ],
-            "time": "2018-06-27T12:12:24+00:00"
+            "time": "2018-08-13T13:39:18+00:00"
         },
         {
             "name": "league/html-to-markdown",
@@ -1864,19 +1864,20 @@
         },
         {
             "name": "tsufeki/kayo-json-mapper",
-            "version": "0.3.1",
+            "version": "0.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsufeki/kayo-json-mapper.git",
-                "reference": "a6b318f85347766512fab98f71577b3195f32ad8"
+                "reference": "7ba243b7e7b49c24a982e759d079554fb0402c26"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsufeki/kayo-json-mapper/zipball/a6b318f85347766512fab98f71577b3195f32ad8",
-                "reference": "a6b318f85347766512fab98f71577b3195f32ad8",
+                "url": "https://api.github.com/repos/tsufeki/kayo-json-mapper/zipball/7ba243b7e7b49c24a982e759d079554fb0402c26",
+                "reference": "7ba243b7e7b49c24a982e759d079554fb0402c26",
                 "shasum": ""
             },
             "require": {
+                "php": ">=7.0",
                 "phpdocumentor/reflection-docblock": "^4.3",
                 "phpdocumentor/type-resolver": "^0.5 || ^0.4"
             },
@@ -1903,7 +1904,7 @@
                 }
             ],
             "description": "Map JSON data to PHP objects",
-            "time": "2018-04-17T15:01:02+00:00"
+            "time": "2018-08-12T15:09:54+00:00"
         },
         {
             "name": "tsufeki/php-lenient-parser",
