@@ -70,6 +70,21 @@ class IndexClassReflection extends ClassReflection
     private $constants = [];
 
     /**
+     * @var bool
+     */
+    private $deprecated = false;
+
+    /**
+     * @var bool
+     */
+    private $internal = false;
+
+    /**
+     * @var bool
+     */
+    private $final = false;
+
+    /**
      * @param PropertiesClassReflectionExtension[] $propertiesClassReflectionExtensions
      * @param MethodsClassReflectionExtension[]    $methodsClassReflectionExtensions
      */
@@ -85,6 +100,15 @@ class IndexClassReflection extends ClassReflection
         $this->phpDocResolver = $phpDocResolver;
         $this->propertiesClassReflectionExtensions = $propertiesClassReflectionExtensions;
         $this->methodsClassReflectionExtensions = $methodsClassReflectionExtensions;
+        $this->final = $class->final;
+
+        if ($class->docComment) {
+            $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($class);
+
+            $this->deprecated = $resolvedPhpDoc->isDeprecated();
+            $this->internal = $resolvedPhpDoc->isInternal();
+            $this->final = $this->final || $resolvedPhpDoc->isFinal();
+        }
     }
 
     public function getNativeReflection(): \ReflectionClass
@@ -196,12 +220,12 @@ class IndexClassReflection extends ClassReflection
 
     public function hasConstructor(): bool
     {
-        // TODO
+        return $this->hasNativeMethod('__construct');
     }
 
     public function getConstructor(): MethodReflection
     {
-        // TODO
+        return $this->getNativeMethod('__construct');
     }
 
     private function createMethods(string $methodName)
@@ -321,20 +345,19 @@ class IndexClassReflection extends ClassReflection
         return $this->class->abstract;
     }
 
-    public function isFinal(): bool
-    {
-        // TODO final from doc comment
-        return $this->class->final;
-    }
-
     public function isDeprecated(): bool
     {
-        // TODO
+        return $this->deprecated;
     }
 
     public function isInternal(): bool
     {
-        // TODO
+        return $this->internal;
+    }
+
+    public function isFinal(): bool
+    {
+        return $this->final;
     }
 
     public function isInterface(): bool
@@ -448,7 +471,8 @@ class IndexClassReflection extends ClassReflection
         return $this->constants[$name] = new IndexClassConstantReflection(
             $this->broker->getClass((string)$const->nameContext->class),
             $const,
-            $this->broker->getConstantValueFromReflection($const)
+            $this->broker->getConstantValueFromReflection($const),
+            $this->phpDocResolver
         );
     }
 

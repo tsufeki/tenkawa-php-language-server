@@ -24,6 +24,26 @@ class IndexFunctionReflection extends PhpFunctionReflection
      */
     private $variants;
 
+    /**
+     * @var bool
+     */
+    private $deprecated = false;
+
+    /**
+     * @var bool
+     */
+    private $internal = false;
+
+    /**
+     * @var bool
+     */
+    private $final = false;
+
+    /**
+     * @var Type|null
+     */
+    private $throwType;
+
     public function __construct(Function_ $function, PhpDocResolver $phpDocResolver)
     {
         $this->function = $function;
@@ -34,6 +54,12 @@ class IndexFunctionReflection extends PhpFunctionReflection
             $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($function);
             $phpDocParameterTags = $resolvedPhpDoc->getParamTags();
             $phpDocReturnTag = $resolvedPhpDoc->getReturnTag();
+            $phpDocThrowsTag = $resolvedPhpDoc->getThrowsTag();
+
+            $this->deprecated = $resolvedPhpDoc->isDeprecated();
+            $this->internal = $resolvedPhpDoc->isInternal();
+            $this->final = $resolvedPhpDoc->isFinal();
+            $this->throwType = $phpDocThrowsTag ? $phpDocThrowsTag->getType() : null;
         }
 
         /** @var IndexParameterReflection[] $parameters */
@@ -96,21 +122,21 @@ class IndexFunctionReflection extends PhpFunctionReflection
 
     public function isDeprecated(): bool
     {
-        // TODO
+        return $this->deprecated;
     }
 
     public function isInternal(): bool
     {
-        // TODO
+        return $this->internal;
     }
 
     public function isFinal(): bool
     {
-        // TODO
+        return $this->final;
     }
 
     public function getThrowType(): ?Type
     {
-        // TODO
+        return $this->throwType;
     }
 }

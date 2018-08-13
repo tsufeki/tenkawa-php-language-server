@@ -38,6 +38,26 @@ class IndexMethodReflection extends PhpMethodReflection
      */
     private $variants;
 
+    /**
+     * @var bool
+     */
+    private $deprecated = false;
+
+    /**
+     * @var bool
+     */
+    private $internal = false;
+
+    /**
+     * @var bool
+     */
+    private $final = false;
+
+    /**
+     * @var Type|null
+     */
+    private $throwType;
+
     public function __construct(
         ClassReflection $declaringClass,
         Method $method,
@@ -45,6 +65,7 @@ class IndexMethodReflection extends PhpMethodReflection
     ) {
         $this->declaringClass = $declaringClass;
         $this->method = $method;
+        $this->final = $method->final;
 
         $phpDocParameterTags = [];
         $phpDocReturnTag = null;
@@ -52,6 +73,12 @@ class IndexMethodReflection extends PhpMethodReflection
             $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($method);
             $phpDocParameterTags = $resolvedPhpDoc->getParamTags();
             $phpDocReturnTag = $resolvedPhpDoc->getReturnTag();
+            $phpDocThrowsTag = $resolvedPhpDoc->getThrowsTag();
+
+            $this->deprecated = $resolvedPhpDoc->isDeprecated();
+            $this->internal = $resolvedPhpDoc->isInternal();
+            $this->final = $this->final || $resolvedPhpDoc->isFinal();
+            $this->throwType = $phpDocThrowsTag ? $phpDocThrowsTag->getType() : null;
         }
 
         /** @var IndexParameterReflection[] $parameters */
@@ -185,21 +212,21 @@ class IndexMethodReflection extends PhpMethodReflection
 
     public function isDeprecated(): bool
     {
-        // TODO
+        return $this->deprecated;
     }
 
     public function isInternal(): bool
     {
-        // TODO
+        return $this->internal;
     }
 
     public function isFinal(): bool
     {
-        // TODO
+        return $this->final;
     }
 
     public function getThrowType(): ?Type
     {
-        // TODO
+        return $this->throwType;
     }
 }

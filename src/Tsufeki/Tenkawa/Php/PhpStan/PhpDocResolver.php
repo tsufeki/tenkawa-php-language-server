@@ -15,6 +15,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
@@ -173,7 +174,10 @@ class PhpDocResolver extends FileTypeMapper
         return null;
     }
 
-    public function getResolvedPhpDocForReflectionElement(Element $element): ResolvedPhpDocBlock
+    /**
+     * @param Element|ResolvedClassLike $element
+     */
+    public function getResolvedPhpDocForReflectionElement($element): ResolvedPhpDocBlock
     {
         return $this->getResolvedPhpDocForNameContext(
             $element->docComment->text ?? '/** */',

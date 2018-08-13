@@ -24,14 +24,31 @@ class IndexClassConstantReflection extends ClassConstantReflection
      */
     private $value;
 
+    /**
+     * @var bool
+     */
+    private $deprecated = false;
+
+    /**
+     * @var bool
+     */
+    private $internal = false;
+
     public function __construct(
         ClassReflection $declaringClass,
         ClassConst $const,
-        $value
+        $value,
+        PhpDocResolver $phpDocResolver
     ) {
         $this->declaringClass = $declaringClass;
         $this->const = $const;
         $this->value = $value;
+
+        if ($const->docComment) {
+            $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($const);
+            $this->deprecated = $resolvedPhpDoc->isDeprecated();
+            $this->internal = $resolvedPhpDoc->isInternal();
+        }
     }
 
     public function getName(): string
@@ -69,11 +86,11 @@ class IndexClassConstantReflection extends ClassConstantReflection
 
     public function isDeprecated(): bool
     {
-        // TODO
+        return $this->deprecated;
     }
 
     public function isInternal(): bool
     {
-        // TODO
+        return $this->internal;
     }
 }
