@@ -62,7 +62,7 @@ use Tsufeki\Tenkawa\Server\Refactor\EditHelper;
 
 class ServerPlugin extends Plugin
 {
-    public function configureContainer(Container $container, array $options)
+    public function configureContainer(Container $container, array $options): void
     {
         $container->setValue(EventDispatcher::class, new EventDispatcher($container));
         $container->setClass(ClientLogger::class);

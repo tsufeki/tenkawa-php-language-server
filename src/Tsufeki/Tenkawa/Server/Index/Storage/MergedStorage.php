@@ -34,7 +34,7 @@ class MergedStorage implements IndexStorage
         return $result;
     }
 
-    public function getFileTimestamps(Uri $filterUri = null): \Generator
+    public function getFileTimestamps(?Uri $filterUri = null): \Generator
     {
         $result = [];
 

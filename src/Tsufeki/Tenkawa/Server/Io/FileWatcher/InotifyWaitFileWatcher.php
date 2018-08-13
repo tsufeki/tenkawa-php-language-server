@@ -34,7 +34,7 @@ class InotifyWaitFileWatcher implements FileWatcher
      */
     private $monitors = [];
 
-    const EVENTS = [
+    private const EVENTS = [
         'create',
         'delete',
         'modify',
@@ -127,7 +127,7 @@ class InotifyWaitFileWatcher implements FileWatcher
         yield;
     }
 
-    private function stopMonitor(FilesystemMonitorInterface $monitor)
+    private function stopMonitor(FilesystemMonitorInterface $monitor): void
     {
         $monitor->stop();
         $monitor->removeAllListeners('all');

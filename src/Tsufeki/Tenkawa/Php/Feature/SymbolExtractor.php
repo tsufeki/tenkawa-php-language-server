@@ -60,7 +60,7 @@ class SymbolExtractor
     /**
      * @resolve Symbol[]
      */
-    public function getSymbolsInRange(Document $document, Range $range, string $symbolClass = null): \Generator
+    public function getSymbolsInRange(Document $document, Range $range, ?string $symbolClass = null): \Generator
     {
         $symbols = [];
 

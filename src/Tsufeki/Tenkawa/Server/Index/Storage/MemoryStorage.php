@@ -52,7 +52,7 @@ class MemoryStorage implements WritableIndexStorage
         yield;
     }
 
-    public function replaceFile(Uri $uri, array $entries, int $timestamp = null): \Generator
+    public function replaceFile(Uri $uri, array $entries, ?int $timestamp): \Generator
     {
         $uriString = $uri->getNormalized();
         unset($this->entries[$uriString]);
@@ -71,7 +71,7 @@ class MemoryStorage implements WritableIndexStorage
         yield;
     }
 
-    public function getFileTimestamps(Uri $filterUri = null): \Generator
+    public function getFileTimestamps(?Uri $filterUri = null): \Generator
     {
         if ($filterUri === null) {
             return $this->timestamps;

@@ -65,12 +65,12 @@ class PhpDocResolver extends FileTypeMapper
         $this->syncAsync = $syncAsync;
     }
 
-    public function setDocument(Document $document = null)
+    public function setDocument(?Document $document)
     {
         $this->document = $document;
     }
 
-    public function setCache(Cache $cache = null)
+    public function setCache(?Cache $cache)
     {
         $this->cache = $cache;
     }
@@ -98,7 +98,7 @@ class PhpDocResolver extends FileTypeMapper
         return $docBlock;
     }
 
-    private function findDocCommentInAst(string $filename, string $docComment)
+    private function findDocCommentInAst(string $filename, string $docComment): ?NameContext
     {
         if ($this->cache === null) {
             throw new ShouldNotHappenException();
@@ -121,10 +121,7 @@ class PhpDocResolver extends FileTypeMapper
         return $nameContexts[$docComment] ?? null;
     }
 
-    /**
-     * @return NameContext|null
-     */
-    private function findDocCommentInIndex(Uri $uri, string $docComment)
+    private function findDocCommentInIndex(Uri $uri, string $docComment): ?NameContext
     {
         if ($this->document === null) {
             throw new ShouldNotHappenException();

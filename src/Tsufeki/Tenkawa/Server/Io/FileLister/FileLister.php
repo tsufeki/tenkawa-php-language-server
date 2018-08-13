@@ -12,5 +12,5 @@ interface FileLister
      *
      * @resolve \Iterator string $uri => [string $fileType, int $mtime]
      */
-    public function list(Uri $uri, array $filters, Uri $baseUri = null): \Generator;
+    public function list(Uri $uri, array $filters, ?Uri $baseUri = null): \Generator;
 }

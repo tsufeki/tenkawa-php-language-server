@@ -26,7 +26,7 @@ class Range
      */
     public $end;
 
-    public function __construct(Position $start = null, Position $end = null)
+    public function __construct(?Position $start = null, ?Position $end = null)
     {
         if ($start !== null && $end !== null) {
             $this->start = $start;

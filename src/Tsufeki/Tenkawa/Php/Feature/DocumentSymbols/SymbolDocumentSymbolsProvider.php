@@ -25,7 +25,7 @@ class SymbolDocumentSymbolsProvider implements DocumentSymbolsProvider
      */
     private $symbolExtractor;
 
-    const KINDS = [
+    private const KINDS = [
         GlobalSymbol::CLASS_ => SymbolKind::CLASS_,
         GlobalSymbol::FUNCTION_ => SymbolKind::FUNCTION_,
         GlobalSymbol::CONST_ => SymbolKind::CONSTANT,
@@ -34,7 +34,7 @@ class SymbolDocumentSymbolsProvider implements DocumentSymbolsProvider
         MemberSymbol::METHOD => SymbolKind::METHOD,
     ];
 
-    const KIND_ORDER = [
+    private const KIND_ORDER = [
         GlobalSymbol::CONST_ => 1,
         GlobalSymbol::FUNCTION_ => 2,
         GlobalSymbol::CLASS_ => 3,
@@ -110,14 +110,14 @@ class SymbolDocumentSymbolsProvider implements DocumentSymbolsProvider
     /**
      * @param DefinitionSymbol[] $symbols
      */
-    private function sort(array &$symbols)
+    private function sort(array &$symbols): void
     {
         usort($symbols, function (DefinitionSymbol $a, DefinitionSymbol $b) {
             return $this->order($a) <=> $this->order($b);
         });
     }
 
-    private function order(DefinitionSymbol $symbol)
+    private function order(DefinitionSymbol $symbol): array
     {
         return [
             $symbol->nameContext->namespace,

@@ -64,7 +64,7 @@ class GlobalSymbolCompleter implements SymbolCompleter
             return [];
         }
 
-        list($before, $after) = $this->splitName($symbol, $position);
+        [$before, $after] = $this->splitName($symbol, $position);
         $unqualified = empty($before);
         $addTrailingParen = false;
         $addTrailingBackslash = true;

@@ -113,7 +113,7 @@ use Tsufeki\Tenkawa\Server\Plugin;
 
 class PhpPlugin extends Plugin
 {
-    public function configureContainer(Container $container, array $options)
+    public function configureContainer(Container $container, array $options): void
     {
         $container->setClass(OnStart::class, PhpPluginInit::class, true);
 

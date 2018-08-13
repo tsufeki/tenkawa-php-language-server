@@ -53,7 +53,7 @@ class StubsReflectionTransformer
         yield;
     }
 
-    private function transformFunction(Function_ $function)
+    private function transformFunction(Function_ $function): void
     {
         if (!$function->docComment) {
             return;
@@ -87,7 +87,7 @@ class StubsReflectionTransformer
         }
     }
 
-    private function transformDocComment(DocComment $docComment = null)
+    private function transformDocComment(?DocComment $docComment): void
     {
         if ($docComment === null || empty($docComment->text)) {
             return;

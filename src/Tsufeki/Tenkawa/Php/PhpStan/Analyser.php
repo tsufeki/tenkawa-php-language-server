@@ -77,7 +77,7 @@ class Analyser
     /**
      * @param \Closure $nodeCallback (Node $node, Scope $scope)
      */
-    public function analyse(Document $document, \Closure $nodeCallback, Cache $cache = null): \Generator
+    public function analyse(Document $document, \Closure $nodeCallback, ?Cache $cache = null): \Generator
     {
         if ($document->getLanguage() !== 'php') {
             return;

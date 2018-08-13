@@ -16,7 +16,7 @@ use Webmozart\PathUtil\Path;
 class SqliteStorage implements WritableIndexStorage
 {
     const MEMORY = ':memory:';
-    const SCHEMA_VERSION = 4;
+    private const SCHEMA_VERSION = 4;
 
     /**
      * @var string
@@ -50,7 +50,7 @@ class SqliteStorage implements WritableIndexStorage
         $this->createMapper($uriPrefix);
     }
 
-    private function createMapper(string $uriPrefix)
+    private function createMapper(string $uriPrefix): void
     {
         $this->uriMapper = new PrefixStrippingUriMapper($uriPrefix);
 
@@ -82,12 +82,12 @@ class SqliteStorage implements WritableIndexStorage
         return $this->pdo;
     }
 
-    public function close()
+    public function close(): void
     {
         $this->pdo = null;
     }
 
-    private function initialize()
+    private function initialize(): void
     {
         $version = self::SCHEMA_VERSION . ';' . $this->indexDataVersion;
         $this->getPdo()->prepare('pragma journal_mode=WAL')->execute();
@@ -190,7 +190,7 @@ class SqliteStorage implements WritableIndexStorage
         yield;
     }
 
-    public function replaceFile(Uri $uri, array $entries, int $timestamp = null): \Generator
+    public function replaceFile(Uri $uri, array $entries, ?int $timestamp): \Generator
     {
         $this->getPdo()->beginTransaction();
 
@@ -236,7 +236,7 @@ class SqliteStorage implements WritableIndexStorage
         yield;
     }
 
-    public function getFileTimestamps(Uri $filterUri = null): \Generator
+    public function getFileTimestamps(?Uri $filterUri = null): \Generator
     {
         $params = [];
 

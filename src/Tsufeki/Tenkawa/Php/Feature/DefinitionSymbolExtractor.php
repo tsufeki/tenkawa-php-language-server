@@ -22,7 +22,7 @@ class DefinitionSymbolExtractor implements NodePathSymbolExtractor
      */
     private $parser;
 
-    const NODE_KINDS = [
+    private const NODE_KINDS = [
         Const_::class => null,
         Stmt\Function_::class => GlobalSymbol::FUNCTION_,
         Stmt\Class_::class => GlobalSymbol::CLASS_,
@@ -32,7 +32,7 @@ class DefinitionSymbolExtractor implements NodePathSymbolExtractor
         Stmt\ClassMethod::class => MemberSymbol::METHOD,
     ];
 
-    const TOKENS = [
+    private const TOKENS = [
         Stmt\Function_::class => [T_FUNCTION, '&'],
         Stmt\Class_::class => [T_CLASS],
         Stmt\Interface_::class => [T_INTERFACE],
@@ -81,7 +81,7 @@ class DefinitionSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve Symbol[]
      */
-    public function getSymbolsInRange(Document $document, Range $range, array $nodes, string $symbolClass = null): \Generator
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes, ?string $symbolClass = null): \Generator
     {
         if ($symbolClass !== null && $symbolClass !== DefinitionSymbol::class) {
             return [];

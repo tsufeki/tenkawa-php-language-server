@@ -6,7 +6,7 @@ use Tsufeki\Tenkawa\Server\Uri;
 
 class LocalFileLister implements FileLister
 {
-    public function list(Uri $uri, array $filters, Uri $baseUri = null): \Generator
+    public function list(Uri $uri, array $filters, ?Uri $baseUri = null): \Generator
     {
         $baseUri = $baseUri ?? $uri;
         $path = $uri->getFilesystemPath();
@@ -17,7 +17,7 @@ class LocalFileLister implements FileLister
 
         if (!is_dir($path)) {
             $uriString = $uri->getNormalized();
-            list($accept, $fileType) = $this->voteOnAcceptFile($uriString, $filters, $baseUri->getNormalized());
+            [$accept, $fileType] = $this->voteOnAcceptFile($uriString, $filters, $baseUri->getNormalized());
             if ($accept) {
                 return new \ArrayIterator([$uriString => [$fileType, filemtime($path)]]);
             }
@@ -54,7 +54,7 @@ class LocalFileLister implements FileLister
                         yield from $this->iterate($iterator->getChildren(), $filters, $baseUri);
                     }
                 } else {
-                    list($accept, $fileType) = $this->voteOnAcceptFile($uri, $filters, $baseUri);
+                    [$accept, $fileType] = $this->voteOnAcceptFile($uri, $filters, $baseUri);
                     if ($accept) {
                         yield $uri => [$fileType, $info->getMTime()];
                     }

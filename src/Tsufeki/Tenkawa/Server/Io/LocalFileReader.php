@@ -8,7 +8,7 @@ use Tsufeki\Tenkawa\Server\Uri;
 
 class LocalFileReader implements FileReader
 {
-    const MAX_SIZE = 1 * 1024 * 1024;
+    private const MAX_SIZE = 1 * 1024 * 1024;
 
     public function read(Uri $uri): \Generator
     {

@@ -27,5 +27,5 @@ interface NodePathSymbolExtractor
      *
      * @resolve Symbol[]
      */
-    public function getSymbolsInRange(Document $document, Range $range, array $nodes, string $symbolClass = null): \Generator;
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes, ?string $symbolClass = null): \Generator;
 }

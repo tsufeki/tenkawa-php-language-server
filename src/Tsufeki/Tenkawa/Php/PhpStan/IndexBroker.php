@@ -108,12 +108,12 @@ class IndexBroker extends Broker
         $this->phpDocResolver = $phpDocResolver;
     }
 
-    public function setDocument(Document $document = null)
+    public function setDocument(?Document $document)
     {
         $this->document = $document;
     }
 
-    public function setCache(Cache $cache = null)
+    public function setCache(?Cache $cache)
     {
         $this->cache = $cache;
     }
@@ -194,10 +194,7 @@ class IndexBroker extends Broker
         return $this->resolveFunctionName($nameNode, $scope) !== null;
     }
 
-    /**
-     * @return string|null
-     */
-    public function resolveFunctionName(Name $nameNode, Scope $scope = null)
+    public function resolveFunctionName(Name $nameNode, Scope $scope = null): ?string
     {
         try {
             return ltrim($this->getFunction($nameNode, $scope)->getName(), '\\');
@@ -211,10 +208,7 @@ class IndexBroker extends Broker
         return $this->resolveConstantName($nameNode, $scope) !== null;
     }
 
-    /**
-     * @return string|null
-     */
-    public function resolveConstantName(Name $nameNode, Scope $scope = null)
+    public function resolveConstantName(Name $nameNode, Scope $scope = null): ?string
     {
         if ($this->document === null) {
             throw new ShouldNotHappenException();
@@ -266,7 +260,7 @@ class IndexBroker extends Broker
      */
     private function getNameCandidates(
         Name $nameNode,
-        Scope $scope = null
+        ?Scope $scope
     ): array {
         $candidates = [];
         $name = (string)$nameNode;

@@ -44,7 +44,7 @@ class ChainedStorage implements IndexStorage
         return $result;
     }
 
-    public function getFileTimestamps(Uri $filterUri = null): \Generator
+    public function getFileTimestamps(?Uri $filterUri = null): \Generator
     {
         return array_merge(
             yield $this->secondaryStorage->getFileTimestamps($filterUri),

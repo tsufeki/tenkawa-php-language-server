@@ -17,7 +17,7 @@ class EventTest extends TestCase
         ReactKernel::start(function () {
             $emitter = new EventEmitter();
 
-            list($actual) = yield [
+            [$actual] = yield [
                 Event::first($emitter, 'evt'),
                 (function () use ($emitter) {
                     yield;

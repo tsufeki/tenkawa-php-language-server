@@ -78,10 +78,7 @@ class PhpDocFormatter
         return implode(' ', $parts);
     }
 
-    /**
-     * @return string|null
-     */
-    private function formatType(Type $type = null)
+    private function formatType(?Type $type): ?string
     {
         if ($type === null) {
             return null;
@@ -90,10 +87,7 @@ class PhpDocFormatter
         return '`' . $this->formatTypeInner($type) . '`';
     }
 
-    /**
-     * @return string|null
-     */
-    private function formatTypeInner(Type $type = null)
+    private function formatTypeInner(?Type $type): ?string
     {
         if ($type === null) {
             return null;
@@ -149,10 +143,7 @@ class PhpDocFormatter
         return (string)$type;
     }
 
-    /**
-     * @return string|null
-     */
-    private function formatVar(string $var = null, string $prefix = '')
+    private function formatVar(?string $var, string $prefix = ''): ?string
     {
         return ($var === null || $var === '') ? null : "`$prefix\$$var`";
     }

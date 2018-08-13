@@ -44,7 +44,7 @@ class SymbolCompletionProvider implements CompletionProvider
     public function getCompletions(
         Document $document,
         Position $position,
-        CompletionContext $context = null
+        ?CompletionContext $context
     ): \Generator {
         if ($document->getLanguage() !== 'php') {
             return new CompletionList();

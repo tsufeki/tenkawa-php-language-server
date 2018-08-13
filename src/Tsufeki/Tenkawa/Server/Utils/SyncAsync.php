@@ -12,8 +12,8 @@ interface SyncAsync
     public function callSync(
         callable $syncCallable,
         array $args = [],
-        callable $resumeCallback = null,
-        callable $pauseCallback = null
+        ?callable $resumeCallback = null,
+        ?callable $pauseCallback = null
     );
 
     /**

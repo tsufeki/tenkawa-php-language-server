@@ -18,5 +18,5 @@ interface IndexStorage
      *
      * @resolve array<string,int|null> string URI => int timestamp
      */
-    public function getFileTimestamps(Uri $filterUri = null): \Generator;
+    public function getFileTimestamps(?Uri $filterUri = null): \Generator;
 }

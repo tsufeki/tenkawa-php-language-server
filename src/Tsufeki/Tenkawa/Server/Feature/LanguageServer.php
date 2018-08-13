@@ -89,11 +89,11 @@ class LanguageServer implements MethodProvider
      * @resolve InitializeResult
      */
     public function initialize(
-        int $processId = null,
-        string $rootPath = null,
-        Uri $rootUri = null,
+        ?int $processId = null,
+        ?string $rootPath = null,
+        ?Uri $rootUri = null,
         $initializationOptions = null,
-        ClientCapabilities $capabilities = null,
+        ?ClientCapabilities $capabilities = null,
         string $trace = 'off',
         $workspaceFolders = null
     ): \Generator {
@@ -105,7 +105,7 @@ class LanguageServer implements MethodProvider
             yield $feature->initialize($capabilities, $serverCapabilities);
         }
 
-        yield $this->configurationFeature->setGlobals($initializationOptions);
+        $this->configurationFeature->setGlobals($initializationOptions);
         yield $this->workspaceFeature->openInitialProjects($rootPath, $rootUri, $workspaceFolders);
 
         $result = new InitializeResult();

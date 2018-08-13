@@ -46,7 +46,7 @@ class WorkspaceEditFeature implements Feature
      *
      * @resolve ApplyWorkspaceEditResponse
      */
-    public function applyWorkspaceEdit(string $label = null, WorkspaceEdit $edit): \Generator
+    public function applyWorkspaceEdit(?string $label, WorkspaceEdit $edit): \Generator
     {
         $this->logger->debug('send: ' . __FUNCTION__);
 

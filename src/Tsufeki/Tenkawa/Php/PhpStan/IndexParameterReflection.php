@@ -36,7 +36,7 @@ class IndexParameterReflection extends PhpParameterReflection
      */
     private $declaringClass;
 
-    public function __construct(Param $param, Type $phpDocType = null, string $declaringClass = null)
+    public function __construct(Param $param, ?Type $phpDocType, ?string $declaringClass = null)
     {
         $this->param = $param;
         $declaringClass = $declaringClass ? ltrim($declaringClass, '\\') : null;

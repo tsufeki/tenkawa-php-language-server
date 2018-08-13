@@ -66,7 +66,7 @@ class ReflectionVisitor extends NameContextVisitor
      */
     private $functionStack = [];
 
-    const VARARG_FUNCTIONS = [
+    private const VARARG_FUNCTIONS = [
         'func_get_args',
         'func_get_arg',
         'func_num_args',
@@ -93,10 +93,8 @@ class ReflectionVisitor extends NameContextVisitor
 
     /**
      * @param Name|NullableType|string|null $type
-     *
-     * @return Type|null
      */
-    private function getType($type)
+    private function getType($type): ?Type
     {
         if (empty($type)) {
             return null;
@@ -132,7 +130,7 @@ class ReflectionVisitor extends NameContextVisitor
     /**
      * @param Stmt\ClassLike|Stmt\Function_|Stmt\ClassMethod|ConstNode|Stmt\PropertyProperty $node
      */
-    private function init(Element $element, Node $node, Node $docCommentFallback = null)
+    private function init(Element $element, Node $node, ?Node $docCommentFallback = null): void
     {
         $this->setName($element, $node);
         $this->setCommonInfo($element, $node, $docCommentFallback);
@@ -141,7 +139,7 @@ class ReflectionVisitor extends NameContextVisitor
     /**
      * @param Stmt\ClassLike|Stmt\Function_|Stmt\ClassMethod|ConstNode|Stmt\PropertyProperty $node
      */
-    private function setName(Element $element, Node $node)
+    private function setName(Element $element, Node $node): void
     {
         if (isset($node->namespacedName)) {
             $element->name = $this->nameToString(new FullyQualified($node->namespacedName));
@@ -150,7 +148,7 @@ class ReflectionVisitor extends NameContextVisitor
         }
     }
 
-    private function setCommonInfo(Element $element, Node $node, Node $docCommentFallback = null)
+    private function setCommonInfo(Element $element, Node $node, ?Node $docCommentFallback = null): void
     {
         $element->location = new Location();
         $element->location->uri = $this->document->getUri();
@@ -173,7 +171,7 @@ class ReflectionVisitor extends NameContextVisitor
     /**
      * @param Stmt\Function_|Stmt\ClassMethod $node
      */
-    private function processFunction(Function_ $function, $node)
+    private function processFunction(Function_ $function, $node): void
     {
         $this->init($function, $node);
         $function->returnByRef = $node->byRef;
@@ -205,7 +203,7 @@ class ReflectionVisitor extends NameContextVisitor
      * @param Method|Property|ClassConst                     $member
      * @param Stmt\ClassMethod|Stmt\Property|Stmt\ClassConst $node
      */
-    private function processMember($member, Node $node)
+    private function processMember($member, Node $node): void
     {
         $member->accessibility =
             $node->isPrivate() ? ClassLike::M_PRIVATE : (
@@ -215,7 +213,7 @@ class ReflectionVisitor extends NameContextVisitor
         $member->static = $node instanceof Stmt\ClassConst || $node->isStatic();
     }
 
-    private function processUsedTraits(ClassLike $class, Stmt\ClassLike $node)
+    private function processUsedTraits(ClassLike $class, Stmt\ClassLike $node): void
     {
         foreach ($node->stmts as $child) {
             if ($child instanceof Stmt\TraitUse) {
@@ -249,7 +247,7 @@ class ReflectionVisitor extends NameContextVisitor
         }
     }
 
-    private function processClass(ClassLike $class, Stmt\Class_ $node)
+    private function processClass(ClassLike $class, Stmt\Class_ $node): void
     {
         $this->init($class, $node);
         $class->isClass = true;
@@ -262,7 +260,7 @@ class ReflectionVisitor extends NameContextVisitor
         $this->processUsedTraits($class, $node);
     }
 
-    private function processInterface(ClassLike $interface, Stmt\Interface_ $node)
+    private function processInterface(ClassLike $interface, Stmt\Interface_ $node): void
     {
         $this->init($interface, $node);
         $interface->isInterface = true;
@@ -271,14 +269,14 @@ class ReflectionVisitor extends NameContextVisitor
         }
     }
 
-    private function processTrait(ClassLike $trait, Stmt\Trait_ $node)
+    private function processTrait(ClassLike $trait, Stmt\Trait_ $node): void
     {
         $this->init($trait, $node);
         $trait->isTrait = true;
         $this->processUsedTraits($trait, $node);
     }
 
-    private function processDefineConst(Const_ $const, Expr\FuncCall $defineNode)
+    private function processDefineConst(Const_ $const, Expr\FuncCall $defineNode): void
     {
         $nameNode = $defineNode->args[0]->value;
         assert($nameNode instanceof Scalar\String_);

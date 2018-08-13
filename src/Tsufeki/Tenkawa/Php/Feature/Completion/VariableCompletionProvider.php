@@ -66,7 +66,7 @@ class VariableCompletionProvider implements CompletionProvider
     public function getCompletions(
         Document $document,
         Position $position,
-        CompletionContext $context = null
+        ?CompletionContext $context
     ): \Generator {
         $completions = new CompletionList();
 

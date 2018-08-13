@@ -71,7 +71,7 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
         $currentOffset = $comment->getFilePos();
         $length = 0;
         $name = null;
-        foreach ($tokens as list($value, $type)) {
+        foreach ($tokens as [$value, $type]) {
             $length = strlen($value);
             if ($currentOffset <= $offset && $offset <= $currentOffset + $length) {
                 if ($type === Lexer::TOKEN_IDENTIFIER) {
@@ -104,7 +104,7 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve Symbol[]
      */
-    public function getSymbolsInRange(Document $document, Range $range, array $nodes, string $symbolClass = null): \Generator
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes, ?string $symbolClass = null): \Generator
     {
         if ($symbolClass !== null && $symbolClass !== GlobalSymbol::class) {
             return [];

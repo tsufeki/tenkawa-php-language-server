@@ -69,7 +69,7 @@ class MembersFromAnnotationClassResolverExtension implements ClassResolverExtens
         yield;
     }
 
-    private function createProperty(ResolvedClassLike $class, PropertyTagValueNode $tag, bool $readable, bool $writable)
+    private function createProperty(ResolvedClassLike $class, PropertyTagValueNode $tag, bool $readable, bool $writable): void
     {
         $property = new ResolvedProperty();
         $property->name = substr($tag->propertyName, 1);
@@ -88,7 +88,7 @@ class MembersFromAnnotationClassResolverExtension implements ClassResolverExtens
         }
     }
 
-    private function createMethod(ResolvedClassLike $class, MethodTagValueNode $tag)
+    private function createMethod(ResolvedClassLike $class, MethodTagValueNode $tag): void
     {
         $method = new ResolvedMethod();
         $method->name = $tag->methodName;

@@ -74,7 +74,7 @@ class ReferencesFeature implements Feature, MethodProvider
     public function references(
         TextDocumentIdentifier $textDocument,
         Position $position,
-        ReferenceContext $context = null
+        ?ReferenceContext $context = null
     ): \Generator {
         $time = new Stopwatch();
 

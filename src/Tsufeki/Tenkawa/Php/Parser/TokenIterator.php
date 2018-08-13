@@ -6,7 +6,7 @@ use PhpParser\Node;
 
 class TokenIterator
 {
-    const WHITESPACE_TOKENS = [
+    private const WHITESPACE_TOKENS = [
         T_WHITESPACE => true,
         T_COMMENT => true,
         T_DOC_COMMENT => true,
@@ -70,20 +70,20 @@ class TokenIterator
         return $this->offset;
     }
 
-    public function eat()
+    public function eat(): void
     {
         $this->offset += strlen($this->getValue());
         $this->index++;
     }
 
-    public function eatWhitespace()
+    public function eatWhitespace(): void
     {
         while (isset(self::WHITESPACE_TOKENS[$this->getType()])) {
             $this->eat();
         }
     }
 
-    public function eatIfType(...$tokenTypes)
+    public function eatIfType(...$tokenTypes): void
     {
         if ($this->isType(...$tokenTypes)) {
             $this->eat();

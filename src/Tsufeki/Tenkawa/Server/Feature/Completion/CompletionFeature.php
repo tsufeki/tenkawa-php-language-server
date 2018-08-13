@@ -84,7 +84,7 @@ class CompletionFeature implements Feature, MethodProvider
     public function completion(
         TextDocumentIdentifier $textDocument,
         Position $position,
-        CompletionContext $context = null
+        ?CompletionContext $context = null
     ): \Generator {
         $time = new Stopwatch();
 
@@ -103,7 +103,7 @@ class CompletionFeature implements Feature, MethodProvider
     private function getCompletions(
         Document $document,
         Position $position,
-        CompletionContext $context = null
+        ?CompletionContext $context
     ): \Generator {
         $completions = new CompletionList();
 

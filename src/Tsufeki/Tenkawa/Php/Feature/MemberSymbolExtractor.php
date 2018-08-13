@@ -40,7 +40,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
      */
     private $typeInference;
 
-    const NODE_KINDS = [
+    private const NODE_KINDS = [
         Expr\PropertyFetch::class => MemberSymbol::PROPERTY,
         Expr\StaticPropertyFetch::class => MemberSymbol::PROPERTY,
         Expr\MethodCall::class => MemberSymbol::METHOD,
@@ -48,13 +48,13 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
         Expr\ClassConstFetch::class => MemberSymbol::CLASS_CONST,
     ];
 
-    const STATICS = [
+    private const STATICS = [
         Expr\StaticPropertyFetch::class => true,
         Expr\StaticCall::class => true,
         Expr\ClassConstFetch::class => true,
     ];
 
-    const SEPARATOR_TOKENS = [
+    private const SEPARATOR_TOKENS = [
         Expr\PropertyFetch::class => T_OBJECT_OPERATOR,
         Expr\StaticPropertyFetch::class => T_PAAMAYIM_NEKUDOTAYIM,
         Expr\MethodCall::class => T_OBJECT_OPERATOR,
@@ -62,7 +62,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
         Expr\ClassConstFetch::class => T_PAAMAYIM_NEKUDOTAYIM,
     ];
 
-    const NAME_TOKENS = [
+    private const NAME_TOKENS = [
         Expr\PropertyFetch::class => [T_STRING],
         Expr\StaticPropertyFetch::class => [T_VARIABLE, '$'],
         Expr\MethodCall::class => [T_STRING],
@@ -93,7 +93,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
     public function getSymbolAt(Document $document, Position $position, array $nodes): \Generator
     {
         /** @var MemberSymbol|null $symbol */
-        $symbol = yield $this->getSymbolFromNodes($nodes, $document);
+        $symbol = yield $this->getSymbolFromNodes($nodes, $document, null);
 
         if ($symbol !== null) {
             $offset = PositionUtils::offsetFromPosition($position, $document);
@@ -113,7 +113,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve Symbol[]
      */
-    public function getSymbolsInRange(Document $document, Range $range, array $nodes, string $symbolClass = null): \Generator
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes, ?string $symbolClass = null): \Generator
     {
         if ($symbolClass !== null && $symbolClass !== MemberSymbol::class) {
             return [];
@@ -131,7 +131,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve MemberSymbol|null
      */
-    private function getSymbolFromNodes(array $nodes, Document $document, Cache $cache = null): \Generator
+    private function getSymbolFromNodes(array $nodes, Document $document, ?Cache $cache): \Generator
     {
         if (($nodes[0] ?? null) instanceof Expr\Error) {
             array_shift($nodes);
@@ -226,7 +226,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
         Node $node,
         NameContext $nameContext,
         Document $document,
-        Cache $cache = null
+        ?Cache $cache
     ): \Generator {
         yield $this->typeInference->infer($document, $cache);
 

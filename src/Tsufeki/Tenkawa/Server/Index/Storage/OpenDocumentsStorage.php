@@ -22,7 +22,7 @@ class OpenDocumentsStorage implements WritableIndexStorage
      */
     private $documentStore;
 
-    const KEY = 'index.entries';
+    private const KEY = 'index.entries';
 
     public function __construct(Project $project, DocumentStore $documentStore)
     {
@@ -72,7 +72,7 @@ class OpenDocumentsStorage implements WritableIndexStorage
         yield;
     }
 
-    public function replaceFile(Uri $uri, array $entries, int $timestamp = null): \Generator
+    public function replaceFile(Uri $uri, array $entries, ?int $timestamp): \Generator
     {
         try {
             $document = $this->documentStore->get($uri);
@@ -93,7 +93,7 @@ class OpenDocumentsStorage implements WritableIndexStorage
         yield;
     }
 
-    public function getFileTimestamps(Uri $filterUri = null): \Generator
+    public function getFileTimestamps(?Uri $filterUri = null): \Generator
     {
         $timestamps = [];
         /** @var Document $document */

@@ -26,7 +26,7 @@ class PhpStanTypeInference implements TypeInference
      */
     private $analyser;
 
-    const IGNORED_EXPR_NODES = [
+    private const IGNORED_EXPR_NODES = [
         Expr\Error::class => true,
         Scalar\EncapsedStringPart::class => true,
     ];
@@ -36,7 +36,7 @@ class PhpStanTypeInference implements TypeInference
         $this->analyser = $analyser;
     }
 
-    public function infer(Document $document, Cache $cache = null): \Generator
+    public function infer(Document $document, ?Cache $cache = null): \Generator
     {
         if ($document->getLanguage() !== 'php') {
             return;

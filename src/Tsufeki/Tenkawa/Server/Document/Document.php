@@ -40,10 +40,7 @@ class Document
         return $this->uri;
     }
 
-    /**
-     * @return int|null
-     */
-    public function getVersion()
+    public function getVersion(): ?int
     {
         return $this->version;
     }
@@ -58,7 +55,7 @@ class Document
         return $this->text;
     }
 
-    public function update(string $text, int $version = null): self
+    public function update(string $text, ?int $version = null): self
     {
         $this->text = $text;
         $this->version = $version;

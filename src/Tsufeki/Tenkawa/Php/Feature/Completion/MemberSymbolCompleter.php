@@ -35,7 +35,7 @@ class MemberSymbolCompleter implements SymbolCompleter
      */
     private $classResolver;
 
-    const COMPLETION_KINDS = [
+    private const COMPLETION_KINDS = [
         ResolvedProperty::class => CompletionItemKind::PROPERTY,
         ResolvedMethod::class => CompletionItemKind::METHOD,
         ResolvedClassConst::class => CompletionItemKind::VARIABLE,

@@ -77,7 +77,7 @@ class ImportCodeActionProvider implements CodeActionProvider
     /**
      * @resolve Command[]
      */
-    private function getCodeActionsForSymbol(GlobalSymbol $symbol, int $version = null): \Generator
+    private function getCodeActionsForSymbol(GlobalSymbol $symbol, ?int $version): \Generator
     {
         if ($symbol->kind === GlobalSymbol::NAMESPACE_ ||
             $symbol->isImport ||
@@ -144,7 +144,7 @@ class ImportCodeActionProvider implements CodeActionProvider
     /**
      * @param TextEdit[] $textEdits
      */
-    private function makeWorkspaceEdit(array $textEdits, Document $document, int $version = null): WorkspaceEdit
+    private function makeWorkspaceEdit(array $textEdits, Document $document, ?int $version): WorkspaceEdit
     {
         $edit = new WorkspaceEdit();
         $edit->changes = [(string)$document->getUri() => $textEdits];

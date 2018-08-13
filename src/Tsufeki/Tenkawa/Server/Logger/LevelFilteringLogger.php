@@ -8,7 +8,7 @@ use Psr\Log\LogLevel;
 
 class LevelFilteringLogger extends AbstractLogger
 {
-    const LEVEL_NUMBER = [
+    private const LEVEL_NUMBER = [
         LogLevel::EMERGENCY => 8,
         LogLevel::ALERT => 7,
         LogLevel::CRITICAL => 6,
