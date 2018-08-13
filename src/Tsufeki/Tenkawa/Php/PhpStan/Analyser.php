@@ -3,10 +3,10 @@
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
 use PhpParser\Node;
-use PhpParser\PrettyPrinter\Standard;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\Scope;
-use PHPStan\Analyser\TypeSpecifier;
+use PHPStan\Analyser\ScopeContext;
+use PHPStan\Analyser\ScopeFactory;
 use Psr\Log\LoggerInterface;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
@@ -25,6 +25,11 @@ class Analyser
     private $parser;
 
     /**
+     * @var ScopeFactory
+     */
+    private $scopeFactory;
+
+    /**
      * @var IndexBroker
      */
     private $broker;
@@ -33,16 +38,6 @@ class Analyser
      * @var PhpDocResolver
      */
     private $phpDocResolver;
-
-    /**
-     * @var Standard
-     */
-    private $printer;
-
-    /**
-     * @var TypeSpecifier
-     */
-    private $typeSpecifier;
 
     /**
      * @var SyncAsync
@@ -57,19 +52,17 @@ class Analyser
     public function __construct(
         NodeScopeResolver $nodeScopeResolver,
         DocumentParser $parser,
+        ScopeFactory $scopeFactory,
         IndexBroker $broker,
         PhpDocResolver $phpDocResolver,
-        Standard $printer,
-        TypeSpecifier $typeSpecifier,
         SyncAsync $syncAsync,
         LoggerInterface $logger
     ) {
         $this->nodeScopeResolver = $nodeScopeResolver;
         $this->parser = $parser;
+        $this->scopeFactory = $scopeFactory;
         $this->broker = $broker;
         $this->phpDocResolver = $phpDocResolver;
-        $this->printer = $printer;
-        $this->typeSpecifier = $typeSpecifier;
         $this->syncAsync = $syncAsync;
         $this->logger = $logger;
     }
@@ -91,7 +84,7 @@ class Analyser
                 try {
                     $this->nodeScopeResolver->processNodes(
                         $this->parser->parseFile($path),
-                        new Scope($this->broker, $this->printer, $this->typeSpecifier, $path),
+                        $this->scopeFactory->create(ScopeContext::create($path)),
                         $nodeCallback
                     );
                 } catch (\Throwable $e) {

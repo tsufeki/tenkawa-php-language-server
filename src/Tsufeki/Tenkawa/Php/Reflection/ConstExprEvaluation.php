@@ -12,6 +12,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\InfiniteRecursionMarker;
+use PhpParser\Node\Identifier;
 
 class ConstExprEvaluation
 {
@@ -90,7 +91,7 @@ class ConstExprEvaluation
     public function getConstValue(Element\Const_ $const): \Generator
     {
         $key = $const->name;
-        if ($const->nameContext && $const->nameContext->class) {
+        if ($const->nameContext->class) {
             $key = "{$const->nameContext->class}\\$key";
         }
 
@@ -247,7 +248,7 @@ class ConstExprEvaluation
                 return !$value;
             }
 
-            if ($expr instanceof Expr\ClassConstFetch && $expr->class instanceof Name && is_string($expr->name)) {
+            if ($expr instanceof Expr\ClassConstFetch && $expr->class instanceof Name && $expr->name instanceof Identifier) {
                 $class = (string)$expr->class;
                 $parent = strtolower($class) === 'parent';
                 if (in_array(strtolower($class), ['self', 'parent', 'static'], true) && $nameContext->class) {
@@ -264,7 +265,7 @@ class ConstExprEvaluation
                     return null;
                 }
 
-                $const = $resolvedClass->consts[$expr->name] ?? null;
+                $const = $resolvedClass->consts[$expr->name->name] ?? null;
 
                 return $const === null ? null : yield $this->getConstValue($const);
             }

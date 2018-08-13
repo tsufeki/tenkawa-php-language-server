@@ -92,7 +92,9 @@ class TokenIterator
 
     public static function fromNode(Node $node, array $documentTokens): self
     {
+        /** @var int */
         $index = $node->getAttribute('startTokenPos');
+        /** @var int */
         $lastIndex = $node->getAttribute('endTokenPos');
         $offset = $node->getAttribute('startFilePos');
 

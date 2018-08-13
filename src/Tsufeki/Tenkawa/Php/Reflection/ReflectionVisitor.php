@@ -28,6 +28,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Type;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Location;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
+use PhpParser\Node\Identifier;
 
 class ReflectionVisitor extends NameContextVisitor
 {
@@ -92,7 +93,7 @@ class ReflectionVisitor extends NameContextVisitor
     }
 
     /**
-     * @param Name|NullableType|string|null $type
+     * @param Name|Identifier|NullableType|string|null $type
      */
     private function getType($type): ?Type
     {
@@ -110,17 +111,19 @@ class ReflectionVisitor extends NameContextVisitor
                 return null;
             }
             $typeObj->type = '?' . $innerType->type;
-        } else {
+        } elseif ($type instanceof Name) {
             $typeObj->type = $this->nameToString($type);
+        } else {
+            $typeObj->type = $type->name;
+        }
 
-            $lowercaseType = strtolower($typeObj->type);
-            $class = $this->classLikeStack[count($this->classLikeStack) - 1] ?? null;
-            if ($class !== null) {
-                if ($lowercaseType === 'self') {
-                    $typeObj->type = $class->name;
-                } elseif ($lowercaseType === 'parent' && $class->parentClass) {
-                    $typeObj->type = $class->parentClass;
-                }
+        $lowercaseType = strtolower($typeObj->type);
+        $class = $this->classLikeStack[count($this->classLikeStack) - 1] ?? null;
+        if ($class !== null) {
+            if ($lowercaseType === 'self') {
+                $typeObj->type = $class->name;
+            } elseif ($lowercaseType === 'parent' && $class->parentClass) {
+                $typeObj->type = $class->parentClass;
             }
         }
 
@@ -144,7 +147,7 @@ class ReflectionVisitor extends NameContextVisitor
         if (isset($node->namespacedName)) {
             $element->name = $this->nameToString(new FullyQualified($node->namespacedName));
         } else {
-            $element->name = is_string($node->name) ? $node->name : '';
+            $element->name = $node->name instanceof Identifier ? $node->name->name : '';
         }
     }
 
@@ -181,7 +184,7 @@ class ReflectionVisitor extends NameContextVisitor
         $optional = true;
         foreach (array_reverse($node->params) as $paramNode) {
             $param = new Param();
-            $param->name = is_string($paramNode->name) ? $paramNode->name : '';
+            $param->name = ($paramNode->var instanceof Expr\Variable && is_string($paramNode->var->name)) ? $paramNode->var->name : '';
             $param->byRef = $paramNode->byRef;
             $param->optional = $optional = $optional && ($paramNode->default !== null || $paramNode->variadic);
             $param->variadic = $paramNode->variadic;
@@ -224,8 +227,8 @@ class ReflectionVisitor extends NameContextVisitor
                 foreach ($child->adaptations as $adaptation) {
                     if ($adaptation instanceof Stmt\TraitUseAdaptation\Precedence) {
                         $insteadOf = new TraitInsteadOf();
-                        $insteadOf->trait = $this->nameToString($adaptation->trait);
-                        $insteadOf->method = $adaptation->method;
+                        $insteadOf->trait = $adaptation->trait ? $this->nameToString($adaptation->trait) : '';
+                        $insteadOf->method = $adaptation->method->name;
                         foreach ($adaptation->insteadof as $insteadOfNode) {
                             $insteadOf->insteadOfs[] = $this->nameToString($insteadOfNode);
                         }
@@ -233,8 +236,8 @@ class ReflectionVisitor extends NameContextVisitor
                     } elseif ($adaptation instanceof Stmt\TraitUseAdaptation\Alias) {
                         $alias = new TraitAlias();
                         $alias->trait = $adaptation->trait ? $this->nameToString($adaptation->trait) : null;
-                        $alias->method = $adaptation->method;
-                        $alias->newName = $adaptation->newName;
+                        $alias->method = $adaptation->method->name;
+                        $alias->newName = $adaptation->newName ? $adaptation->newName->name : null;
                         $alias->newAccessibility =
                             $adaptation->newModifier === Stmt\Class_::MODIFIER_PRIVATE ? ClassLike::M_PRIVATE : (
                             $adaptation->newModifier === Stmt\Class_::MODIFIER_PROTECTED ? ClassLike::M_PROTECTED : (

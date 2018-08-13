@@ -2,14 +2,21 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
+use PHPStan\Reflection\ClassMemberReflection;
 use PHPStan\Reflection\ClassReflection;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Reflection\ParameterReflection;
+use PHPStan\Reflection\FunctionVariantWithPhpDocs;
+use PHPStan\Reflection\ParametersAcceptorWithPhpDocs;
 use PHPStan\Reflection\Php\PhpMethodReflection;
+use PHPStan\Type\ArrayType;
+use PHPStan\Type\BooleanType;
+use PHPStan\Type\IntegerType;
 use PHPStan\Type\MixedType;
+use PHPStan\Type\ObjectWithoutClassType;
+use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\TypehintHelper;
+use PHPStan\Type\VoidType;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
@@ -27,29 +34,9 @@ class IndexMethodReflection extends PhpMethodReflection
     private $method;
 
     /**
-     * @var ParameterReflection[]
+     * @var FunctionVariantWithPhpDocs[]
      */
-    private $parameters;
-
-    /**
-     * @var Type
-     */
-    private $nativeReturnType;
-
-    /**
-     * @var Type
-     */
-    private $phpDocReturnType;
-
-    /**
-     * @var Type
-     */
-    private $returnType;
-
-    /**
-     * @var bool
-     */
-    private $variadic = false;
+    private $variants;
 
     public function __construct(
         ClassReflection $declaringClass,
@@ -67,7 +54,8 @@ class IndexMethodReflection extends PhpMethodReflection
             $phpDocReturnTag = $resolvedPhpDoc->getReturnTag();
         }
 
-        $this->parameters = array_map(function (Param $param) use ($phpDocParameterTags) {
+        /** @var IndexParameterReflection[] $parameters */
+        $parameters = array_map(function (Param $param) use ($phpDocParameterTags) {
             return new IndexParameterReflection(
                 $param,
                 isset($phpDocParameterTags[$param->name]) ? $phpDocParameterTags[$param->name]->getType() : null
@@ -84,23 +72,50 @@ class IndexMethodReflection extends PhpMethodReflection
             $phpDocReturnType = null;
         }
 
-        $this->returnType = TypehintHelper::decideTypeFromReflection(
-            $reflectionReturnType,
-            $phpDocReturnType
-        );
-
-        $this->nativeReturnType = TypehintHelper::decideTypeFromReflection($reflectionReturnType);
-        $this->phpDocReturnType = $phpDocReturnType ?? new MixedType();
-
-        if ($method->callsFuncGetArgs) {
-            $this->variadic = true;
+        $name = strtolower($this->getName());
+        if (
+            $name === '__construct'
+            || $name === '__destruct'
+            || $name === '__unset'
+            || $name === '__wakeup'
+            || $name === '__clone'
+        ) {
+            $returnType = new VoidType();
+        } elseif ($name === '__tostring') {
+            $returnType = new StringType();
+        } elseif ($name === '__isset') {
+            $returnType = new BooleanType();
+        } elseif ($name === '__sleep') {
+            $returnType = new ArrayType(new IntegerType(), new StringType());
+        } elseif ($name === '__set_state') {
+            $returnType = new ObjectWithoutClassType();
+        } else {
+            $returnType = TypehintHelper::decideTypeFromReflection(
+                $reflectionReturnType,
+                $phpDocReturnType
+            );
         }
+
+        $nativeReturnType = TypehintHelper::decideTypeFromReflection($reflectionReturnType);
+        $phpDocReturnType = $phpDocReturnType ?? new MixedType();
+
+        $variadic = $method->callsFuncGetArgs;
         foreach ($method->params as $param) {
             if ($param->variadic) {
-                $this->variadic = true;
+                $variadic = true;
                 break;
             }
         }
+
+        $this->variants = [
+            new FunctionVariantWithPhpDocs(
+                $parameters,
+                $variadic,
+                $returnType,
+                $phpDocReturnType,
+                $nativeReturnType
+            ),
+        ];
     }
 
     public function getDeclaringClass(): ClassReflection
@@ -120,7 +135,7 @@ class IndexMethodReflection extends PhpMethodReflection
         return $this->method->docComment->text;
     }
 
-    public function getPrototype(): MethodReflection
+    public function getPrototype(): ClassMemberReflection
     {
         if ($this->isPrivate() || $this->declaringClass->isInterface() || $this->method->abstract) {
             return $this;
@@ -151,16 +166,11 @@ class IndexMethodReflection extends PhpMethodReflection
     }
 
     /**
-     * @return ParameterReflection[]
+     * @return ParametersAcceptorWithPhpDocs[]
      */
-    public function getParameters(): array
+    public function getVariants(): array
     {
-        return $this->parameters;
-    }
-
-    public function isVariadic(): bool
-    {
-        return $this->variadic;
+        return $this->variants;
     }
 
     public function isPrivate(): bool
@@ -173,18 +183,23 @@ class IndexMethodReflection extends PhpMethodReflection
         return $this->method->accessibility === ClassLike::M_PUBLIC;
     }
 
-    public function getReturnType(): Type
+    public function isDeprecated(): bool
     {
-        return $this->returnType;
+        // TODO
     }
 
-    public function getPhpDocReturnType(): Type
+    public function isInternal(): bool
     {
-        return $this->phpDocReturnType;
+        // TODO
     }
 
-    public function getNativeReturnType(): Type
+    public function isFinal(): bool
     {
-        return $this->nativeReturnType;
+        // TODO
+    }
+
+    public function getThrowType(): ?Type
+    {
+        // TODO
     }
 }

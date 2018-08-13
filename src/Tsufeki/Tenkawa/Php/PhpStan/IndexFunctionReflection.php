@@ -2,9 +2,9 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
-use PHPStan\Reflection\FunctionReflection;
-use PHPStan\Reflection\ParameterReflection;
-use PHPStan\ShouldNotHappenException;
+use PHPStan\Reflection\FunctionVariantWithPhpDocs;
+use PHPStan\Reflection\ParametersAcceptorWithPhpDocs;
+use PHPStan\Reflection\Php\PhpFunctionReflection;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
@@ -12,7 +12,7 @@ use PHPStan\Type\TypehintHelper;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
 
-class IndexFunctionReflection extends FunctionReflection
+class IndexFunctionReflection extends PhpFunctionReflection
 {
     /**
      * @var Function_
@@ -20,29 +20,9 @@ class IndexFunctionReflection extends FunctionReflection
     private $function;
 
     /**
-     * @var ParameterReflection[]
+     * @var FunctionVariantWithPhpDocs[]
      */
-    private $parameters;
-
-    /**
-     * @var Type
-     */
-    private $nativeReturnType;
-
-    /**
-     * @var Type
-     */
-    private $phpDocReturnType;
-
-    /**
-     * @var Type
-     */
-    private $returnType;
-
-    /**
-     * @var bool
-     */
-    private $variadic = false;
+    private $variants;
 
     public function __construct(Function_ $function, PhpDocResolver $phpDocResolver)
     {
@@ -56,7 +36,8 @@ class IndexFunctionReflection extends FunctionReflection
             $phpDocReturnTag = $resolvedPhpDoc->getReturnTag();
         }
 
-        $this->parameters = array_map(function (Param $param) use ($phpDocParameterTags) {
+        /** @var IndexParameterReflection[] $parameters */
+        $parameters = array_map(function (Param $param) use ($phpDocParameterTags) {
             return new IndexParameterReflection(
                 $param,
                 isset($phpDocParameterTags[$param->name]) ? $phpDocParameterTags[$param->name]->getType() : null
@@ -73,28 +54,31 @@ class IndexFunctionReflection extends FunctionReflection
             $phpDocReturnType = null;
         }
 
-        $this->returnType = TypehintHelper::decideTypeFromReflection(
+        $returnType = TypehintHelper::decideTypeFromReflection(
             $reflectionReturnType,
             $phpDocReturnType
         );
 
-        $this->nativeReturnType = TypehintHelper::decideTypeFromReflection($reflectionReturnType);
-        $this->phpDocReturnType = $phpDocReturnType ?? new MixedType();
+        $nativeReturnType = TypehintHelper::decideTypeFromReflection($reflectionReturnType);
+        $phpDocReturnType = $phpDocReturnType ?? new MixedType();
 
-        if ($function->callsFuncGetArgs) {
-            $this->variadic = true;
-        }
+        $variadic = $function->callsFuncGetArgs;
         foreach ($function->params as $param) {
             if ($param->variadic) {
-                $this->variadic = true;
+                $variadic = true;
                 break;
             }
         }
-    }
 
-    public function getNativeReflection(): \ReflectionFunction
-    {
-        throw new ShouldNotHappenException();
+        $this->variants = [
+            new FunctionVariantWithPhpDocs(
+                $parameters,
+                $variadic,
+                $returnType,
+                $phpDocReturnType,
+                $nativeReturnType
+            ),
+        ];
     }
 
     public function getName(): string
@@ -103,30 +87,30 @@ class IndexFunctionReflection extends FunctionReflection
     }
 
     /**
-     * @return ParameterReflection[]
+     * @return ParametersAcceptorWithPhpDocs[]
      */
-    public function getParameters(): array
+    public function getVariants(): array
     {
-        return $this->parameters;
+        return $this->variants;
     }
 
-    public function isVariadic(): bool
+    public function isDeprecated(): bool
     {
-        return $this->variadic;
+        // TODO
     }
 
-    public function getReturnType(): Type
+    public function isInternal(): bool
     {
-        return $this->returnType;
+        // TODO
     }
 
-    public function getPhpDocReturnType(): Type
+    public function isFinal(): bool
     {
-        return $this->phpDocReturnType;
+        // TODO
     }
 
-    public function getNativeReturnType(): Type
+    public function getThrowType(): ?Type
     {
-        return $this->nativeReturnType;
+        // TODO
     }
 }

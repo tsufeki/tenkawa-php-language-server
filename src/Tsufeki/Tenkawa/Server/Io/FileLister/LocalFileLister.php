@@ -41,17 +41,23 @@ class LocalFileLister implements FileLister
     }
 
     /**
-     * @param \RecursiveDirectoryIterator&iterable<string,\SplFileInfo> $iterator
+     * @param \RecursiveDirectoryIterator $iterator
      * @param FileFilter[]                                              $filters
      */
     private function iterate(\RecursiveDirectoryIterator $iterator, array $filters, string $baseUri): \Iterator
     {
         try {
+            /**
+             * @var string $path
+             * @var \SplFileInfo $info
+             */
             foreach ($iterator as $path => $info) {
                 $uri = Uri::fromFilesystemPath($path)->getNormalized();
                 if ($info->isDir()) {
                     if ($this->voteOnEnterDirectory($uri, $filters, $baseUri) && $iterator->hasChildren()) {
-                        yield from $this->iterate($iterator->getChildren(), $filters, $baseUri);
+                        /** @var \RecursiveDirectoryIterator $children */
+                        $children = $iterator->getChildren();
+                        yield from $this->iterate($children, $filters, $baseUri);
                     }
                 } else {
                     [$accept, $fileType] = $this->voteOnAcceptFile($uri, $filters, $baseUri);

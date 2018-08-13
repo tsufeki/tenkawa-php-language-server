@@ -115,8 +115,6 @@ class PhpPlugin extends Plugin
 {
     public function configureContainer(Container $container, array $options): void
     {
-        $container->setClass(OnStart::class, PhpPluginInit::class, true);
-
         $container->setClass(Parser::class, PhpParserAdapter::class);
         $container->setClass(DiagnosticsProvider::class, ParserDiagnosticsProvider::class, true);
 
@@ -200,12 +198,12 @@ class PhpPlugin extends Plugin
         $container->setClass(FileHelper::class, null, false, [new Value(getcwd())]);
         $container->setClass(Analyser::class);
 
-        $container->setClass(DynamicFunctionReturnTypeExtension::class, AllArgumentBasedFunctionReturnTypeExtension::class, true);
-        $container->setClass(DynamicFunctionReturnTypeExtension::class, ArgumentBasedArrayFunctionReturnTypeExtension::class, true);
+        // $container->setClass(DynamicFunctionReturnTypeExtension::class, AllArgumentBasedFunctionReturnTypeExtension::class, true);
+        // $container->setClass(DynamicFunctionReturnTypeExtension::class, ArgumentBasedArrayFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArgumentBasedFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayFilterFunctionReturnTypeReturnTypeExtension::class, true);
-        $container->setClass(DynamicFunctionReturnTypeExtension::class, CallbackBasedArrayFunctionReturnTypeExtension::class, true);
-        $container->setClass(DynamicFunctionReturnTypeExtension::class, CallbackBasedFunctionReturnTypeExtension::class, true);
+        // $container->setClass(DynamicFunctionReturnTypeExtension::class, CallbackBasedArrayFunctionReturnTypeExtension::class, true);
+        // $container->setClass(DynamicFunctionReturnTypeExtension::class, CallbackBasedFunctionReturnTypeExtension::class, true);
 
         $container->setClass(WorkspaceDiagnosticsProvider::class, PhpStanDiagnosticsProvider::class, true);
         $container->setClass(PropertiesClassReflectionExtension::class, UniversalObjectCratesClassReflectionExtension::class, true, [new Value(['stdClass'])]);
@@ -239,7 +237,7 @@ class PhpPlugin extends Plugin
         $container->setClass(Rule::class, Rules\Comparison\StrictComparisonOfDifferentTypesRule::class, true);
         $container->setClass(Rule::class, Rules\Constants\ConstantRule::class, true);
         $container->setClass(Rule::class, Rules\Exceptions\CaughtExceptionExistenceRule::class, true);
-        $container->setClass(Rule::class, Rules\Functions\CallToCountOnlyWithArrayOrCountableRule::class, true);
+        // $container->setClass(Rule::class, Rules\Functions\CallToCountOnlyWithArrayOrCountableRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\CallToFunctionParametersRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\CallToNonExistentFunctionRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\ClosureReturnTypeRule::class, true);
@@ -250,7 +248,7 @@ class PhpPlugin extends Plugin
         $container->setClass(Rule::class, Rules\Functions\PrintfParametersRule::class, true);
         // $container->setClass(Rule::class, Rules\Functions\ReturnTypeRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\UnusedClosureUsesRule::class, true);
-        $container->setClass(Rule::class, Rules\Methods\CallMethodsOnPossiblyNullRule::class, true, [null, new Value(false)]);
+        // $container->setClass(Rule::class, Rules\Methods\CallMethodsOnPossiblyNullRule::class, true, [null, new Value(false)]);
         $container->setClass(Rule::class, Rules\Methods\CallMethodsRule::class, true);
         $container->setClass(Rule::class, Rules\Methods\CallStaticMethodsRule::class, true);
         $container->setClass(Rule::class, Rules\Methods\ExistingClassesInTypehintsRule::class, true);
@@ -259,7 +257,7 @@ class PhpPlugin extends Plugin
         $container->setClass(Rule::class, Rules\Namespaces\ExistingNamesInUseRule::class, true);
         $container->setClass(Rule::class, Rules\PhpDoc\IncompatiblePhpDocTypeRule::class, true);
         $container->setClass(Rule::class, Rules\PhpDoc\InvalidPhpDocTagValueRule::class, true);
-        $container->setClass(Rule::class, Rules\Properties\AccessPropertiesOnPossiblyNullRule::class, true, [null, new Value(false)]);
+        // $container->setClass(Rule::class, Rules\Properties\AccessPropertiesOnPossiblyNullRule::class, true, [null, new Value(false)]);
         $container->setClass(Rule::class, Rules\Properties\AccessPropertiesRule::class, true);
         $container->setClass(Rule::class, Rules\Properties\AccessStaticPropertiesRule::class, true);
         $container->setClass(Rule::class, Rules\Properties\DefaultValueTypesAssignedToPropertiesRule::class, true);

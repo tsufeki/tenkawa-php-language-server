@@ -76,7 +76,7 @@ class MemberSymbolCompleter implements SymbolCompleter
         /** @var ResolvedMethod[] $methods */
         $methods = yield $this->getMembers($symbol, MemberSymbol::METHOD);
 
-        /** @var Element[][] $allElements */
+        /** @var (ResolvedClassConst|ResolvedMethod|ResolvedProperty)[][] $allElements */
         $allElements = [];
         if ($kind === MemberSymbol::CLASS_CONST) {
             $allElements[] = $consts;

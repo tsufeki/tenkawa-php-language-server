@@ -18,6 +18,7 @@ use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\Php\TypeInference\UnionType;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
+use PHPStan\Type\VerbosityLevel;
 
 class PhpStanTypeInference implements TypeInference
 {
@@ -89,7 +90,7 @@ class PhpStanTypeInference implements TypeInference
         }
 
         $type = new BasicType();
-        $type->description = $phpStanType->describe();
+        $type->description = $phpStanType->describe(VerbosityLevel::value());
 
         return $type;
     }

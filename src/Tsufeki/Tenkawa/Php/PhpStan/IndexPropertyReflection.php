@@ -92,4 +92,14 @@ class IndexPropertyReflection extends PhpPropertyReflection
     {
         return $this->property->writable;
     }
+
+    public function isDeprecated(): bool
+    {
+        // TODO
+    }
+
+    public function isInternal(): bool
+    {
+        // TODO
+    }
 }

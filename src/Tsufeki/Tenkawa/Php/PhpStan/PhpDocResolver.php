@@ -75,8 +75,12 @@ class PhpDocResolver extends FileTypeMapper
         $this->cache = $cache;
     }
 
-    public function getResolvedPhpDoc(string $filename, string $className = null, string $docComment): ResolvedPhpDocBlock
-    {
+    public function getResolvedPhpDoc(
+        string $filename,
+        ?string $className,
+        ?string $traitName,
+        string $docComment
+    ): ResolvedPhpDocBlock {
         if ($this->document === null || $this->cache === null) {
             throw new ShouldNotHappenException();
         }
@@ -138,7 +142,7 @@ class PhpDocResolver extends FileTypeMapper
             }
 
             foreach (array_merge($class->methods, $class->properties, $class->consts) as $member) {
-                if (($member->docComment ?? null) === $docComment) {
+                if (($member->docComment->text ?? null) === $docComment) {
                     return $member->nameContext;
                 }
             }
@@ -186,7 +190,7 @@ class PhpDocResolver extends FileTypeMapper
         $key = 'phpdoc_resolver.doc_block.' . sha1(serialize($context) . $docComment);
         $docBlock = $this->cache->get($key);
         if ($docBlock === InfiniteRecursionMarker::get()) {
-            return $this->phpDocStringResolver->resolve('/** */', new NameScope());
+            return $this->phpDocStringResolver->resolve('/** */', new NameScope(null, []));
         }
         if ($docBlock !== null) {
             return $docBlock;

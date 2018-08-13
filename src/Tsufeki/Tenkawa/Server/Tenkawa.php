@@ -21,6 +21,7 @@ use Tsufeki\Tenkawa\Server\Utils\NestedKernelsSyncAsync;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
+use Tsufeki\Tenkawa\Server\Exception\IoException;
 
 class Tenkawa
 {
@@ -162,16 +163,20 @@ class Tenkawa
 
     private static function setupLoggers(CompositeLogger $logger, array $options): void
     {
+        /** @var resource|false|null */
+        $stream = null;
+
         if ($options['log.stderr']) {
-            $logger->add(new LevelFilteringLogger(
-                new StreamLogger(STDERR),
-                $options['log.level']
-            ));
+            $stream = STDERR;
         }
 
         if ($options['log.file']) {
+            $stream = fopen($options['log.file'], 'a');
+        }
+
+        if ($stream) {
             $logger->add(new LevelFilteringLogger(
-                new StreamLogger(fopen($options['log.file'], 'a')),
+                new StreamLogger($stream),
                 $options['log.level']
             ));
         }
@@ -181,6 +186,9 @@ class Tenkawa
     {
         if ($options['transport.socket'] ?? false) {
             $socket = stream_socket_client($options['transport.socket']);
+            if ($socket === false) {
+                throw new IoException("Can't open a connection to client");
+            }
             stream_set_blocking($socket, false);
             $transport = new StreamTransport($socket, $socket);
         } else {

@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
+use PHPStan\Reflection\PassedByReference;
 use PHPStan\Reflection\Php\PhpParameterReflection;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\Type;
@@ -82,9 +83,11 @@ class IndexParameterReflection extends PhpParameterReflection
         return $this->type;
     }
 
-    public function isPassedByReference(): bool
+    public function passedByReference(): PassedByReference
     {
-        return $this->param->byRef;
+        return $this->param->byRef
+            ? PassedByReference::createCreatesNewVariable()
+            : PassedByReference::createNo();
     }
 
     public function isVariadic(): bool

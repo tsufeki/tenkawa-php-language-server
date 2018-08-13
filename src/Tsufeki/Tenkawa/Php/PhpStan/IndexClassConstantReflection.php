@@ -7,7 +7,7 @@ use PHPStan\Reflection\ClassReflection;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 
-class IndexClassConstantReflection implements ClassConstantReflection
+class IndexClassConstantReflection extends ClassConstantReflection
 {
     /**
      * @var ClassReflection
@@ -65,5 +65,15 @@ class IndexClassConstantReflection implements ClassConstantReflection
     public function isPublic(): bool
     {
         return $this->const->accessibility === ClassLike::M_PUBLIC;
+    }
+
+    public function isDeprecated(): bool
+    {
+        // TODO
+    }
+
+    public function isInternal(): bool
+    {
+        // TODO
     }
 }

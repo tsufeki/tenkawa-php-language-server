@@ -28,7 +28,7 @@ class NameContextVisitor extends NodeVisitorAbstract
     {
         $type |= $use->type;
         $name = '\\' . ($prefix ? $prefix->toString() . '\\' : '') . $use->name->toString();
-        $alias = $use->alias;
+        $alias = $use->getAlias()->name;
 
         if ($type === Stmt\Use_::TYPE_FUNCTION) {
             $this->nameContext->functionUses[$alias] = $name;

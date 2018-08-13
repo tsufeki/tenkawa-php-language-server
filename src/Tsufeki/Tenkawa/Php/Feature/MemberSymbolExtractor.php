@@ -141,6 +141,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
             return null;
         }
 
+        /** @var Expr\PropertyFetch|Expr\StaticPropertyFetch|Expr\MethodCall|Expr\StaticCall|Expr\ClassConstFetch $node */
         $node = $nodes[0];
         $kind = self::NODE_KINDS[get_class($node)];
 
@@ -151,6 +152,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
         $symbol->document = $document;
 
         $name = $node->name;
+        // TODO
         if ($name instanceof Node) {
             $symbol->referencedNames = [];
             $symbol->range = PositionUtils::rangeFromNodeAttrs($name->getAttributes(), $document);

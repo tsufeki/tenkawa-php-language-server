@@ -98,7 +98,7 @@ class Uri
 
     private static function encodeParts(string $string, string $delimiter): string
     {
-        return implode($delimiter, array_map('rawurlencode', explode($delimiter, $string)));
+        return implode($delimiter, array_map('rawurlencode', explode($delimiter, $string) ?: []));
     }
 
     public function getFilesystemPath(): string

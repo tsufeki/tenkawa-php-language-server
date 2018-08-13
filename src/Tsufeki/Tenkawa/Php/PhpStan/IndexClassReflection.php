@@ -2,9 +2,10 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
-use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassConstantReflection;
+use PHPStan\Reflection\ClassMemberAccessAnswerer;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ConstantReflection;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\Reflection\MethodsClassReflectionExtension;
 use PHPStan\Reflection\MissingMethodFromReflectionException;
@@ -141,7 +142,7 @@ class IndexClassReflection extends ClassReflection
         return !empty($this->methods[$methodName]);
     }
 
-    public function getMethod(string $methodName, Scope $scope): MethodReflection
+    public function getMethod(string $methodName, ClassMemberAccessAnswerer $scope): MethodReflection
     {
         $methodName = strtolower($methodName);
         $this->createMethods($methodName);
@@ -154,7 +155,13 @@ class IndexClassReflection extends ClassReflection
         }
 
         if ($method === null) {
-            throw new MissingMethodFromReflectionException($this->getName(), $methodName);
+            $filename = $this->getFileName();
+
+            throw new MissingMethodFromReflectionException(
+                $this->getName(),
+                $methodName,
+                $filename !== false ? $filename : null
+            );
         }
 
         return $method;
@@ -168,17 +175,33 @@ class IndexClassReflection extends ClassReflection
         return !empty($this->nativeMethods[$methodName]);
     }
 
-    public function getNativeMethod(string $methodName): PhpMethodReflection
+    public function getNativeMethod(string $methodName): MethodReflection
     {
         $methodName = strtolower($methodName);
         $this->createMethods($methodName);
 
         $method = $this->nativeMethods[$methodName] ?? null;
         if ($method === null) {
-            throw new MissingMethodFromReflectionException($this->getName(), $methodName);
+            $filename = $this->getFileName();
+
+            throw new MissingMethodFromReflectionException(
+                $this->getName(),
+                $methodName,
+                $filename !== false ? $filename : null
+            );
         }
 
         return $method;
+    }
+
+    public function hasConstructor(): bool
+    {
+        // TODO
+    }
+
+    public function getConstructor(): MethodReflection
+    {
+        // TODO
     }
 
     private function createMethods(string $methodName)
@@ -216,7 +239,7 @@ class IndexClassReflection extends ClassReflection
         return !empty($this->properties[$propertyName]);
     }
 
-    public function getProperty(string $propertyName, Scope $scope): PropertyReflection
+    public function getProperty(string $propertyName, ClassMemberAccessAnswerer $scope): PropertyReflection
     {
         $this->createProperties($propertyName);
 
@@ -228,7 +251,13 @@ class IndexClassReflection extends ClassReflection
         }
 
         if ($property === null) {
-            throw new MissingPropertyFromReflectionException($this->getName(), $propertyName);
+            $filename = $this->getFileName();
+
+            throw new MissingPropertyFromReflectionException(
+                $this->getName(),
+                $propertyName,
+                $filename !== false ? $filename : null
+            );
         }
 
         return $property;
@@ -247,7 +276,13 @@ class IndexClassReflection extends ClassReflection
 
         $property = $this->nativeProperties[$propertyName] ?? null;
         if ($property === null) {
-            throw new MissingPropertyFromReflectionException($this->getName(), $propertyName);
+            $filename = $this->getFileName();
+
+            throw new MissingPropertyFromReflectionException(
+                $this->getName(),
+                $propertyName,
+                $filename !== false ? $filename : null
+            );
         }
 
         return $property;
@@ -288,7 +323,18 @@ class IndexClassReflection extends ClassReflection
 
     public function isFinal(): bool
     {
+        // TODO final from doc comment
         return $this->class->final;
+    }
+
+    public function isDeprecated(): bool
+    {
+        // TODO
+    }
+
+    public function isInternal(): bool
+    {
+        // TODO
     }
 
     public function isInterface(): bool
@@ -387,7 +433,7 @@ class IndexClassReflection extends ClassReflection
         return isset($this->class->consts[$name]);
     }
 
-    public function getConstant(string $name): ClassConstantReflection
+    public function getConstant(string $name): ConstantReflection
     {
         if (!$this->hasConstant($name)) {
             throw new ShouldNotHappenException();
