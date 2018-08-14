@@ -25,8 +25,10 @@ use PHPStan\Type\DynamicStaticMethodReturnTypeExtension;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\ConstExprEvaluator;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
+use Tsufeki\Tenkawa\Php\Reflection\NameHelper;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
 
@@ -176,8 +178,6 @@ class IndexBroker extends Broker
 
     public function getAnonymousClassReflection(New_ $node, Scope $scope): ClassReflection
     {
-        // TODO
-
         if (!$node->class instanceof Class_) {
             throw new \PHPStan\ShouldNotHappenException();
         }
@@ -187,6 +187,10 @@ class IndexBroker extends Broker
         if ($trait !== null) {
             $scopeFile = $trait->getFileName() ?: $scopeFile;
         }
+
+        $className = NameHelper::getAnonymousClassName(Uri::fromFilesystemPath($scopeFile), $node->class);
+
+        return $this->getClass($className);
     }
 
     public function getClassFromReflection(\ReflectionClass $reflectionClass, string $displayName, ?string $anonymousFilename): ClassReflection

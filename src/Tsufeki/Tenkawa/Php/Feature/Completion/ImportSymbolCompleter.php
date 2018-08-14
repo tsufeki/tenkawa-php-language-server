@@ -6,6 +6,7 @@ use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
 use Tsufeki\Tenkawa\Php\Feature\Importer;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
+use Tsufeki\Tenkawa\Php\Reflection\NameHelper;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextEdit;
@@ -85,6 +86,10 @@ class ImportSymbolCompleter implements SymbolCompleter
         $entries = yield $this->index->search($document, $query);
         $names = [];
         foreach ($entries as $entry) {
+            if (NameHelper::isSpecial($entry->key)) {
+                continue;
+            }
+
             $names[] = $entry->key;
         }
 

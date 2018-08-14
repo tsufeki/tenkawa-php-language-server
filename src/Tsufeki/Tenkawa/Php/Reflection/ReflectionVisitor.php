@@ -252,7 +252,13 @@ class ReflectionVisitor extends NameContextVisitor
 
     private function processClass(ClassLike $class, Stmt\Class_ $node): void
     {
-        $this->init($class, $node);
+        if ($node->name === null) {
+            $class->name = NameHelper::getAnonymousClassName($this->document->getUri(), $node);
+        } else {
+            $this->setName($class, $node);
+        }
+
+        $this->setCommonInfo($class, $node);
         $class->isClass = true;
         $class->abstract = $node->isAbstract();
         $class->final = $node->isFinal();

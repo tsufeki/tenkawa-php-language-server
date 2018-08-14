@@ -247,4 +247,12 @@ class Uri
 
         return StringUtils::startsWith($otherNormalized, $thisNormalized);
     }
+
+    public function withLineNumber(int $lineNumber): self
+    {
+        $uri = clone $this;
+        $uri->fragment = "#L$lineNumber";
+
+        return $uri;
+    }
 }

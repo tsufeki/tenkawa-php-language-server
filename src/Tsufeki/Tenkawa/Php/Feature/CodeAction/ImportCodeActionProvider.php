@@ -8,6 +8,7 @@ use Tsufeki\Tenkawa\Php\Feature\Importer;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
+use Tsufeki\Tenkawa\Php\Reflection\NameHelper;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionContext;
@@ -94,6 +95,10 @@ class ImportCodeActionProvider implements CodeActionProvider
 
         /** @var Element $element */
         foreach (yield $this->getReflections($name, $symbol->kind, $symbol->document) as $element) {
+            if (NameHelper::isSpecial($element->name)) {
+                continue;
+            }
+
             $kind = $symbol->kind;
             $importParts = explode('\\', ltrim($element->name, '\\'));
             if (count($parts) > 1) {

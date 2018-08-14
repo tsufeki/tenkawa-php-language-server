@@ -8,6 +8,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Namespace_;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
+use Tsufeki\Tenkawa\Php\Reflection\NameHelper;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionIndexDataProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
@@ -180,6 +181,10 @@ class GlobalSymbolCompleter implements SymbolCompleter
             $entries = yield $this->index->search($document, $query);
             $namespaceLength = strlen($namespace);
             foreach ($entries as $entry) {
+                if (NameHelper::isSpecial($entry->key)) {
+                    continue;
+                }
+
                 $itemFullName = null;
                 $itemKind = null;
                 $backslashPos = strpos($entry->key, '\\', $namespaceLength);
