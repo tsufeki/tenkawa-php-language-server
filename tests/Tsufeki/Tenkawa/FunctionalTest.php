@@ -74,7 +74,7 @@ class FunctionalTest extends TestCase
 
     protected function openAndGetPositionArgs(string $text, string $uri = 'file://' . __DIR__ . '/fixtures/foo.php', string $cursorMarker = '#'): \Generator
     {
-        $offset = strpos($text, $cursorMarker);
+        $offset = strpos($text, $cursorMarker) ?: 0;
         $text = substr_replace($text, '', $offset, 1);
         $line = $offset ? substr_count($text, "\n", 0, $offset) : 0;
         $col = $offset - ($line ? strrpos(substr($text, 0, $offset), "\n") + 1 : 0);

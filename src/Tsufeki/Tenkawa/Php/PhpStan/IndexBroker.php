@@ -84,14 +84,15 @@ class IndexBroker extends Broker
     private $cache;
 
     /**
+     * @param string[]                                 $universalObjectCratesClasses
      * @param PropertiesClassReflectionExtension[]     $propertiesClassReflectionExtensions
      * @param MethodsClassReflectionExtension[]        $methodsClassReflectionExtensions
      * @param DynamicMethodReturnTypeExtension[]       $dynamicMethodReturnTypeExtensions
      * @param DynamicStaticMethodReturnTypeExtension[] $dynamicStaticMethodReturnTypeExtensions
      * @param DynamicFunctionReturnTypeExtension[]     $dynamicFunctionReturnTypeExtensions
-     * @param string[]                                 $universalObjectCratesClasses
      */
     public function __construct(
+        array $universalObjectCratesClasses,
         array $propertiesClassReflectionExtensions,
         array $methodsClassReflectionExtensions,
         array $dynamicMethodReturnTypeExtensions,
@@ -102,8 +103,7 @@ class IndexBroker extends Broker
         ConstExprEvaluator $constExprEvaluator,
         SyncAsync $syncAsync,
         PhpDocResolver $phpDocResolver,
-        SignatureVariantFactory $signatureVariantFactory,
-        array $universalObjectCratesClasses
+        SignatureVariantFactory $signatureVariantFactory
     ) {
         parent::__construct(
             $propertiesClassReflectionExtensions,
