@@ -53,7 +53,6 @@ class PhpParserAdapter implements Parser
         $ast = new Ast();
         $errorHandler = new ErrorHandler\Collecting();
         $ast->nodes = $this->parser->parse($document->getText(), $errorHandler) ?? [];
-        $ast->tokens = $this->lexer->getTokens();
 
         $nodeTraverser = new NodeTraverser();
         $nodeTraverser->addVisitor(new NameResolver($errorHandler, [

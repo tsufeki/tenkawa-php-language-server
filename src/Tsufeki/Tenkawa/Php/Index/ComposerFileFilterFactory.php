@@ -69,7 +69,7 @@ class ComposerFileFilterFactory implements FileFilterFactory
         array &$rejectGlobs,
         array &$acceptGlobs,
         array &$forceRejectGlobs
-    ) {
+    ): void {
         $name = $package->name ?? null;
         if (!is_string($name)) {
             return;

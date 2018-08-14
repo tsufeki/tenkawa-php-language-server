@@ -2,17 +2,20 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
+use PHPStan\Reflection\ClassMemberReflection;
 use PHPStan\Reflection\ClassReflection;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Reflection\ParameterReflection;
+use PHPStan\Reflection\FunctionVariant;
+use PHPStan\Reflection\ParametersAcceptor;
 use PHPStan\Reflection\Php\PhpMethodReflection;
-use PHPStan\Type\MixedType;
+use PHPStan\Type\ArrayType;
+use PHPStan\Type\BooleanType;
+use PHPStan\Type\IntegerType;
+use PHPStan\Type\ObjectWithoutClassType;
+use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-use PHPStan\Type\TypehintHelper;
+use PHPStan\Type\VoidType;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
 
 class IndexMethodReflection extends PhpMethodReflection
 {
@@ -27,80 +30,72 @@ class IndexMethodReflection extends PhpMethodReflection
     private $method;
 
     /**
-     * @var ParameterReflection[]
+     * @var FunctionVariant[]
      */
-    private $parameters;
-
-    /**
-     * @var Type
-     */
-    private $nativeReturnType;
-
-    /**
-     * @var Type
-     */
-    private $phpDocReturnType;
-
-    /**
-     * @var Type
-     */
-    private $returnType;
+    private $variants;
 
     /**
      * @var bool
      */
-    private $variadic = false;
+    private $deprecated = false;
+
+    /**
+     * @var bool
+     */
+    private $internal = false;
+
+    /**
+     * @var bool
+     */
+    private $final = false;
+
+    /**
+     * @var Type|null
+     */
+    private $throwType;
 
     public function __construct(
         ClassReflection $declaringClass,
         Method $method,
-        PhpDocResolver $phpDocResolver
+        PhpDocResolver $phpDocResolver,
+        SignatureVariantFactory $signatureVariantFactory
     ) {
         $this->declaringClass = $declaringClass;
         $this->method = $method;
+        $this->final = $method->final;
 
-        $phpDocParameterTags = [];
-        $phpDocReturnTag = null;
+        $resolvedPhpDoc = null;
         if ($method->docComment) {
             $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($method);
-            $phpDocParameterTags = $resolvedPhpDoc->getParamTags();
-            $phpDocReturnTag = $resolvedPhpDoc->getReturnTag();
+            $phpDocThrowsTag = $resolvedPhpDoc->getThrowsTag();
+
+            $this->deprecated = $resolvedPhpDoc->isDeprecated();
+            $this->internal = $resolvedPhpDoc->isInternal();
+            $this->final = $this->final || $resolvedPhpDoc->isFinal();
+            $this->throwType = $phpDocThrowsTag ? $phpDocThrowsTag->getType() : null;
         }
 
-        $this->parameters = array_map(function (Param $param) use ($phpDocParameterTags) {
-            return new IndexParameterReflection(
-                $param,
-                isset($phpDocParameterTags[$param->name]) ? $phpDocParameterTags[$param->name]->getType() : null
-            );
-        }, $method->params);
-
-        $phpDocReturnType = $phpDocReturnTag !== null ? $phpDocReturnTag->getType() : null;
-        $reflectionReturnType = $method->returnType !== null ? new DummyReflectionType($method->returnType->type) : null;
+        $returnType = null;
+        $name = strtolower($this->getName());
         if (
-            $reflectionReturnType !== null
-            && $phpDocReturnType !== null
-            && $reflectionReturnType->allowsNull() !== TypeCombinator::containsNull($phpDocReturnType)
+            $name === '__construct'
+            || $name === '__destruct'
+            || $name === '__unset'
+            || $name === '__wakeup'
+            || $name === '__clone'
         ) {
-            $phpDocReturnType = null;
+            $returnType = new VoidType();
+        } elseif ($name === '__tostring') {
+            $returnType = new StringType();
+        } elseif ($name === '__isset') {
+            $returnType = new BooleanType();
+        } elseif ($name === '__sleep') {
+            $returnType = new ArrayType(new IntegerType(), new StringType());
+        } elseif ($name === '__set_state') {
+            $returnType = new ObjectWithoutClassType();
         }
 
-        $this->returnType = TypehintHelper::decideTypeFromReflection(
-            $reflectionReturnType,
-            $phpDocReturnType
-        );
-
-        $this->nativeReturnType = TypehintHelper::decideTypeFromReflection($reflectionReturnType);
-        $this->phpDocReturnType = $phpDocReturnType ?? new MixedType();
-
-        if ($method->callsFuncGetArgs) {
-            $this->variadic = true;
-        }
-        foreach ($method->params as $param) {
-            if ($param->variadic) {
-                $this->variadic = true;
-                break;
-            }
-        }
+        $this->variants = $signatureVariantFactory->getVariants($method, $resolvedPhpDoc, $returnType);
     }
 
     public function getDeclaringClass(): ClassReflection
@@ -120,7 +115,7 @@ class IndexMethodReflection extends PhpMethodReflection
         return $this->method->docComment->text;
     }
 
-    public function getPrototype(): MethodReflection
+    public function getPrototype(): ClassMemberReflection
     {
         if ($this->isPrivate() || $this->declaringClass->isInterface() || $this->method->abstract) {
             return $this;
@@ -151,16 +146,11 @@ class IndexMethodReflection extends PhpMethodReflection
     }
 
     /**
-     * @return ParameterReflection[]
+     * @return ParametersAcceptor[]
      */
-    public function getParameters(): array
+    public function getVariants(): array
     {
-        return $this->parameters;
-    }
-
-    public function isVariadic(): bool
-    {
-        return $this->variadic;
+        return $this->variants;
     }
 
     public function isPrivate(): bool
@@ -173,18 +163,23 @@ class IndexMethodReflection extends PhpMethodReflection
         return $this->method->accessibility === ClassLike::M_PUBLIC;
     }
 
-    public function getReturnType(): Type
+    public function isDeprecated(): bool
     {
-        return $this->returnType;
+        return $this->deprecated;
     }
 
-    public function getPhpDocReturnType(): Type
+    public function isInternal(): bool
     {
-        return $this->phpDocReturnType;
+        return $this->internal;
     }
 
-    public function getNativeReturnType(): Type
+    public function isFinal(): bool
     {
-        return $this->nativeReturnType;
+        return $this->final;
+    }
+
+    public function getThrowType(): ?Type
+    {
+        return $this->throwType;
     }
 }

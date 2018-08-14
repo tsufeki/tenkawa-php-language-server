@@ -66,7 +66,7 @@ class VariableCompletionProvider implements CompletionProvider
     public function getCompletions(
         Document $document,
         Position $position,
-        CompletionContext $context = null
+        ?CompletionContext $context
     ): \Generator {
         $completions = new CompletionList();
 
@@ -125,7 +125,9 @@ class VariableCompletionProvider implements CompletionProvider
             if ($node instanceof FunctionLike) {
                 $statements = $node->getStmts() ?: [];
                 foreach ($node->getParams() as $param) {
-                    $variables[$param->name] = null; // TODO: type
+                    if ($name = $this->getVariableName($param->var)) {
+                        $variables[$name] = null; // TODO: type
+                    }
                 }
 
                 if ($this->memberSymbolExtractor->isInObjectContext($nodes)) {
@@ -134,7 +136,9 @@ class VariableCompletionProvider implements CompletionProvider
 
                 if ($node instanceof Expr\Closure) {
                     foreach ($node->uses as $use) {
-                        $variables[$use->var] = null; // TODO: type
+                        if ($name = $this->getVariableName($use->var)) {
+                            $variables[$name] = null; // TODO: type
+                        }
                     }
                 }
                 break;
@@ -154,5 +158,17 @@ class VariableCompletionProvider implements CompletionProvider
         $variables = $visitor->getVariables();
 
         return $variables;
+    }
+
+    /**
+     * @param Expr\Variable|Expr\Error|null $var
+     */
+    private function getVariableName(?Node $var): ?string
+    {
+        if ($var instanceof Expr\Variable && is_string($var->name)) {
+            return $var->name;
+        }
+
+        return null;
     }
 }

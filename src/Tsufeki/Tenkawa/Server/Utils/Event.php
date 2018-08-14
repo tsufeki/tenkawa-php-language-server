@@ -21,6 +21,9 @@ final class Event
         $errorEvents = !is_array($errorEvents) ? [$errorEvents] : $errorEvents;
 
         return yield Recoil::suspend(function (Listener $strand) use ($emitter, $events, $errorEvents) {
+            /** @var callable $removeListeners */
+            $removeListeners = null;
+
             $listener = function (...$args) use ($strand, &$removeListeners) {
                 $removeListeners();
                 $strand->send($args);

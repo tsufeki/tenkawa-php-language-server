@@ -8,6 +8,7 @@ use Tsufeki\Tenkawa\Php\Feature\Importer;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
+use Tsufeki\Tenkawa\Php\Reflection\NameHelper;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionContext;
@@ -77,7 +78,7 @@ class ImportCodeActionProvider implements CodeActionProvider
     /**
      * @resolve Command[]
      */
-    private function getCodeActionsForSymbol(GlobalSymbol $symbol, int $version = null): \Generator
+    private function getCodeActionsForSymbol(GlobalSymbol $symbol, ?int $version): \Generator
     {
         if ($symbol->kind === GlobalSymbol::NAMESPACE_ ||
             $symbol->isImport ||
@@ -94,6 +95,10 @@ class ImportCodeActionProvider implements CodeActionProvider
 
         /** @var Element $element */
         foreach (yield $this->getReflections($name, $symbol->kind, $symbol->document) as $element) {
+            if (NameHelper::isSpecial($element->name)) {
+                continue;
+            }
+
             $kind = $symbol->kind;
             $importParts = explode('\\', ltrim($element->name, '\\'));
             if (count($parts) > 1) {
@@ -144,7 +149,7 @@ class ImportCodeActionProvider implements CodeActionProvider
     /**
      * @param TextEdit[] $textEdits
      */
-    private function makeWorkspaceEdit(array $textEdits, Document $document, int $version = null): WorkspaceEdit
+    private function makeWorkspaceEdit(array $textEdits, Document $document, ?int $version): WorkspaceEdit
     {
         $edit = new WorkspaceEdit();
         $edit->changes = [(string)$document->getUri() => $textEdits];

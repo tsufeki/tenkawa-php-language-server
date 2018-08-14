@@ -7,4 +7,4 @@ parameters:
         - '%rootDir%/../../../tests/Tsufeki/Tenkawa/fixtures/*'
     ignoreErrors:
         - '#Call to an undefined static method Recoil\\Recoil::eventLoop\(\)#'
-        - '#Tsufeki\\Tenkawa\\Php\\PhpStan\\.*::__construct\(\) does not call parent constructor from (PHPStan\\.*|ReflectionClass)#'
+        - '#(Tsufeki\\Tenkawa\\Php\\PhpStan\\.*|Anonymous.*)::__construct\(\) does not call parent constructor from (PHPStan\\.*|ReflectionClass|PhpParser\\PrettyPrinterAbstract|Tsufeki\\Tenkawa\\Php\\PhpStan\\DocumentParser)#'

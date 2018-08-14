@@ -18,7 +18,7 @@ use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class GlobalSymbolExtractor implements NodePathSymbolExtractor
 {
-    const NODE_KINDS = [
+    private const NODE_KINDS = [
         Expr\ClassConstFetch::class => GlobalSymbol::CLASS_,
         Expr\Closure::class => GlobalSymbol::CLASS_,
         Expr\Instanceof_::class => GlobalSymbol::CLASS_,
@@ -40,7 +40,7 @@ class GlobalSymbolExtractor implements NodePathSymbolExtractor
         Stmt\Namespace_::class => GlobalSymbol::NAMESPACE_,
     ];
 
-    const USE_KINDS = [
+    private const USE_KINDS = [
         Stmt\Use_::TYPE_NORMAL => GlobalSymbol::CLASS_,
         Stmt\Use_::TYPE_FUNCTION => GlobalSymbol::FUNCTION_,
         Stmt\Use_::TYPE_CONSTANT => GlobalSymbol::CONST_,
@@ -82,7 +82,7 @@ class GlobalSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve Symbol[]
      */
-    public function getSymbolsInRange(Document $document, Range $range, array $nodes, string $symbolClass = null): \Generator
+    public function getSymbolsInRange(Document $document, Range $range, array $nodes, ?string $symbolClass = null): \Generator
     {
         if ($symbolClass !== null && $symbolClass !== GlobalSymbol::class) {
             return [];

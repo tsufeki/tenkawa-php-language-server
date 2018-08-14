@@ -84,7 +84,7 @@ class HoverFormatter
         return $s;
     }
 
-    private function formatVariable(Variable $variable, string $class = null): string
+    private function formatVariable(Variable $variable, ?string $class = null): string
     {
         return ($class ? StringUtils::getShortName($class) . '::' : '') . '$' . $variable->name;
     }
@@ -94,7 +94,7 @@ class HoverFormatter
         return $this->formatModifiers($property) . $this->formatVariable($property, $property->nameContext->class);
     }
 
-    private function formatConst(Const_ $const, string $class = null): string
+    private function formatConst(Const_ $const, ?string $class = null): string
     {
         $s = 'const ' . ($class ? StringUtils::getShortName($class) . '::' : '') . StringUtils::getShortName($const->name);
         if ($const->valueExpression !== null) {
@@ -116,7 +116,7 @@ class HoverFormatter
         return $s . $this->formatConst($const, $const->nameContext->class);
     }
 
-    private function formatFunction(Function_ $function, string $class = null): string
+    private function formatFunction(Function_ $function, ?string $class = null): string
     {
         $s = 'function ';
         if ($function->returnByRef) {

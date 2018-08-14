@@ -125,8 +125,8 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
     private function indexDocument(
         Document $document,
         WritableIndexStorage $indexStorage,
-        int $timestamp = null,
-        string $origin = null
+        ?int $timestamp,
+        ?string $origin
     ): \Generator {
         $entries = [];
 
@@ -145,14 +145,14 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
 
     private function clearDocument(Uri $uri, WritableIndexStorage $indexStorage): \Generator
     {
-        yield $indexStorage->replaceFile($uri, []);
+        yield $indexStorage->replaceFile($uri, [], null);
     }
 
     public function indexProject(
         Project $project,
         WritableIndexStorage $indexStorage,
-        Uri $subpath = null,
-        string $origin = null
+        ?Uri $subpath,
+        ?string $origin
     ): \Generator {
         $rootUri = $project->getRootUri();
         $subpath = $subpath ?? $rootUri;
@@ -179,7 +179,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
         $indexedFiles = yield $indexStorage->getFileTimestamps($subpath);
         $processedFilesCount = 0;
 
-        foreach (yield $this->fileLister->list($subpath, $fileFilters, $rootUri) as $uriString => list($language, $timestamp)) {
+        foreach (yield $this->fileLister->list($subpath, $fileFilters, $rootUri) as $uriString => [$language, $timestamp]) {
             yield;
             if (array_key_exists($uriString, $indexedFiles) && $indexedFiles[$uriString] === $timestamp) {
                 unset($indexedFiles[$uriString]);
@@ -269,7 +269,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
         /** @var WritableIndexStorage $openFilesIndex */
         $openFilesIndex = $project->get('index.open_files');
 
-        yield $this->indexDocument($document, $openFilesIndex, $document->getVersion());
+        yield $this->indexDocument($document, $openFilesIndex, $document->getVersion(), null);
         yield $this->eventDispatcher->dispatch(OnIndexingFinished::class);
     }
 
@@ -298,7 +298,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
             foreach ($projects as $project) {
                 yield $this->onProjectOpen($project);
                 $indexStorage = $project->get('index.project_files');
-                yield Recoil::execute($this->indexProject($project, $indexStorage, $uri));
+                yield Recoil::execute($this->indexProject($project, $indexStorage, $uri, null));
             }
         }
     }

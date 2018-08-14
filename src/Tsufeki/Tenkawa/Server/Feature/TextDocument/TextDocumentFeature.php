@@ -121,7 +121,7 @@ class TextDocumentFeature implements Feature, MethodProvider
      * @param string|null            $text         Optional the content when saved. Depends on the includeText value
      *                                             when the save notification was requested.
      */
-    public function didSaveTextDocument(TextDocumentIdentifier $textDocument, string $text = null): \Generator
+    public function didSaveTextDocument(TextDocumentIdentifier $textDocument, ?string $text = null): \Generator
     {
         $time = new Stopwatch();
         $this->logger->debug(__FUNCTION__ . " $textDocument->uri [$time]");

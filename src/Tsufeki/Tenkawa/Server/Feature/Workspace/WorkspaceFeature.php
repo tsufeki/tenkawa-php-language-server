@@ -66,7 +66,7 @@ class WorkspaceFeature implements Feature, MethodProvider
     /**
      * @param WorkspaceFolder[]|null $workspaceFolders
      */
-    public function openInitialProjects(string $rootPath = null, Uri $rootUri = null, array $workspaceFolders = null): \Generator
+    public function openInitialProjects(?string $rootPath, ?Uri $rootUri, ?array $workspaceFolders): \Generator
     {
         /** @var Uri[] $rootUris */
         $rootUris = [];

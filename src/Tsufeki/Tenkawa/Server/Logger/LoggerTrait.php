@@ -4,7 +4,7 @@ namespace Tsufeki\Tenkawa\Server\Logger;
 
 trait LoggerTrait
 {
-    protected function interpolate($message, array $context = [])
+    protected function interpolate(string $message, array $context = []): string
     {
         $replace = [];
         foreach ($context as $key => $val) {

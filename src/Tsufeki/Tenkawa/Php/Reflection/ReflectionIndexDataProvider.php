@@ -34,13 +34,13 @@ class ReflectionIndexDataProvider implements IndexDataProvider
 
     public function getVersion(): int
     {
-        return 14;
+        return 15;
     }
 
     /**
      * @resolve IndexEntry[]
      */
-    public function getEntries(Document $document, string $origin = null): \Generator
+    public function getEntries(Document $document, ?string $origin): \Generator
     {
         if ($document->getLanguage() !== 'php') {
             return [];
@@ -74,7 +74,7 @@ class ReflectionIndexDataProvider implements IndexDataProvider
         array $elements,
         string $category,
         Document $document,
-        string $origin = null,
+        ?string $origin,
         bool $caseSensitive = true
     ): array {
         return array_map(function (Element\Element $elem) use ($category, $document, $caseSensitive, $origin) {

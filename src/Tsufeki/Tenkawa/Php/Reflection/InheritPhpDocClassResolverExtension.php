@@ -20,7 +20,7 @@ class InheritPhpDocClassResolverExtension implements ClassResolverExtension
         yield;
     }
 
-    private function inheritPhpDoc(ResolvedClassLike $class, string $kind)
+    private function inheritPhpDoc(ResolvedClassLike $class, string $kind): void
     {
         /** @var Property|Method $member */
         foreach ($class->$kind as $name => $member) {
@@ -37,10 +37,7 @@ class InheritPhpDocClassResolverExtension implements ClassResolverExtension
         }
     }
 
-    /**
-     * @return DocComment|null
-     */
-    private function findDocComment(ResolvedClassLike $class, string $kind, string $name)
+    private function findDocComment(ResolvedClassLike $class, string $kind, string $name): ?DocComment
     {
         /** @var ResolvedClassLike $parent */
         foreach (array_merge($class->parentClass ? [$class->parentClass] : [], $class->interfaces) as $parent) {

@@ -2,17 +2,13 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
-use PHPStan\Reflection\FunctionReflection;
-use PHPStan\Reflection\ParameterReflection;
-use PHPStan\ShouldNotHappenException;
-use PHPStan\Type\MixedType;
+use PHPStan\Reflection\FunctionVariant;
+use PHPStan\Reflection\ParametersAcceptor;
+use PHPStan\Reflection\Php\PhpFunctionReflection;
 use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-use PHPStan\Type\TypehintHelper;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
 
-class IndexFunctionReflection extends FunctionReflection
+class IndexFunctionReflection extends PhpFunctionReflection
 {
     /**
      * @var Function_
@@ -20,81 +16,46 @@ class IndexFunctionReflection extends FunctionReflection
     private $function;
 
     /**
-     * @var ParameterReflection[]
+     * @var FunctionVariant[]
      */
-    private $parameters;
-
-    /**
-     * @var Type
-     */
-    private $nativeReturnType;
-
-    /**
-     * @var Type
-     */
-    private $phpDocReturnType;
-
-    /**
-     * @var Type
-     */
-    private $returnType;
+    private $variants;
 
     /**
      * @var bool
      */
-    private $variadic = false;
+    private $deprecated = false;
 
-    public function __construct(Function_ $function, PhpDocResolver $phpDocResolver)
+    /**
+     * @var bool
+     */
+    private $internal = false;
+
+    /**
+     * @var bool
+     */
+    private $final = false;
+
+    /**
+     * @var Type|null
+     */
+    private $throwType;
+
+    public function __construct(Function_ $function, PhpDocResolver $phpDocResolver, SignatureVariantFactory $signatureVariantFactory)
     {
         $this->function = $function;
 
-        $phpDocParameterTags = [];
-        $phpDocReturnTag = null;
+        $resolvedPhpDoc = null;
         if ($function->docComment) {
             $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($function);
-            $phpDocParameterTags = $resolvedPhpDoc->getParamTags();
-            $phpDocReturnTag = $resolvedPhpDoc->getReturnTag();
+            $phpDocThrowsTag = $resolvedPhpDoc->getThrowsTag();
+
+            $this->deprecated = $resolvedPhpDoc->isDeprecated();
+            $this->internal = $resolvedPhpDoc->isInternal();
+            $this->final = $resolvedPhpDoc->isFinal();
+            $this->throwType = $phpDocThrowsTag ? $phpDocThrowsTag->getType() : null;
         }
 
-        $this->parameters = array_map(function (Param $param) use ($phpDocParameterTags) {
-            return new IndexParameterReflection(
-                $param,
-                isset($phpDocParameterTags[$param->name]) ? $phpDocParameterTags[$param->name]->getType() : null
-            );
-        }, $function->params);
-
-        $phpDocReturnType = $phpDocReturnTag !== null ? $phpDocReturnTag->getType() : null;
-        $reflectionReturnType = $function->returnType !== null ? new DummyReflectionType($function->returnType->type) : null;
-        if (
-            $reflectionReturnType !== null
-            && $phpDocReturnType !== null
-            && $reflectionReturnType->allowsNull() !== TypeCombinator::containsNull($phpDocReturnType)
-        ) {
-            $phpDocReturnType = null;
-        }
-
-        $this->returnType = TypehintHelper::decideTypeFromReflection(
-            $reflectionReturnType,
-            $phpDocReturnType
-        );
-
-        $this->nativeReturnType = TypehintHelper::decideTypeFromReflection($reflectionReturnType);
-        $this->phpDocReturnType = $phpDocReturnType ?? new MixedType();
-
-        if ($function->callsFuncGetArgs) {
-            $this->variadic = true;
-        }
-        foreach ($function->params as $param) {
-            if ($param->variadic) {
-                $this->variadic = true;
-                break;
-            }
-        }
-    }
-
-    public function getNativeReflection(): \ReflectionFunction
-    {
-        throw new ShouldNotHappenException();
+        $this->variants = $signatureVariantFactory->getVariants($function, $resolvedPhpDoc);
     }
 
     public function getName(): string
@@ -103,30 +64,30 @@ class IndexFunctionReflection extends FunctionReflection
     }
 
     /**
-     * @return ParameterReflection[]
+     * @return ParametersAcceptor[]
      */
-    public function getParameters(): array
+    public function getVariants(): array
     {
-        return $this->parameters;
+        return $this->variants;
     }
 
-    public function isVariadic(): bool
+    public function isDeprecated(): bool
     {
-        return $this->variadic;
+        return $this->deprecated;
     }
 
-    public function getReturnType(): Type
+    public function isInternal(): bool
     {
-        return $this->returnType;
+        return $this->internal;
     }
 
-    public function getPhpDocReturnType(): Type
+    public function isFinal(): bool
     {
-        return $this->phpDocReturnType;
+        return $this->final;
     }
 
-    public function getNativeReturnType(): Type
+    public function getThrowType(): ?Type
     {
-        return $this->nativeReturnType;
+        return $this->throwType;
     }
 }

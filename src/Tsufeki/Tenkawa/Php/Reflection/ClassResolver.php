@@ -26,7 +26,7 @@ class ClassResolver
      */
     private $classResolverExtensions;
 
-    const RESOLVED_CLASS_MAP = [
+    private const RESOLVED_CLASS_MAP = [
         ClassConst::class => ResolvedClassConst::class,
         Property::class => ResolvedProperty::class,
         Method::class => ResolvedMethod::class,
@@ -55,7 +55,7 @@ class ClassResolver
     /**
      * @resolve ResolvedClassLike|null
      */
-    public function resolve(string $className, Document $document, Cache $cache = null): \Generator
+    public function resolve(string $className, Document $document, ?Cache $cache = null): \Generator
     {
         $cache = $cache ?? new Cache();
         $resolved = $cache->get($className);
@@ -88,7 +88,7 @@ class ClassResolver
         return $resolved;
     }
 
-    private function copyDetails(ResolvedClassLike $resolved, ClassLike $class)
+    private function copyDetails(ResolvedClassLike $resolved, ClassLike $class): void
     {
         $resolved->name = $class->name;
         $resolved->location = $class->location;
@@ -136,7 +136,7 @@ class ClassResolver
         $resolved->traits = array_filter($resolved->traits);
     }
 
-    private function resolveMembers(ResolvedClassLike $resolved, ClassLike $class)
+    private function resolveMembers(ResolvedClassLike $resolved, ClassLike $class): void
     {
         $resolved->methods = $this->getSelfMembers($class->methods);
         $resolved->properties = $this->getSelfMembers($class->properties);

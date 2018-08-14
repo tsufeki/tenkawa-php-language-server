@@ -7,5 +7,5 @@ use Tsufeki\Tenkawa\Server\Utils\Cache;
 
 interface TypeInference
 {
-    public function infer(Document $document, Cache $cache = null): \Generator;
+    public function infer(Document $document, ?Cache $cache = null): \Generator;
 }

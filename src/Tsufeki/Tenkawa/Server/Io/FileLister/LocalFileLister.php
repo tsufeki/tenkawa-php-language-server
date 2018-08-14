@@ -6,7 +6,7 @@ use Tsufeki\Tenkawa\Server\Uri;
 
 class LocalFileLister implements FileLister
 {
-    public function list(Uri $uri, array $filters, Uri $baseUri = null): \Generator
+    public function list(Uri $uri, array $filters, ?Uri $baseUri = null): \Generator
     {
         $baseUri = $baseUri ?? $uri;
         $path = $uri->getFilesystemPath();
@@ -17,7 +17,7 @@ class LocalFileLister implements FileLister
 
         if (!is_dir($path)) {
             $uriString = $uri->getNormalized();
-            list($accept, $fileType) = $this->voteOnAcceptFile($uriString, $filters, $baseUri->getNormalized());
+            [$accept, $fileType] = $this->voteOnAcceptFile($uriString, $filters, $baseUri->getNormalized());
             if ($accept) {
                 return new \ArrayIterator([$uriString => [$fileType, filemtime($path)]]);
             }
@@ -41,20 +41,23 @@ class LocalFileLister implements FileLister
     }
 
     /**
-     * @param \RecursiveDirectoryIterator&iterable<string,\SplFileInfo> $iterator
-     * @param FileFilter[]                                              $filters
+     * @param \RecursiveDirectoryIterator $iterator
+     * @param FileFilter[]                $filters
      */
     private function iterate(\RecursiveDirectoryIterator $iterator, array $filters, string $baseUri): \Iterator
     {
         try {
+            /** @var \SplFileInfo $info */
             foreach ($iterator as $path => $info) {
                 $uri = Uri::fromFilesystemPath($path)->getNormalized();
                 if ($info->isDir()) {
                     if ($this->voteOnEnterDirectory($uri, $filters, $baseUri) && $iterator->hasChildren()) {
-                        yield from $this->iterate($iterator->getChildren(), $filters, $baseUri);
+                        /** @var \RecursiveDirectoryIterator $children */
+                        $children = $iterator->getChildren();
+                        yield from $this->iterate($children, $filters, $baseUri);
                     }
                 } else {
-                    list($accept, $fileType) = $this->voteOnAcceptFile($uri, $filters, $baseUri);
+                    [$accept, $fileType] = $this->voteOnAcceptFile($uri, $filters, $baseUri);
                     if ($accept) {
                         yield $uri => [$fileType, $info->getMTime()];
                     }

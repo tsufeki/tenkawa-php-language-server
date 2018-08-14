@@ -34,7 +34,7 @@ class PhpDocResolverVisitor extends NameContextVisitor
     /**
      * @return array<string,NameContext> comment => name context
      */
-    public function getNameContexts()
+    public function getNameContexts(): array
     {
         return $this->nameContexts;
     }

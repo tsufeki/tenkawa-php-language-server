@@ -62,7 +62,7 @@ class DocumentStore
     /**
      * @resolve Document
      */
-    public function open(Uri $uri, string $language, string $text, int $version = null): \Generator
+    public function open(Uri $uri, string $language, string $text, ?int $version): \Generator
     {
         $document = new Document($uri, $language);
         $document->update($text, $version);
@@ -89,7 +89,7 @@ class DocumentStore
         yield;
     }
 
-    public function update(Document $document, string $text, int $version = null): \Generator
+    public function update(Document $document, string $text, ?int $version): \Generator
     {
         // Check if open
         $this->get($document->getUri());

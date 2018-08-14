@@ -16,11 +16,3 @@ namespace PHPStan\Analyser
         return \constant($name);
     }
 }
-
-namespace PHPStan\Rules\Arrays
-{
-    function constant(string $name)
-    {
-        return \PHPStan\Analyser\constant($name);
-    }
-}

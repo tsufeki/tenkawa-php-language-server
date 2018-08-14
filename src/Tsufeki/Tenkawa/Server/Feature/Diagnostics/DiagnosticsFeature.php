@@ -191,7 +191,7 @@ class DiagnosticsFeature implements Feature, OnOpen, OnChange, OnIndexingFinishe
         }
     }
 
-    private function fixDiagnostic(Diagnostic $diagnostic)
+    private function fixDiagnostic(Diagnostic $diagnostic): void
     {
         // Multiline squiggles are somewhat annoying.
         $range = $diagnostic->range;

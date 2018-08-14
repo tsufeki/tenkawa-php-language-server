@@ -36,7 +36,7 @@ class SymbolReferencesProvider implements ReferencesProvider
     /**
      * @resolve Location[]
      */
-    public function getReferences(Document $document, Position $position, ReferenceContext $context = null): \Generator
+    public function getReferences(Document $document, Position $position, ?ReferenceContext $context): \Generator
     {
         if ($document->getLanguage() !== 'php') {
             return [];

@@ -193,10 +193,8 @@ class Importer
 
     /**
      * @param Node[] $nodes
-     *
-     * @return Node|null
      */
-    private function getFirstStatement(array $nodes)
+    private function getFirstStatement(array $nodes): ?Node
     {
         foreach ($nodes as $node) {
             if (!($node instanceof Stmt\InlineHTML)) {

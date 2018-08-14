@@ -35,7 +35,7 @@ class MemberSymbolCompleter implements SymbolCompleter
      */
     private $classResolver;
 
-    const COMPLETION_KINDS = [
+    private const COMPLETION_KINDS = [
         ResolvedProperty::class => CompletionItemKind::PROPERTY,
         ResolvedMethod::class => CompletionItemKind::METHOD,
         ResolvedClassConst::class => CompletionItemKind::VARIABLE,
@@ -76,7 +76,7 @@ class MemberSymbolCompleter implements SymbolCompleter
         /** @var ResolvedMethod[] $methods */
         $methods = yield $this->getMembers($symbol, MemberSymbol::METHOD);
 
-        /** @var Element[][] $allElements */
+        /** @var (ResolvedClassConst|ResolvedMethod|ResolvedProperty)[][] $allElements */
         $allElements = [];
         if ($kind === MemberSymbol::CLASS_CONST) {
             $allElements[] = $consts;

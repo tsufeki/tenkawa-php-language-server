@@ -2,15 +2,21 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
+use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Name;
+use PhpParser\Node\Stmt\Class_;
+use PhpParser\PrettyPrinter\Standard;
 use PHPStan\Analyser\Scope;
+use PHPStan\Broker\AnonymousClassNameHelper;
 use PHPStan\Broker\Broker;
 use PHPStan\Broker\ClassNotFoundException;
 use PHPStan\Broker\FunctionNotFoundException;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\FunctionReflection;
 use PHPStan\Reflection\MethodsClassReflectionExtension;
+use PHPStan\Reflection\Php\PhpFunctionReflection;
 use PHPStan\Reflection\PropertiesClassReflectionExtension;
+use PHPStan\Reflection\SignatureMap\SignatureMapProvider;
 use PHPStan\ShouldNotHappenException;
 use PHPStan\Type\DynamicFunctionReturnTypeExtension;
 use PHPStan\Type\DynamicMethodReturnTypeExtension;
@@ -18,8 +24,10 @@ use PHPStan\Type\DynamicStaticMethodReturnTypeExtension;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\ConstExprEvaluator;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
+use Tsufeki\Tenkawa\Php\Reflection\NameHelper;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
 
@@ -61,6 +69,11 @@ class IndexBroker extends Broker
     private $phpDocResolver;
 
     /**
+     * @var SignatureVariantFactory
+     */
+    private $signatureVariantFactory;
+
+    /**
      * @var Document|null
      */
     private $document;
@@ -71,6 +84,7 @@ class IndexBroker extends Broker
     private $cache;
 
     /**
+     * @param string[]                                 $universalObjectCratesClasses
      * @param PropertiesClassReflectionExtension[]     $propertiesClassReflectionExtensions
      * @param MethodsClassReflectionExtension[]        $methodsClassReflectionExtensions
      * @param DynamicMethodReturnTypeExtension[]       $dynamicMethodReturnTypeExtensions
@@ -78,6 +92,7 @@ class IndexBroker extends Broker
      * @param DynamicFunctionReturnTypeExtension[]     $dynamicFunctionReturnTypeExtensions
      */
     public function __construct(
+        array $universalObjectCratesClasses,
         array $propertiesClassReflectionExtensions,
         array $methodsClassReflectionExtensions,
         array $dynamicMethodReturnTypeExtensions,
@@ -87,7 +102,8 @@ class IndexBroker extends Broker
         ClassResolver $classResolver,
         ConstExprEvaluator $constExprEvaluator,
         SyncAsync $syncAsync,
-        PhpDocResolver $phpDocResolver
+        PhpDocResolver $phpDocResolver,
+        SignatureVariantFactory $signatureVariantFactory
     ) {
         parent::__construct(
             $propertiesClassReflectionExtensions,
@@ -96,7 +112,30 @@ class IndexBroker extends Broker
             $dynamicStaticMethodReturnTypeExtensions,
             $dynamicFunctionReturnTypeExtensions,
             new DummyFunctionReflectionFactory(),
-            $phpDocResolver
+            $phpDocResolver,
+            // stubs:
+            new class() extends SignatureMapProvider {
+                public function __construct()
+                {
+                }
+            },
+            new class() extends Standard {
+                public function __construct()
+                {
+                }
+            },
+            new class() extends AnonymousClassNameHelper {
+                public function __construct()
+                {
+                }
+            },
+            new class() extends DocumentParser {
+                public function __construct()
+                {
+                }
+            },
+            $universalObjectCratesClasses,
+            ''
         );
 
         $this->propertiesReflectionExtensions = $propertiesClassReflectionExtensions;
@@ -106,14 +145,17 @@ class IndexBroker extends Broker
         $this->constExprEvaluator = $constExprEvaluator;
         $this->syncAsync = $syncAsync;
         $this->phpDocResolver = $phpDocResolver;
+        $this->signatureVariantFactory = $signatureVariantFactory;
+
+        self::registerInstance($this);
     }
 
-    public function setDocument(Document $document = null)
+    public function setDocument(?Document $document)
     {
         $this->document = $document;
     }
 
-    public function setCache(Cache $cache = null)
+    public function setCache(?Cache $cache)
     {
         $this->cache = $cache;
     }
@@ -139,6 +181,7 @@ class IndexBroker extends Broker
             $class,
             $this,
             $this->phpDocResolver,
+            $this->signatureVariantFactory,
             $this->propertiesReflectionExtensions,
             $this->methodsReflectionExtensions
         );
@@ -147,7 +190,24 @@ class IndexBroker extends Broker
         return $classReflection;
     }
 
-    public function getClassFromReflection(\ReflectionClass $reflectionClass, string $displayName, bool $anonymous): ClassReflection
+    public function getAnonymousClassReflection(New_ $node, Scope $scope): ClassReflection
+    {
+        if (!$node->class instanceof Class_) {
+            throw new \PHPStan\ShouldNotHappenException();
+        }
+
+        $scopeFile = $scope->getFile();
+        $trait = $scope->getTraitReflection();
+        if ($trait !== null) {
+            $scopeFile = $trait->getFileName() ?: $scopeFile;
+        }
+
+        $className = NameHelper::getAnonymousClassName(Uri::fromFilesystemPath($scopeFile), $node->class);
+
+        return $this->getClass($className);
+    }
+
+    public function getClassFromReflection(\ReflectionClass $reflectionClass, string $displayName, ?string $anonymousFilename): ClassReflection
     {
         throw new ShouldNotHappenException();
     }
@@ -163,7 +223,7 @@ class IndexBroker extends Broker
         }
     }
 
-    public function getFunction(Name $nameNode, Scope $scope = null): FunctionReflection
+    public function getFunction(Name $nameNode, ?Scope $scope): FunctionReflection
     {
         if ($this->document === null || $this->cache === null) {
             throw new ShouldNotHappenException();
@@ -180,7 +240,7 @@ class IndexBroker extends Broker
                 continue;
             }
 
-            $functionReflection = new IndexFunctionReflection($function, $this->phpDocResolver);
+            $functionReflection = new IndexFunctionReflection($function, $this->phpDocResolver, $this->signatureVariantFactory);
             $this->cache->set("broker.function.$name", $functionReflection);
 
             return $functionReflection;
@@ -189,15 +249,31 @@ class IndexBroker extends Broker
         throw new FunctionNotFoundException((string)$nameNode);
     }
 
-    public function hasFunction(Name $nameNode, Scope $scope = null): bool
+    public function hasFunction(Name $nameNode, ?Scope $scope): bool
     {
         return $this->resolveFunctionName($nameNode, $scope) !== null;
     }
 
-    /**
-     * @return string|null
-     */
-    public function resolveFunctionName(Name $nameNode, Scope $scope = null)
+    public function hasCustomFunction(Name $nameNode, ?Scope $scope): bool
+    {
+        $resolved = $this->resolveFunctionName($nameNode, $scope);
+
+        return $resolved !== null && $this->signatureVariantFactory->isCustom($resolved);
+    }
+
+    public function getCustomFunction(Name $nameNode, ?Scope $scope): PhpFunctionReflection
+    {
+        if (!$this->hasCustomFunction($nameNode, $scope)) {
+            throw new ShouldNotHappenException();
+        }
+
+        $functionReflection = $this->getFunction($nameNode, $scope);
+        assert($functionReflection instanceof PhpFunctionReflection);
+
+        return $functionReflection;
+    }
+
+    public function resolveFunctionName(Name $nameNode, ?Scope $scope): ?string
     {
         try {
             return ltrim($this->getFunction($nameNode, $scope)->getName(), '\\');
@@ -206,16 +282,15 @@ class IndexBroker extends Broker
         }
     }
 
-    public function hasConstant(\PhpParser\Node\Name $nameNode, Scope $scope = null): bool
+    public function hasConstant(Name $nameNode, ?Scope $scope): bool
     {
         return $this->resolveConstantName($nameNode, $scope) !== null;
     }
 
-    /**
-     * @return string|null
-     */
-    public function resolveConstantName(Name $nameNode, Scope $scope = null)
+    public function resolveConstantName(Name $nameNode, ?Scope $scope): ?string
     {
+        // TODO halt compiler
+
         if ($this->document === null) {
             throw new ShouldNotHappenException();
         }
@@ -266,7 +341,7 @@ class IndexBroker extends Broker
      */
     private function getNameCandidates(
         Name $nameNode,
-        Scope $scope = null
+        ?Scope $scope
     ): array {
         $candidates = [];
         $name = (string)$nameNode;

@@ -2,9 +2,10 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
-use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassConstantReflection;
+use PHPStan\Reflection\ClassMemberAccessAnswerer;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ConstantReflection;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\Reflection\MethodsClassReflectionExtension;
 use PHPStan\Reflection\MissingMethodFromReflectionException;
@@ -32,6 +33,11 @@ class IndexClassReflection extends ClassReflection
      * @var PhpDocResolver
      */
     private $phpDocResolver;
+
+    /**
+     * @var SignatureVariantFactory
+     */
+    private $signatureVariantFactory;
 
     /**
      * @var PropertiesClassReflectionExtension[]
@@ -69,6 +75,21 @@ class IndexClassReflection extends ClassReflection
     private $constants = [];
 
     /**
+     * @var bool
+     */
+    private $deprecated = false;
+
+    /**
+     * @var bool
+     */
+    private $internal = false;
+
+    /**
+     * @var bool
+     */
+    private $final = false;
+
+    /**
      * @param PropertiesClassReflectionExtension[] $propertiesClassReflectionExtensions
      * @param MethodsClassReflectionExtension[]    $methodsClassReflectionExtensions
      */
@@ -76,14 +97,25 @@ class IndexClassReflection extends ClassReflection
         ResolvedClassLike $class,
         IndexBroker $broker,
         PhpDocResolver $phpDocResolver,
+        SignatureVariantFactory $signatureVariantFactory,
         array $propertiesClassReflectionExtensions,
         array $methodsClassReflectionExtensions
     ) {
         $this->class = $class;
         $this->broker = $broker;
         $this->phpDocResolver = $phpDocResolver;
+        $this->signatureVariantFactory = $signatureVariantFactory;
         $this->propertiesClassReflectionExtensions = $propertiesClassReflectionExtensions;
         $this->methodsClassReflectionExtensions = $methodsClassReflectionExtensions;
+        $this->final = $class->final;
+
+        if ($class->docComment) {
+            $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($class);
+
+            $this->deprecated = $resolvedPhpDoc->isDeprecated();
+            $this->internal = $resolvedPhpDoc->isInternal();
+            $this->final = $this->final || $resolvedPhpDoc->isFinal();
+        }
     }
 
     public function getNativeReflection(): \ReflectionClass
@@ -141,7 +173,7 @@ class IndexClassReflection extends ClassReflection
         return !empty($this->methods[$methodName]);
     }
 
-    public function getMethod(string $methodName, Scope $scope): MethodReflection
+    public function getMethod(string $methodName, ClassMemberAccessAnswerer $scope): MethodReflection
     {
         $methodName = strtolower($methodName);
         $this->createMethods($methodName);
@@ -154,7 +186,13 @@ class IndexClassReflection extends ClassReflection
         }
 
         if ($method === null) {
-            throw new MissingMethodFromReflectionException($this->getName(), $methodName);
+            $filename = $this->getFileName();
+
+            throw new MissingMethodFromReflectionException(
+                $this->getName(),
+                $methodName,
+                $filename !== false ? $filename : null
+            );
         }
 
         return $method;
@@ -168,17 +206,33 @@ class IndexClassReflection extends ClassReflection
         return !empty($this->nativeMethods[$methodName]);
     }
 
-    public function getNativeMethod(string $methodName): PhpMethodReflection
+    public function getNativeMethod(string $methodName): MethodReflection
     {
         $methodName = strtolower($methodName);
         $this->createMethods($methodName);
 
         $method = $this->nativeMethods[$methodName] ?? null;
         if ($method === null) {
-            throw new MissingMethodFromReflectionException($this->getName(), $methodName);
+            $filename = $this->getFileName();
+
+            throw new MissingMethodFromReflectionException(
+                $this->getName(),
+                $methodName,
+                $filename !== false ? $filename : null
+            );
         }
 
         return $method;
+    }
+
+    public function hasConstructor(): bool
+    {
+        return $this->hasNativeMethod('__construct');
+    }
+
+    public function getConstructor(): MethodReflection
+    {
+        return $this->getNativeMethod('__construct');
     }
 
     private function createMethods(string $methodName)
@@ -193,7 +247,8 @@ class IndexClassReflection extends ClassReflection
             $indexMethod = new IndexMethodReflection(
                 $this->broker->getClass((string)$method->nameContext->class),
                 $method,
-                $this->phpDocResolver
+                $this->phpDocResolver,
+                $this->signatureVariantFactory
             );
 
             $this->methods[$methodName][] = $indexMethod;
@@ -216,7 +271,7 @@ class IndexClassReflection extends ClassReflection
         return !empty($this->properties[$propertyName]);
     }
 
-    public function getProperty(string $propertyName, Scope $scope): PropertyReflection
+    public function getProperty(string $propertyName, ClassMemberAccessAnswerer $scope): PropertyReflection
     {
         $this->createProperties($propertyName);
 
@@ -228,7 +283,13 @@ class IndexClassReflection extends ClassReflection
         }
 
         if ($property === null) {
-            throw new MissingPropertyFromReflectionException($this->getName(), $propertyName);
+            $filename = $this->getFileName();
+
+            throw new MissingPropertyFromReflectionException(
+                $this->getName(),
+                $propertyName,
+                $filename !== false ? $filename : null
+            );
         }
 
         return $property;
@@ -247,7 +308,13 @@ class IndexClassReflection extends ClassReflection
 
         $property = $this->nativeProperties[$propertyName] ?? null;
         if ($property === null) {
-            throw new MissingPropertyFromReflectionException($this->getName(), $propertyName);
+            $filename = $this->getFileName();
+
+            throw new MissingPropertyFromReflectionException(
+                $this->getName(),
+                $propertyName,
+                $filename !== false ? $filename : null
+            );
         }
 
         return $property;
@@ -286,9 +353,19 @@ class IndexClassReflection extends ClassReflection
         return $this->class->abstract;
     }
 
+    public function isDeprecated(): bool
+    {
+        return $this->deprecated;
+    }
+
+    public function isInternal(): bool
+    {
+        return $this->internal;
+    }
+
     public function isFinal(): bool
     {
-        return $this->class->final;
+        return $this->final;
     }
 
     public function isInterface(): bool
@@ -387,7 +464,7 @@ class IndexClassReflection extends ClassReflection
         return isset($this->class->consts[$name]);
     }
 
-    public function getConstant(string $name): ClassConstantReflection
+    public function getConstant(string $name): ConstantReflection
     {
         if (!$this->hasConstant($name)) {
             throw new ShouldNotHappenException();
@@ -402,7 +479,8 @@ class IndexClassReflection extends ClassReflection
         return $this->constants[$name] = new IndexClassConstantReflection(
             $this->broker->getClass((string)$const->nameContext->class),
             $const,
-            $this->broker->getConstantValueFromReflection($const)
+            $this->broker->getConstantValueFromReflection($const),
+            $this->phpDocResolver
         );
     }
 

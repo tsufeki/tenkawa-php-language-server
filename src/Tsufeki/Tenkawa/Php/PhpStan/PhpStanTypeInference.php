@@ -10,6 +10,7 @@ use PHPStan\Type\IntersectionType as PhpStanIntersectionType;
 use PHPStan\Type\Type as PhpStanType;
 use PHPStan\Type\TypeWithClassName;
 use PHPStan\Type\UnionType as PhpStanUnionType;
+use PHPStan\Type\VerbosityLevel;
 use Tsufeki\Tenkawa\Php\TypeInference\BasicType;
 use Tsufeki\Tenkawa\Php\TypeInference\IntersectionType;
 use Tsufeki\Tenkawa\Php\TypeInference\ObjectType;
@@ -26,7 +27,7 @@ class PhpStanTypeInference implements TypeInference
      */
     private $analyser;
 
-    const IGNORED_EXPR_NODES = [
+    private const IGNORED_EXPR_NODES = [
         Expr\Error::class => true,
         Scalar\EncapsedStringPart::class => true,
     ];
@@ -36,7 +37,7 @@ class PhpStanTypeInference implements TypeInference
         $this->analyser = $analyser;
     }
 
-    public function infer(Document $document, Cache $cache = null): \Generator
+    public function infer(Document $document, ?Cache $cache = null): \Generator
     {
         if ($document->getLanguage() !== 'php') {
             return;
@@ -89,7 +90,7 @@ class PhpStanTypeInference implements TypeInference
         }
 
         $type = new BasicType();
-        $type->description = $phpStanType->describe();
+        $type->description = $phpStanType->describe(VerbosityLevel::value());
 
         return $type;
     }

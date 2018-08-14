@@ -35,7 +35,7 @@ class ConfigurationFeature implements Feature
      *
      * @resolve mixed|null
      */
-    public function get(string $key, Document $document = null): \Generator
+    public function get(string $key, ?Document $document = null): \Generator
     {
         $value = $this->globals;
         foreach (explode('.', $key) as $keyPart) {
@@ -46,7 +46,7 @@ class ConfigurationFeature implements Feature
         yield;
     }
 
-    public function setGlobals($globals)
+    public function setGlobals($globals): void
     {
         $this->globals = $globals->{$this->rootKey} ?? null;
     }

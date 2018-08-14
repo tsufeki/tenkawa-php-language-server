@@ -2,6 +2,8 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
+use PHPStan\ShouldNotHappenException;
+
 class DummyReflectionClass extends \ReflectionClass
 {
     /**
@@ -12,6 +14,11 @@ class DummyReflectionClass extends \ReflectionClass
     public function __construct(IndexClassReflection $classReflection)
     {
         $this->classReflection = $classReflection;
+    }
+
+    public function getName()
+    {
+        $this->classReflection->getName();
     }
 
     public function getInterfaceNames()
@@ -39,5 +46,17 @@ class DummyReflectionClass extends \ReflectionClass
         }
 
         return false;
+    }
+
+    public function getProperties($filter = null)
+    {
+        throw new ShouldNotHappenException();
+        // TODO
+        // \ReflectionProperty
+        //   ->getName(): string
+        //   ->getDeclaringClass(): \ReflectionClass
+        //   ->isPrivate(): bool
+        //   ->isProtected(): bool
+        //   ->isStatic(): bool
     }
 }

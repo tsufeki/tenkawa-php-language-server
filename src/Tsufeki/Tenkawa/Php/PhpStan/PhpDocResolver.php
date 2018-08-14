@@ -15,6 +15,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
@@ -65,18 +66,22 @@ class PhpDocResolver extends FileTypeMapper
         $this->syncAsync = $syncAsync;
     }
 
-    public function setDocument(Document $document = null)
+    public function setDocument(?Document $document)
     {
         $this->document = $document;
     }
 
-    public function setCache(Cache $cache = null)
+    public function setCache(?Cache $cache)
     {
         $this->cache = $cache;
     }
 
-    public function getResolvedPhpDoc(string $filename, string $className = null, string $docComment): ResolvedPhpDocBlock
-    {
+    public function getResolvedPhpDoc(
+        string $filename,
+        ?string $className,
+        ?string $traitName,
+        string $docComment
+    ): ResolvedPhpDocBlock {
         if ($this->document === null || $this->cache === null) {
             throw new ShouldNotHappenException();
         }
@@ -98,7 +103,7 @@ class PhpDocResolver extends FileTypeMapper
         return $docBlock;
     }
 
-    private function findDocCommentInAst(string $filename, string $docComment)
+    private function findDocCommentInAst(string $filename, string $docComment): ?NameContext
     {
         if ($this->cache === null) {
             throw new ShouldNotHappenException();
@@ -121,10 +126,7 @@ class PhpDocResolver extends FileTypeMapper
         return $nameContexts[$docComment] ?? null;
     }
 
-    /**
-     * @return NameContext|null
-     */
-    private function findDocCommentInIndex(Uri $uri, string $docComment)
+    private function findDocCommentInIndex(Uri $uri, string $docComment): ?NameContext
     {
         if ($this->document === null) {
             throw new ShouldNotHappenException();
@@ -141,7 +143,7 @@ class PhpDocResolver extends FileTypeMapper
             }
 
             foreach (array_merge($class->methods, $class->properties, $class->consts) as $member) {
-                if (($member->docComment ?? null) === $docComment) {
+                if (($member->docComment->text ?? null) === $docComment) {
                     return $member->nameContext;
                 }
             }
@@ -172,7 +174,10 @@ class PhpDocResolver extends FileTypeMapper
         return null;
     }
 
-    public function getResolvedPhpDocForReflectionElement(Element $element): ResolvedPhpDocBlock
+    /**
+     * @param Element|ResolvedClassLike $element
+     */
+    public function getResolvedPhpDocForReflectionElement($element): ResolvedPhpDocBlock
     {
         return $this->getResolvedPhpDocForNameContext(
             $element->docComment->text ?? '/** */',
@@ -189,7 +194,7 @@ class PhpDocResolver extends FileTypeMapper
         $key = 'phpdoc_resolver.doc_block.' . sha1(serialize($context) . $docComment);
         $docBlock = $this->cache->get($key);
         if ($docBlock === InfiniteRecursionMarker::get()) {
-            return $this->phpDocStringResolver->resolve('/** */', new NameScope());
+            return $this->phpDocStringResolver->resolve('/** */', new NameScope(null, []));
         }
         if ($docBlock !== null) {
             return $docBlock;

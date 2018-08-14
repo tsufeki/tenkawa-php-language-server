@@ -89,7 +89,7 @@ class PhpStanDiagnosticsProvider implements WorkspaceDiagnosticsProvider
                 foreach ($this->registry->getRules(get_class($node)) as $rule) {
                     foreach ($rule->processNode($node, $scope) as $message) {
                         try {
-                            $uri = Uri::fromFilesystemPath($scope->getAnalysedContextFile());
+                            $uri = Uri::fromFilesystemPath($scope->getFile());
                             $document = $this->documentStore->get($uri);
                             $diag = new Diagnostic();
                             $diag->severity = $this->severity;

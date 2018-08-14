@@ -104,7 +104,7 @@ abstract class WritableIndexStorageTest extends TestCase
             /** @var WritableIndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
-            yield $storage->replaceFile(Uri::fromString('file:///dir/foo'), []);
+            yield $storage->replaceFile(Uri::fromString('file:///dir/foo'), [], null);
 
             $query = new Query();
             $query->category = 'cat1';
@@ -121,7 +121,7 @@ abstract class WritableIndexStorageTest extends TestCase
             /** @var WritableIndexStorage $storage */
             $storage = yield $this->getStorageWithEntries();
 
-            yield $storage->replaceFile(Uri::fromString('file:///dir/bar'), []);
+            yield $storage->replaceFile(Uri::fromString('file:///dir/bar'), [], null);
 
             $query = new Query();
             $query->category = 'cat1';

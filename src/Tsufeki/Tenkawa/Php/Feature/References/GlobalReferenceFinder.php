@@ -39,8 +39,8 @@ class GlobalReferenceFinder implements ReferenceFinder
 
         /** @var Element[] $elements */
         $elements = yield $this->symbolReflection->getReflectionFromSymbol($symbol);
-        $category = GlobalReferencesIndexDataProvider::CATEGORIES[$symbol->kind] ?? null;
-        if ($category === null || empty($elements)) {
+        $category = GlobalReferencesIndexDataProvider::CATEGORIES[$symbol->kind];
+        if (empty($elements)) {
             return [];
         }
 

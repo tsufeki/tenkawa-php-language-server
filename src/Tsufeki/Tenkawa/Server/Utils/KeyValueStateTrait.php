@@ -26,9 +26,11 @@ trait KeyValueStateTrait
         return $this;
     }
 
-    public function clear()
+    public function clear(): self
     {
         $this->data = [];
+
+        return $this;
     }
 
     public function isClosed(): bool
@@ -36,7 +38,7 @@ trait KeyValueStateTrait
         return $this->closed;
     }
 
-    public function close()
+    public function close(): void
     {
         $this->closed = true;
         $this->clear();

@@ -6,6 +6,7 @@ use PhpParser\Node;
 use PhpParser\Node\Const_ as ConstNode;
 use PhpParser\Node\Expr;
 use PhpParser\Node\FunctionLike;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Name\Relative;
@@ -66,7 +67,7 @@ class ReflectionVisitor extends NameContextVisitor
      */
     private $functionStack = [];
 
-    const VARARG_FUNCTIONS = [
+    private const VARARG_FUNCTIONS = [
         'func_get_args',
         'func_get_arg',
         'func_num_args',
@@ -92,11 +93,9 @@ class ReflectionVisitor extends NameContextVisitor
     }
 
     /**
-     * @param Name|NullableType|string|null $type
-     *
-     * @return Type|null
+     * @param Name|Identifier|NullableType|string|null $type
      */
-    private function getType($type)
+    private function getType($type): ?Type
     {
         if (empty($type)) {
             return null;
@@ -112,17 +111,19 @@ class ReflectionVisitor extends NameContextVisitor
                 return null;
             }
             $typeObj->type = '?' . $innerType->type;
-        } else {
+        } elseif ($type instanceof Name) {
             $typeObj->type = $this->nameToString($type);
+        } else {
+            $typeObj->type = $type->name;
+        }
 
-            $lowercaseType = strtolower($typeObj->type);
-            $class = $this->classLikeStack[count($this->classLikeStack) - 1] ?? null;
-            if ($class !== null) {
-                if ($lowercaseType === 'self') {
-                    $typeObj->type = $class->name;
-                } elseif ($lowercaseType === 'parent' && $class->parentClass) {
-                    $typeObj->type = $class->parentClass;
-                }
+        $lowercaseType = strtolower($typeObj->type);
+        $class = $this->classLikeStack[count($this->classLikeStack) - 1] ?? null;
+        if ($class !== null) {
+            if ($lowercaseType === 'self') {
+                $typeObj->type = $class->name;
+            } elseif ($lowercaseType === 'parent' && $class->parentClass) {
+                $typeObj->type = $class->parentClass;
             }
         }
 
@@ -132,7 +133,7 @@ class ReflectionVisitor extends NameContextVisitor
     /**
      * @param Stmt\ClassLike|Stmt\Function_|Stmt\ClassMethod|ConstNode|Stmt\PropertyProperty $node
      */
-    private function init(Element $element, Node $node, Node $docCommentFallback = null)
+    private function init(Element $element, Node $node, ?Node $docCommentFallback = null): void
     {
         $this->setName($element, $node);
         $this->setCommonInfo($element, $node, $docCommentFallback);
@@ -141,16 +142,16 @@ class ReflectionVisitor extends NameContextVisitor
     /**
      * @param Stmt\ClassLike|Stmt\Function_|Stmt\ClassMethod|ConstNode|Stmt\PropertyProperty $node
      */
-    private function setName(Element $element, Node $node)
+    private function setName(Element $element, Node $node): void
     {
         if (isset($node->namespacedName)) {
             $element->name = $this->nameToString(new FullyQualified($node->namespacedName));
         } else {
-            $element->name = is_string($node->name) ? $node->name : '';
+            $element->name = $node->name instanceof Identifier ? $node->name->name : '';
         }
     }
 
-    private function setCommonInfo(Element $element, Node $node, Node $docCommentFallback = null)
+    private function setCommonInfo(Element $element, Node $node, ?Node $docCommentFallback = null): void
     {
         $element->location = new Location();
         $element->location->uri = $this->document->getUri();
@@ -173,7 +174,7 @@ class ReflectionVisitor extends NameContextVisitor
     /**
      * @param Stmt\Function_|Stmt\ClassMethod $node
      */
-    private function processFunction(Function_ $function, $node)
+    private function processFunction(Function_ $function, $node): void
     {
         $this->init($function, $node);
         $function->returnByRef = $node->byRef;
@@ -183,7 +184,7 @@ class ReflectionVisitor extends NameContextVisitor
         $optional = true;
         foreach (array_reverse($node->params) as $paramNode) {
             $param = new Param();
-            $param->name = is_string($paramNode->name) ? $paramNode->name : '';
+            $param->name = ($paramNode->var instanceof Expr\Variable && is_string($paramNode->var->name)) ? $paramNode->var->name : '';
             $param->byRef = $paramNode->byRef;
             $param->optional = $optional = $optional && ($paramNode->default !== null || $paramNode->variadic);
             $param->variadic = $paramNode->variadic;
@@ -205,7 +206,7 @@ class ReflectionVisitor extends NameContextVisitor
      * @param Method|Property|ClassConst                     $member
      * @param Stmt\ClassMethod|Stmt\Property|Stmt\ClassConst $node
      */
-    private function processMember($member, Node $node)
+    private function processMember($member, Node $node): void
     {
         $member->accessibility =
             $node->isPrivate() ? ClassLike::M_PRIVATE : (
@@ -215,7 +216,7 @@ class ReflectionVisitor extends NameContextVisitor
         $member->static = $node instanceof Stmt\ClassConst || $node->isStatic();
     }
 
-    private function processUsedTraits(ClassLike $class, Stmt\ClassLike $node)
+    private function processUsedTraits(ClassLike $class, Stmt\ClassLike $node): void
     {
         foreach ($node->stmts as $child) {
             if ($child instanceof Stmt\TraitUse) {
@@ -226,8 +227,8 @@ class ReflectionVisitor extends NameContextVisitor
                 foreach ($child->adaptations as $adaptation) {
                     if ($adaptation instanceof Stmt\TraitUseAdaptation\Precedence) {
                         $insteadOf = new TraitInsteadOf();
-                        $insteadOf->trait = $this->nameToString($adaptation->trait);
-                        $insteadOf->method = $adaptation->method;
+                        $insteadOf->trait = $adaptation->trait ? $this->nameToString($adaptation->trait) : '';
+                        $insteadOf->method = $adaptation->method->name;
                         foreach ($adaptation->insteadof as $insteadOfNode) {
                             $insteadOf->insteadOfs[] = $this->nameToString($insteadOfNode);
                         }
@@ -235,8 +236,8 @@ class ReflectionVisitor extends NameContextVisitor
                     } elseif ($adaptation instanceof Stmt\TraitUseAdaptation\Alias) {
                         $alias = new TraitAlias();
                         $alias->trait = $adaptation->trait ? $this->nameToString($adaptation->trait) : null;
-                        $alias->method = $adaptation->method;
-                        $alias->newName = $adaptation->newName;
+                        $alias->method = $adaptation->method->name;
+                        $alias->newName = $adaptation->newName ? $adaptation->newName->name : null;
                         $alias->newAccessibility =
                             $adaptation->newModifier === Stmt\Class_::MODIFIER_PRIVATE ? ClassLike::M_PRIVATE : (
                             $adaptation->newModifier === Stmt\Class_::MODIFIER_PROTECTED ? ClassLike::M_PROTECTED : (
@@ -249,9 +250,15 @@ class ReflectionVisitor extends NameContextVisitor
         }
     }
 
-    private function processClass(ClassLike $class, Stmt\Class_ $node)
+    private function processClass(ClassLike $class, Stmt\Class_ $node): void
     {
-        $this->init($class, $node);
+        if ($node->name === null) {
+            $class->name = NameHelper::getAnonymousClassName($this->document->getUri(), $node);
+        } else {
+            $this->setName($class, $node);
+        }
+
+        $this->setCommonInfo($class, $node);
         $class->isClass = true;
         $class->abstract = $node->isAbstract();
         $class->final = $node->isFinal();
@@ -262,7 +269,7 @@ class ReflectionVisitor extends NameContextVisitor
         $this->processUsedTraits($class, $node);
     }
 
-    private function processInterface(ClassLike $interface, Stmt\Interface_ $node)
+    private function processInterface(ClassLike $interface, Stmt\Interface_ $node): void
     {
         $this->init($interface, $node);
         $interface->isInterface = true;
@@ -271,14 +278,14 @@ class ReflectionVisitor extends NameContextVisitor
         }
     }
 
-    private function processTrait(ClassLike $trait, Stmt\Trait_ $node)
+    private function processTrait(ClassLike $trait, Stmt\Trait_ $node): void
     {
         $this->init($trait, $node);
         $trait->isTrait = true;
         $this->processUsedTraits($trait, $node);
     }
 
-    private function processDefineConst(Const_ $const, Expr\FuncCall $defineNode)
+    private function processDefineConst(Const_ $const, Expr\FuncCall $defineNode): void
     {
         $nameNode = $defineNode->args[0]->value;
         assert($nameNode instanceof Scalar\String_);

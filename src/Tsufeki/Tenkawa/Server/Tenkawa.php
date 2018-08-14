@@ -12,6 +12,7 @@ use Tsufeki\BlancheJsonRpc\Transport\Transport;
 use Tsufeki\HmContainer\Container;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnStart;
+use Tsufeki\Tenkawa\Server\Exception\IoException;
 use Tsufeki\Tenkawa\Server\Logger\CompositeLogger;
 use Tsufeki\Tenkawa\Server\Logger\LevelFilteringLogger;
 use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
@@ -76,7 +77,7 @@ class Tenkawa
         yield $transport->run();
     }
 
-    public static function main(array $cmdLineArgs)
+    public static function main(array $cmdLineArgs): void
     {
         $options = self::parseArgs($cmdLineArgs);
 
@@ -107,9 +108,9 @@ class Tenkawa
 
         foreach ($cmdLineArgs as $arg) {
             if (StringUtils::startsWith($arg, '--')) {
-                list($option, $value) = [$arg, null];
+                [$option, $value] = [$arg, null];
                 if (strpos($arg, '=') !== false) {
-                    list($option, $value) = explode('=', $arg, 2);
+                    [$option, $value] = explode('=', $arg, 2);
                 }
 
                 switch ($option) {
@@ -137,7 +138,7 @@ class Tenkawa
         return $options;
     }
 
-    private static function setupErrorHandlers(LoggerInterface $logger, Kernel $kernel)
+    private static function setupErrorHandlers(LoggerInterface $logger, Kernel $kernel): void
     {
         set_error_handler(function (int $severity, string $message, string $file, int $line) {
             if (!(error_reporting() & $severity)) {
@@ -160,18 +161,22 @@ class Tenkawa
         });
     }
 
-    private static function setupLoggers(CompositeLogger $logger, array $options)
+    private static function setupLoggers(CompositeLogger $logger, array $options): void
     {
+        /** @var resource|false|null */
+        $stream = null;
+
         if ($options['log.stderr']) {
-            $logger->add(new LevelFilteringLogger(
-                new StreamLogger(STDERR),
-                $options['log.level']
-            ));
+            $stream = STDERR;
         }
 
         if ($options['log.file']) {
+            $stream = fopen($options['log.file'], 'a');
+        }
+
+        if ($stream) {
             $logger->add(new LevelFilteringLogger(
-                new StreamLogger(fopen($options['log.file'], 'a')),
+                new StreamLogger($stream),
                 $options['log.level']
             ));
         }
@@ -181,6 +186,9 @@ class Tenkawa
     {
         if ($options['transport.socket'] ?? false) {
             $socket = stream_socket_client($options['transport.socket']);
+            if ($socket === false) {
+                throw new IoException("Can't open a connection to client");
+            }
             stream_set_blocking($socket, false);
             $transport = new StreamTransport($socket, $socket);
         } else {

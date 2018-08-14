@@ -33,7 +33,7 @@ class DocumentParser implements Parser
         $this->syncAsync = $syncAsync;
     }
 
-    public function setDocument(Document $document = null)
+    public function setDocument(?Document $document)
     {
         $this->document = $document;
     }

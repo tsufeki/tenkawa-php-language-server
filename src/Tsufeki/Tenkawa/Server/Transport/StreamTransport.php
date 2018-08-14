@@ -33,10 +33,10 @@ class StreamTransport implements RunnableTransport
      */
     private $buffer = '';
 
-    const EOL = "\r\n";
-    const HEADER_SEP = ': ';
-    const CONTENT_LENGTH = 'Content-Length';
-    const MAX_HEADERS_SIZE = 4096;
+    private const EOL = "\r\n";
+    private const HEADER_SEP = ': ';
+    private const CONTENT_LENGTH = 'Content-Length';
+    private const MAX_HEADERS_SIZE = 4096;
 
     /**
      * @param resource $readStream
@@ -85,13 +85,13 @@ class StreamTransport implements RunnableTransport
 
         while (true) {
             while (strpos($this->buffer, self::EOL) !== false) {
-                list($line, $this->buffer) = explode(self::EOL, $this->buffer, 2);
+                [$line, $this->buffer] = explode(self::EOL, $this->buffer, 2);
 
                 if ($line === '') {
                     break 2;
                 }
 
-                list($key, $value) = explode(self::HEADER_SEP, $line, 2);
+                [$key, $value] = explode(self::HEADER_SEP, $line, 2);
                 $headers[strtolower($key)] = trim($value);
             }
 

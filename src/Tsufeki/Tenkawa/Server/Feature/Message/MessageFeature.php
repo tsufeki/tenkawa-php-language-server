@@ -60,7 +60,7 @@ class MessageFeature implements Feature
      *
      * @resolve MessageActionItem|null
      */
-    public function showMessageRequest(int $type, string $message, array $actions = null): \Generator
+    public function showMessageRequest(int $type, string $message, ?array $actions = null): \Generator
     {
         $this->logger->debug('send: ' . __FUNCTION__ . " $message");
 

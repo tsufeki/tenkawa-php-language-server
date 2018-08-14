@@ -87,10 +87,8 @@ class NameContext
     /**
      * @param string[]             $parts
      * @param array<string,string> $uses  alias => fully qualified name
-     *
-     * @return string|null
      */
-    private function resolveUses(array $parts, array $uses)
+    private function resolveUses(array $parts, array $uses): ?string
     {
         $first = $parts[0];
         if (isset($uses[$first])) {

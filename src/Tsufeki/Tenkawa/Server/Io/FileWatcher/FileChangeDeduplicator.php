@@ -58,7 +58,7 @@ class FileChangeDeduplicator
         }
     }
 
-    private function deduplicate()
+    private function deduplicate(): void
     {
         ksort($this->uris);
         /** @var Uri|null $prevUri */

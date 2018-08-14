@@ -12,7 +12,7 @@ class ClientLogger extends AbstractLogger
 {
     use LoggerTrait;
 
-    const LEVEL_MAP = [
+    private const LEVEL_MAP = [
         LogLevel::EMERGENCY => MessageType::ERROR,
         LogLevel::ALERT => MessageType::ERROR,
         LogLevel::CRITICAL => MessageType::ERROR,

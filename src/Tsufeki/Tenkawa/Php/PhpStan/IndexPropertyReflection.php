@@ -26,6 +26,16 @@ class IndexPropertyReflection extends PhpPropertyReflection
      */
     private $type;
 
+    /**
+     * @var bool
+     */
+    private $deprecated = false;
+
+    /**
+     * @var bool
+     */
+    private $internal = false;
+
     public function __construct(
         ClassReflection $declaringClass,
         Property $property,
@@ -43,6 +53,9 @@ class IndexPropertyReflection extends PhpPropertyReflection
             } elseif (isset($phpDocVarTags[$property->name])) {
                 $this->type = $phpDocVarTags[$property->name]->getType();
             }
+
+            $this->deprecated = $resolvedPhpDoc->isDeprecated();
+            $this->internal = $resolvedPhpDoc->isInternal();
         }
     }
 
@@ -91,5 +104,15 @@ class IndexPropertyReflection extends PhpPropertyReflection
     public function isWritable(): bool
     {
         return $this->property->writable;
+    }
+
+    public function isDeprecated(): bool
+    {
+        return $this->deprecated;
+    }
+
+    public function isInternal(): bool
+    {
+        return $this->internal;
     }
 }

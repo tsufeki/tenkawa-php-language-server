@@ -24,11 +24,11 @@ class NameContextVisitor extends NodeVisitorAbstract
         $this->nameContext = new NameContext();
     }
 
-    private function addUse(Stmt\UseUse $use, int $type, Name $prefix = null)
+    private function addUse(Stmt\UseUse $use, int $type, ?Name $prefix): void
     {
         $type |= $use->type;
         $name = '\\' . ($prefix ? $prefix->toString() . '\\' : '') . $use->name->toString();
-        $alias = $use->alias;
+        $alias = $use->getAlias()->name;
 
         if ($type === Stmt\Use_::TYPE_FUNCTION) {
             $this->nameContext->functionUses[$alias] = $name;

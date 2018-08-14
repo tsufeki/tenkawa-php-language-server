@@ -7,7 +7,7 @@ use PHPStan\Reflection\ClassReflection;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 
-class IndexClassConstantReflection implements ClassConstantReflection
+class IndexClassConstantReflection extends ClassConstantReflection
 {
     /**
      * @var ClassReflection
@@ -24,14 +24,31 @@ class IndexClassConstantReflection implements ClassConstantReflection
      */
     private $value;
 
+    /**
+     * @var bool
+     */
+    private $deprecated = false;
+
+    /**
+     * @var bool
+     */
+    private $internal = false;
+
     public function __construct(
         ClassReflection $declaringClass,
         ClassConst $const,
-        $value
+        $value,
+        PhpDocResolver $phpDocResolver
     ) {
         $this->declaringClass = $declaringClass;
         $this->const = $const;
         $this->value = $value;
+
+        if ($const->docComment) {
+            $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($const);
+            $this->deprecated = $resolvedPhpDoc->isDeprecated();
+            $this->internal = $resolvedPhpDoc->isInternal();
+        }
     }
 
     public function getName(): string
@@ -65,5 +82,15 @@ class IndexClassConstantReflection implements ClassConstantReflection
     public function isPublic(): bool
     {
         return $this->const->accessibility === ClassLike::M_PUBLIC;
+    }
+
+    public function isDeprecated(): bool
+    {
+        return $this->deprecated;
+    }
+
+    public function isInternal(): bool
+    {
+        return $this->internal;
     }
 }

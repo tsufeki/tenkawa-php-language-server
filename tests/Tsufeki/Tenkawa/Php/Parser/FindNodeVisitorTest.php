@@ -58,22 +58,22 @@ class FindNodeVisitorTest extends TestCase
             [
                 '<?php $foo = 7;',
                 0, 7,
-                [Expr\Variable::class, Expr\Assign::class],
+                [Expr\Variable::class, Expr\Assign::class, Stmt\Expression::class],
             ],
             [
                 '<?php $foo = 7;',
                 0, 6,
-                [Expr\Variable::class, Expr\Assign::class],
+                [Expr\Variable::class, Expr\Assign::class, Stmt\Expression::class],
             ],
             [
                 '<?php $foo = 7;',
                 0, 9,
-                [Expr\Variable::class, Expr\Assign::class],
+                [Expr\Variable::class, Expr\Assign::class, Stmt\Expression::class],
             ],
             [
                 '<?php $foo = 7;',
                 0, 10,
-                [Expr\Assign::class],
+                [Expr\Assign::class, Stmt\Expression::class],
             ],
             [
                 '<?php $foo = 7;',
@@ -83,7 +83,7 @@ class FindNodeVisitorTest extends TestCase
             [
                 '<?php $;',
                 0, 7,
-                [Expr\Error::class, Expr\Variable::class],
+                [Expr\Error::class, Expr\Variable::class, Stmt\Expression::class],
                 true,
             ],
             [
@@ -95,18 +95,18 @@ class FindNodeVisitorTest extends TestCase
             [
                 '<?php Ee\\;',
                 0, 9,
-                [Name::class, Expr\ConstFetch::class],
+                [Name::class, Expr\ConstFetch::class, Stmt\Expression::class],
                 true,
             ],
             [
                 '<?php /* bar */ $foo = 7;',
                 0, 9,
-                [Comment::class, Expr\Assign::class],
+                [Comment::class, Stmt\Expression::class],
             ],
             [
                 '<?php [/* bar */ $foo = 7];',
                 0, 10,
-                [Comment::class, Expr\ArrayItem::class, Expr\Array_::class],
+                [Comment::class, Expr\ArrayItem::class, Expr\Array_::class, Stmt\Expression::class],
             ],
             [
                 '<?php function f($x, A) {}',

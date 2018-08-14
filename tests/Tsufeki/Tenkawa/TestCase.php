@@ -42,6 +42,6 @@ abstract class TestCase extends BaseTestCase
 
     public function assertJsonEquivalent($expected, $actual)
     {
-        $this->assertJsonStringEqualsJsonString(json_encode($expected), json_encode($actual));
+        $this->assertJsonStringEqualsJsonString(json_encode($expected) ?: '', json_encode($actual) ?: '');
     }
 }

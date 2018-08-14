@@ -33,49 +33,34 @@ class Uri
      */
     private $fragment;
 
-    const REGEX =
+    private const REGEX =
         '~^(?:([a-zA-Z][-a-zA-Z0-9+.]*):)?' .
         '(?://([^/?#]*))?' .
         '([^?#]*)' .
         '(?:\?([^#]*))?' .
         '(?:\#(.*))?\z~s';
 
-    /**
-     * @return string|null
-     */
-    public function getScheme()
+    public function getScheme(): ?string
     {
         return $this->scheme;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getAuthority()
+    public function getAuthority(): ?string
     {
         return $this->authority;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getPath()
+    public function getPath(): ?string
     {
         return $this->path;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getQuery()
+    public function getQuery(): ?string
     {
         return $this->query;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getFragment()
+    public function getFragment(): ?string
     {
         return $this->fragment;
     }
@@ -113,7 +98,7 @@ class Uri
 
     private static function encodeParts(string $string, string $delimiter): string
     {
-        return implode($delimiter, array_map('rawurlencode', explode($delimiter, $string)));
+        return implode($delimiter, array_map('rawurlencode', explode($delimiter, $string) ?: []));
     }
 
     public function getFilesystemPath(): string
@@ -153,7 +138,7 @@ class Uri
         return $uri;
     }
 
-    private static function decodeComponent($component, bool $decode = true)
+    private static function decodeComponent(?string $component, bool $decode = true): ?string
     {
         if ($component === null || $component === '') {
             return null;
@@ -261,5 +246,13 @@ class Uri
         $otherNormalized = $other->getNormalized();
 
         return StringUtils::startsWith($otherNormalized, $thisNormalized);
+    }
+
+    public function withLineNumber(int $lineNumber): self
+    {
+        $uri = clone $this;
+        $uri->fragment = "#L$lineNumber";
+
+        return $uri;
     }
 }

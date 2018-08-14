@@ -14,14 +14,14 @@ class SyncCallContext
      */
     public $pauseCallback;
 
-    public function resume()
+    public function resume(): void
     {
         if ($this->resumeCallback !== null) {
             ($this->resumeCallback)();
         }
     }
 
-    public function pause()
+    public function pause(): void
     {
         if ($this->pauseCallback !== null) {
             ($this->pauseCallback)();
