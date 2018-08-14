@@ -2,15 +2,11 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
-use PHPStan\Reflection\FunctionVariantWithPhpDocs;
-use PHPStan\Reflection\ParametersAcceptorWithPhpDocs;
+use PHPStan\Reflection\FunctionVariant;
+use PHPStan\Reflection\ParametersAcceptor;
 use PHPStan\Reflection\Php\PhpFunctionReflection;
-use PHPStan\Type\MixedType;
 use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-use PHPStan\Type\TypehintHelper;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
 
 class IndexFunctionReflection extends PhpFunctionReflection
 {
@@ -20,7 +16,7 @@ class IndexFunctionReflection extends PhpFunctionReflection
     private $function;
 
     /**
-     * @var FunctionVariantWithPhpDocs[]
+     * @var FunctionVariant[]
      */
     private $variants;
 
@@ -44,16 +40,13 @@ class IndexFunctionReflection extends PhpFunctionReflection
      */
     private $throwType;
 
-    public function __construct(Function_ $function, PhpDocResolver $phpDocResolver)
+    public function __construct(Function_ $function, PhpDocResolver $phpDocResolver, SignatureVariantFactory $signatureVariantFactory)
     {
         $this->function = $function;
 
-        $phpDocParameterTags = [];
-        $phpDocReturnTag = null;
+        $resolvedPhpDoc = null;
         if ($function->docComment) {
             $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($function);
-            $phpDocParameterTags = $resolvedPhpDoc->getParamTags();
-            $phpDocReturnTag = $resolvedPhpDoc->getReturnTag();
             $phpDocThrowsTag = $resolvedPhpDoc->getThrowsTag();
 
             $this->deprecated = $resolvedPhpDoc->isDeprecated();
@@ -62,49 +55,7 @@ class IndexFunctionReflection extends PhpFunctionReflection
             $this->throwType = $phpDocThrowsTag ? $phpDocThrowsTag->getType() : null;
         }
 
-        /** @var IndexParameterReflection[] $parameters */
-        $parameters = array_map(function (Param $param) use ($phpDocParameterTags) {
-            return new IndexParameterReflection(
-                $param,
-                isset($phpDocParameterTags[$param->name]) ? $phpDocParameterTags[$param->name]->getType() : null
-            );
-        }, $function->params);
-
-        $phpDocReturnType = $phpDocReturnTag !== null ? $phpDocReturnTag->getType() : null;
-        $reflectionReturnType = $function->returnType !== null ? new DummyReflectionType($function->returnType->type) : null;
-        if (
-            $reflectionReturnType !== null
-            && $phpDocReturnType !== null
-            && $reflectionReturnType->allowsNull() !== TypeCombinator::containsNull($phpDocReturnType)
-        ) {
-            $phpDocReturnType = null;
-        }
-
-        $returnType = TypehintHelper::decideTypeFromReflection(
-            $reflectionReturnType,
-            $phpDocReturnType
-        );
-
-        $nativeReturnType = TypehintHelper::decideTypeFromReflection($reflectionReturnType);
-        $phpDocReturnType = $phpDocReturnType ?? new MixedType();
-
-        $variadic = $function->callsFuncGetArgs;
-        foreach ($function->params as $param) {
-            if ($param->variadic) {
-                $variadic = true;
-                break;
-            }
-        }
-
-        $this->variants = [
-            new FunctionVariantWithPhpDocs(
-                $parameters,
-                $variadic,
-                $returnType,
-                $phpDocReturnType,
-                $nativeReturnType
-            ),
-        ];
+        $this->variants = $signatureVariantFactory->getVariants($function, $resolvedPhpDoc);
     }
 
     public function getName(): string
@@ -113,7 +64,7 @@ class IndexFunctionReflection extends PhpFunctionReflection
     }
 
     /**
-     * @return ParametersAcceptorWithPhpDocs[]
+     * @return ParametersAcceptor[]
      */
     public function getVariants(): array
     {

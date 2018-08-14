@@ -11,7 +11,6 @@ use PHPStan\Broker\AnonymousClassNameHelper;
 use PHPStan\Broker\Broker;
 use PHPStan\Broker\ClassNotFoundException;
 use PHPStan\Broker\FunctionNotFoundException;
-use PHPStan\Parser\Parser;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\FunctionReflection;
 use PHPStan\Reflection\MethodsClassReflectionExtension;
@@ -70,9 +69,9 @@ class IndexBroker extends Broker
     private $phpDocResolver;
 
     /**
-     * @var SignatureMapProvider
+     * @var SignatureVariantFactory
      */
-    private $signatureMapProvider;
+    private $signatureVariantFactory;
 
     /**
      * @var Document|null
@@ -103,10 +102,7 @@ class IndexBroker extends Broker
         ConstExprEvaluator $constExprEvaluator,
         SyncAsync $syncAsync,
         PhpDocResolver $phpDocResolver,
-        SignatureMapProvider $signatureMapProvider,
-        Standard $printer,
-        AnonymousClassNameHelper $anonymousClassNameHelper,
-        Parser $parser,
+        SignatureVariantFactory $signatureVariantFactory,
         array $universalObjectCratesClasses
     ) {
         parent::__construct(
@@ -117,10 +113,27 @@ class IndexBroker extends Broker
             $dynamicFunctionReturnTypeExtensions,
             new DummyFunctionReflectionFactory(),
             $phpDocResolver,
-            $signatureMapProvider,
-            $printer,
-            $anonymousClassNameHelper,
-            $parser,
+            // stubs:
+            new class() extends SignatureMapProvider {
+                public function __construct()
+                {
+                }
+            },
+            new class() extends Standard {
+                public function __construct()
+                {
+                }
+            },
+            new class() extends AnonymousClassNameHelper {
+                public function __construct()
+                {
+                }
+            },
+            new class() extends DocumentParser {
+                public function __construct()
+                {
+                }
+            },
             $universalObjectCratesClasses,
             ''
         );
@@ -132,7 +145,7 @@ class IndexBroker extends Broker
         $this->constExprEvaluator = $constExprEvaluator;
         $this->syncAsync = $syncAsync;
         $this->phpDocResolver = $phpDocResolver;
-        $this->signatureMapProvider = $signatureMapProvider;
+        $this->signatureVariantFactory = $signatureVariantFactory;
 
         self::registerInstance($this);
     }
@@ -168,6 +181,7 @@ class IndexBroker extends Broker
             $class,
             $this,
             $this->phpDocResolver,
+            $this->signatureVariantFactory,
             $this->propertiesReflectionExtensions,
             $this->methodsReflectionExtensions
         );
@@ -226,7 +240,7 @@ class IndexBroker extends Broker
                 continue;
             }
 
-            $functionReflection = new IndexFunctionReflection($function, $this->phpDocResolver);
+            $functionReflection = new IndexFunctionReflection($function, $this->phpDocResolver, $this->signatureVariantFactory);
             $this->cache->set("broker.function.$name", $functionReflection);
 
             return $functionReflection;
@@ -242,12 +256,21 @@ class IndexBroker extends Broker
 
     public function hasCustomFunction(Name $nameNode, ?Scope $scope): bool
     {
-        // TODO
+        $resolved = $this->resolveFunctionName($nameNode, $scope);
+
+        return $resolved !== null && $this->signatureVariantFactory->isCustom($resolved);
     }
 
     public function getCustomFunction(Name $nameNode, ?Scope $scope): PhpFunctionReflection
     {
-        // TODO
+        if (!$this->hasCustomFunction($nameNode, $scope)) {
+            throw new ShouldNotHappenException();
+        }
+
+        $functionReflection = $this->getFunction($nameNode, $scope);
+        assert($functionReflection instanceof PhpFunctionReflection);
+
+        return $functionReflection;
     }
 
     public function resolveFunctionName(Name $nameNode, ?Scope $scope): ?string

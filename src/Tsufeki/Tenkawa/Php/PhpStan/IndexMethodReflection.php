@@ -4,22 +4,18 @@ namespace Tsufeki\Tenkawa\Php\PhpStan;
 
 use PHPStan\Reflection\ClassMemberReflection;
 use PHPStan\Reflection\ClassReflection;
-use PHPStan\Reflection\FunctionVariantWithPhpDocs;
-use PHPStan\Reflection\ParametersAcceptorWithPhpDocs;
+use PHPStan\Reflection\FunctionVariant;
+use PHPStan\Reflection\ParametersAcceptor;
 use PHPStan\Reflection\Php\PhpMethodReflection;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\BooleanType;
 use PHPStan\Type\IntegerType;
-use PHPStan\Type\MixedType;
 use PHPStan\Type\ObjectWithoutClassType;
 use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-use PHPStan\Type\TypehintHelper;
 use PHPStan\Type\VoidType;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
-use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
 
 class IndexMethodReflection extends PhpMethodReflection
 {
@@ -34,7 +30,7 @@ class IndexMethodReflection extends PhpMethodReflection
     private $method;
 
     /**
-     * @var FunctionVariantWithPhpDocs[]
+     * @var FunctionVariant[]
      */
     private $variants;
 
@@ -61,18 +57,16 @@ class IndexMethodReflection extends PhpMethodReflection
     public function __construct(
         ClassReflection $declaringClass,
         Method $method,
-        PhpDocResolver $phpDocResolver
+        PhpDocResolver $phpDocResolver,
+        SignatureVariantFactory $signatureVariantFactory
     ) {
         $this->declaringClass = $declaringClass;
         $this->method = $method;
         $this->final = $method->final;
 
-        $phpDocParameterTags = [];
-        $phpDocReturnTag = null;
+        $resolvedPhpDoc = null;
         if ($method->docComment) {
             $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($method);
-            $phpDocParameterTags = $resolvedPhpDoc->getParamTags();
-            $phpDocReturnTag = $resolvedPhpDoc->getReturnTag();
             $phpDocThrowsTag = $resolvedPhpDoc->getThrowsTag();
 
             $this->deprecated = $resolvedPhpDoc->isDeprecated();
@@ -81,24 +75,7 @@ class IndexMethodReflection extends PhpMethodReflection
             $this->throwType = $phpDocThrowsTag ? $phpDocThrowsTag->getType() : null;
         }
 
-        /** @var IndexParameterReflection[] $parameters */
-        $parameters = array_map(function (Param $param) use ($phpDocParameterTags) {
-            return new IndexParameterReflection(
-                $param,
-                isset($phpDocParameterTags[$param->name]) ? $phpDocParameterTags[$param->name]->getType() : null
-            );
-        }, $method->params);
-
-        $phpDocReturnType = $phpDocReturnTag !== null ? $phpDocReturnTag->getType() : null;
-        $reflectionReturnType = $method->returnType !== null ? new DummyReflectionType($method->returnType->type) : null;
-        if (
-            $reflectionReturnType !== null
-            && $phpDocReturnType !== null
-            && $reflectionReturnType->allowsNull() !== TypeCombinator::containsNull($phpDocReturnType)
-        ) {
-            $phpDocReturnType = null;
-        }
-
+        $returnType = null;
         $name = strtolower($this->getName());
         if (
             $name === '__construct'
@@ -116,33 +93,9 @@ class IndexMethodReflection extends PhpMethodReflection
             $returnType = new ArrayType(new IntegerType(), new StringType());
         } elseif ($name === '__set_state') {
             $returnType = new ObjectWithoutClassType();
-        } else {
-            $returnType = TypehintHelper::decideTypeFromReflection(
-                $reflectionReturnType,
-                $phpDocReturnType
-            );
         }
 
-        $nativeReturnType = TypehintHelper::decideTypeFromReflection($reflectionReturnType);
-        $phpDocReturnType = $phpDocReturnType ?? new MixedType();
-
-        $variadic = $method->callsFuncGetArgs;
-        foreach ($method->params as $param) {
-            if ($param->variadic) {
-                $variadic = true;
-                break;
-            }
-        }
-
-        $this->variants = [
-            new FunctionVariantWithPhpDocs(
-                $parameters,
-                $variadic,
-                $returnType,
-                $phpDocReturnType,
-                $nativeReturnType
-            ),
-        ];
+        $this->variants = $signatureVariantFactory->getVariants($method, $resolvedPhpDoc, $returnType);
     }
 
     public function getDeclaringClass(): ClassReflection
@@ -193,7 +146,7 @@ class IndexMethodReflection extends PhpMethodReflection
     }
 
     /**
-     * @return ParametersAcceptorWithPhpDocs[]
+     * @return ParametersAcceptor[]
      */
     public function getVariants(): array
     {

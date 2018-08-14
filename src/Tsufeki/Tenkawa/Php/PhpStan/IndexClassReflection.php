@@ -35,6 +35,11 @@ class IndexClassReflection extends ClassReflection
     private $phpDocResolver;
 
     /**
+     * @var SignatureVariantFactory
+     */
+    private $signatureVariantFactory;
+
+    /**
      * @var PropertiesClassReflectionExtension[]
      */
     private $propertiesClassReflectionExtensions;
@@ -92,12 +97,14 @@ class IndexClassReflection extends ClassReflection
         ResolvedClassLike $class,
         IndexBroker $broker,
         PhpDocResolver $phpDocResolver,
+        SignatureVariantFactory $signatureVariantFactory,
         array $propertiesClassReflectionExtensions,
         array $methodsClassReflectionExtensions
     ) {
         $this->class = $class;
         $this->broker = $broker;
         $this->phpDocResolver = $phpDocResolver;
+        $this->signatureVariantFactory = $signatureVariantFactory;
         $this->propertiesClassReflectionExtensions = $propertiesClassReflectionExtensions;
         $this->methodsClassReflectionExtensions = $methodsClassReflectionExtensions;
         $this->final = $class->final;
@@ -240,7 +247,8 @@ class IndexClassReflection extends ClassReflection
             $indexMethod = new IndexMethodReflection(
                 $this->broker->getClass((string)$method->nameContext->class),
                 $method,
-                $this->phpDocResolver
+                $this->phpDocResolver,
+                $this->signatureVariantFactory
             );
 
             $this->methods[$methodName][] = $indexMethod;
