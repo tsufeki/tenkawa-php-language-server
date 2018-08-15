@@ -71,6 +71,13 @@ class GlobalReferencesIndexDataProvider implements IndexDataProvider
         $entries = [];
 
         foreach ($symbols as $symbol) {
+            if ($symbol->kind === GlobalSymbol::CONST_) {
+                $lowercaseName = strtolower($symbol->referencedNames[1] ?? $symbol->referencedNames[0]);
+                if (in_array($lowercaseName, ['\\null', '\\true', '\\false'], true)) {
+                    continue;
+                }
+            }
+
             $category = self::CATEGORIES[$symbol->kind] ?? null;
             if ($category !== null) {
                 $reference = new Reference();
@@ -96,6 +103,6 @@ class GlobalReferencesIndexDataProvider implements IndexDataProvider
 
     public function getVersion(): int
     {
-        return 2;
+        return 4;
     }
 }
