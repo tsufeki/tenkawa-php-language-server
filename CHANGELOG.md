@@ -1,6 +1,18 @@
 Changelog
 =========
 
+UNRELEASED
+----------
+
+### Removed
+
+* Drop PHP 7.0 support.
+
+### Changed
+
+* Upgrade to PHPStan 0.10, with greatly improved standard library type
+  information. Also allowing us to add support for anonymous classes.
+
 0.2.0 - 2018-07-01
 ------------------
 

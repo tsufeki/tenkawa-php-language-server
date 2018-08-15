@@ -93,21 +93,12 @@ Unimplemented (yet?):
 Known issues
 ------------
 
-* Information about standard library and extensions is taken from
-  [PhpStorm stubs][stubs], which aren't always perfect and sometimes don't
-  work well with our static analysis. This is the main reason why the real,
-  standalone PHPStan gives different results than our server. This may improve
-  with future PHPStan versions.
-* Many features don't work inside anonymous classes and traits. This is
-  caused by PHPStan's design and it should be possible to fix this when next
-  version(s) land.
+* Many features don't work inside traits. This is caused by PHPStan's design.
 * Refactors are not 100% bullet-proof. More comprehensive implementation needs
   PHP Parser 4 (and its support in PHPStan).
 * Filtering of big lists (i.e. completions) is left entirely to the client,
   which must be able to withstand it performance-wise.
 * Performance & long indexing times.
-
-[stubs]: https://github.com/JetBrains/phpstorm-stubs
 
 Command line options
 --------------------

@@ -3,8 +3,8 @@
 
 use Tsufeki\Tenkawa\Server\Tenkawa;
 
-if (PHP_MAJOR_VERSION < 7) {
-    fprintf(STDERR, "Tenkawa requires PHP >= 7.0\n");
+if (PHP_MAJOR_VERSION !== 7 || PHP_MINOR_VERSION < 1) {
+    fprintf(STDERR, "Tenkawa requires PHP >= 7.1\n");
     exit(1);
 }
 
