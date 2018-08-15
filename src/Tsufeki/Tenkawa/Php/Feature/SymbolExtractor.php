@@ -21,6 +21,12 @@ class SymbolExtractor
      */
     private $nodePathSymbolExtractors;
 
+    private const IGNORED_LEAF_NODES = [
+        Expr\Error::class => true,
+        Node\Identifier::class => true,
+        Node\VarLikeIdentifier::class => true,
+    ];
+
     /**
      * @param NodePathSymbolExtractor[] $nodePathSymbolExtractors
      */
@@ -38,8 +44,9 @@ class SymbolExtractor
         /** @var (Node|Comment)[] $nodes */
         $nodes = yield $this->nodeFinder->getNodePath($document, $position);
         $firstNode = $nodes[0] ?? null;
-        if ($firstNode instanceof Expr\Error) {
-            $firstNode = $nodes[1] ?? null;
+        if ($firstNode !== null && isset(self::IGNORED_LEAF_NODES[get_class($firstNode)])) {
+            array_shift($nodes);
+            $firstNode = $nodes[0] ?? null;
         }
         if ($firstNode === null) {
             return null;

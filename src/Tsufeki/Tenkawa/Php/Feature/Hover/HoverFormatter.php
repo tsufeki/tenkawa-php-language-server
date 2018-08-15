@@ -84,9 +84,23 @@ class HoverFormatter
         return $s;
     }
 
+    private function replaceAnonymousClass(string $str): string
+    {
+        return preg_replace('/\\\\?Anonymous@[0-9a-f]+/', '<anonymous_class>', $str);
+    }
+
+    private function formatClassPrefix(?string $class): string
+    {
+        if (!$class) {
+            return '';
+        }
+
+        return $this->replaceAnonymousClass(StringUtils::getShortName($class)) . '::';
+    }
+
     private function formatVariable(Variable $variable, ?string $class = null): string
     {
-        return ($class ? StringUtils::getShortName($class) . '::' : '') . '$' . $variable->name;
+        return $this->formatClassPrefix($class) . '$' . $variable->name;
     }
 
     private function formatProperty(Property $property): string
@@ -96,7 +110,7 @@ class HoverFormatter
 
     private function formatConst(Const_ $const, ?string $class = null): string
     {
-        $s = 'const ' . ($class ? StringUtils::getShortName($class) . '::' : '') . StringUtils::getShortName($const->name);
+        $s = 'const ' . $this->formatClassPrefix($class) . StringUtils::getShortName($const->name);
         if ($const->valueExpression !== null) {
             $s .= ' = ' . StringUtils::limitLength($const->valueExpression);
         }
@@ -123,7 +137,7 @@ class HoverFormatter
             $s .= '&';
         }
 
-        $s .= ($class ? StringUtils::getShortName($class) . '::' : '') . StringUtils::getShortName($function->name);
+        $s .= $this->formatClassPrefix($class) . StringUtils::getShortName($function->name);
 
         $params = array_map([$this, 'formatParam'], $function->params);
         if ($function->callsFuncGetArgs) {
@@ -168,7 +182,7 @@ class HoverFormatter
 
     private function formatType(Type $type): string
     {
-        return StringUtils::getShortName($type->type);
+        return $this->replaceAnonymousClass(StringUtils::getShortName($type->type));
     }
 
     private function formatMethod(Method $method): string
@@ -225,6 +239,8 @@ class HoverFormatter
 
     public function formatExpression(InferredType $type): string
     {
-        return "expression: `$type`";
+        $typeString = $this->replaceAnonymousClass((string)$type);
+
+        return "expression: `$typeString`";
     }
 }

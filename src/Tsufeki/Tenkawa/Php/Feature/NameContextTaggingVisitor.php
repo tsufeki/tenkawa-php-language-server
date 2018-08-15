@@ -4,6 +4,7 @@ namespace Tsufeki\Tenkawa\Php\Feature;
 
 use PhpParser\Node;
 use Tsufeki\Tenkawa\Php\Reflection\NameContextVisitor;
+use Tsufeki\Tenkawa\Server\Uri;
 
 class NameContextTaggingVisitor extends NameContextVisitor
 {
@@ -15,9 +16,9 @@ class NameContextTaggingVisitor extends NameContextVisitor
     /**
      * @param \SplObjectStorage $nodesToTag of Node
      */
-    public function __construct(\SplObjectStorage $nodesToTag)
+    public function __construct(\SplObjectStorage $nodesToTag, Uri $uri)
     {
-        parent::__construct();
+        parent::__construct($uri);
         $this->nodesToTag = $nodesToTag;
     }
 

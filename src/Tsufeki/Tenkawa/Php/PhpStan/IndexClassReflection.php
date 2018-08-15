@@ -15,6 +15,7 @@ use PHPStan\Reflection\Php\PhpPropertyReflection;
 use PHPStan\Reflection\PropertiesClassReflectionExtension;
 use PHPStan\Reflection\PropertyReflection;
 use PHPStan\ShouldNotHappenException;
+use Tsufeki\Tenkawa\Php\Reflection\NameHelper;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 
 class IndexClassReflection extends ClassReflection
@@ -380,7 +381,7 @@ class IndexClassReflection extends ClassReflection
 
     public function isAnonymous(): bool
     {
-        return false;
+        return NameHelper::isSpecial($this->class->name);
     }
 
     public function isSubclassOf(string $className): bool

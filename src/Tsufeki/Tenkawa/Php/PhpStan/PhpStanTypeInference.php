@@ -28,6 +28,7 @@ class PhpStanTypeInference implements TypeInference
     private $analyser;
 
     private const IGNORED_EXPR_NODES = [
+        Expr\ArrayItem::class => true,
         Expr\Error::class => true,
         Scalar\EncapsedStringPart::class => true,
     ];

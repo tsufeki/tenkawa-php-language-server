@@ -115,7 +115,7 @@ class PhpDocResolver extends FileTypeMapper
         }
 
         $nodes = $this->phpParser->parseFile($filename);
-        $visitor = new PhpDocResolverVisitor();
+        $visitor = new PhpDocResolverVisitor(Uri::fromFilesystemPath($filename));
         $nodeTraverser = new NodeTraverser();
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($nodes);
@@ -201,11 +201,14 @@ class PhpDocResolver extends FileTypeMapper
         }
         $this->cache->set($key, InfiniteRecursionMarker::get());
 
+        $uses = [];
+        foreach ($context->uses as $alias => $name) {
+            $uses[strtolower($alias)] = ltrim($name, '\\');
+        }
+
         $nameScope = new NameScope(
             ltrim($context->namespace, '\\') ?: null,
-            array_map(function (string $name) {
-                return ltrim($name, '\\');
-            }, $context->uses),
+            $uses,
             ltrim((string)$context->class, '\\') ?: null
         );
 

@@ -6,6 +6,7 @@ use PhpParser\Node;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeVisitorAbstract;
+use Tsufeki\Tenkawa\Server\Uri;
 
 class NameContextVisitor extends NodeVisitorAbstract
 {
@@ -19,9 +20,15 @@ class NameContextVisitor extends NodeVisitorAbstract
      */
     private $classStack = [];
 
-    public function __construct()
+    /**
+     * @var Uri
+     */
+    private $uri;
+
+    public function __construct(Uri $uri)
     {
         $this->nameContext = new NameContext();
+        $this->uri = $uri;
     }
 
     private function addUse(Stmt\UseUse $use, int $type, ?Name $prefix): void
@@ -68,8 +75,15 @@ class NameContextVisitor extends NodeVisitorAbstract
         }
 
         if ($node instanceof Stmt\ClassLike) {
-            $className = isset($node->namespacedName) ? $node->namespacedName : $node->name;
-            $className = $className ? '\\' . (string)$className : null;
+            $className = null;
+            if (isset($node->namespacedName)) {
+                $className = "\\$node->namespacedName";
+            } elseif ($node->name !== null) {
+                $className = "\\$node->name";
+            } elseif ($node instanceof Stmt\Class_) {
+                $className = NameHelper::getAnonymousClassName($this->uri, $node);
+            }
+
             $this->nameContext->class = $className;
             $this->classStack[] = $className;
 

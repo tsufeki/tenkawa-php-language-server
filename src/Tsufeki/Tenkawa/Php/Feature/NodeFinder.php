@@ -42,7 +42,7 @@ class NodeFinder
             $nodeStorage->attach($node);
         }
 
-        $visitor = new NameContextTaggingVisitor($nodeStorage);
+        $visitor = new NameContextTaggingVisitor($nodeStorage, $document->getUri());
         $nodeTraverser = new NodeTraverser();
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($ast->nodes);
@@ -72,7 +72,7 @@ class NodeFinder
             }
         }
 
-        $visitor = new NameContextTaggingVisitor($nodeStorage);
+        $visitor = new NameContextTaggingVisitor($nodeStorage, $document->getUri());
         $nodeTraverser = new NodeTraverser();
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($ast->nodes);

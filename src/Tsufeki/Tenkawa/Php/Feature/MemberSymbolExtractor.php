@@ -103,10 +103,6 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
      */
     private function getSymbolFromNodes(array $nodes, Document $document, ?Cache $cache): \Generator
     {
-        if (($nodes[0] ?? null) instanceof Expr\Error) {
-            array_shift($nodes);
-        }
-
         if (empty($nodes)) {
             return null;
         }

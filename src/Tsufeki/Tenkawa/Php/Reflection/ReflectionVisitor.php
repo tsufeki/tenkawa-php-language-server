@@ -75,7 +75,7 @@ class ReflectionVisitor extends NameContextVisitor
 
     public function __construct(Document $document, Standard $prettyPrinter)
     {
-        parent::__construct();
+        parent::__construct($document->getUri());
         $this->document = $document;
         $this->prettyPrinter = $prettyPrinter;
     }
@@ -252,10 +252,10 @@ class ReflectionVisitor extends NameContextVisitor
 
     private function processClass(ClassLike $class, Stmt\Class_ $node): void
     {
-        if ($node->name === null) {
-            $class->name = NameHelper::getAnonymousClassName($this->document->getUri(), $node);
-        } else {
+        if ($node->name !== null) {
             $this->setName($class, $node);
+        } elseif ($this->nameContext->class !== null) {
+            $class->name = $this->nameContext->class;
         }
 
         $this->setCommonInfo($class, $node);
@@ -312,13 +312,9 @@ class ReflectionVisitor extends NameContextVisitor
         }
 
         if ($node instanceof Stmt\Class_) {
-            if ($node->name !== null) {
-                $class = $this->classLikeStack[] = new ClassLike();
-                $this->processClass($class, $node);
-                $this->classes[] = $class;
-            } else {
-                $this->classLikeStack[] = null;
-            }
+            $class = $this->classLikeStack[] = new ClassLike();
+            $this->processClass($class, $node);
+            $this->classes[] = $class;
 
             return null;
         }

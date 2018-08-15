@@ -8,6 +8,7 @@ use PhpParser\ErrorHandler;
 use PhpParser\Lexer;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Stmt;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
 use Tsufeki\Tenkawa\Server\Document\Document;
@@ -70,9 +71,13 @@ class PhpParserAdapter implements Parser
     public function parseExpr(string $expr): \Generator
     {
         $errorHandler = new ErrorHandler\Collecting();
-        $nodes = $this->parser->parse("<?php $expr;", $errorHandler) ?? [];
+        $node = $this->parser->parse("<?php $expr;", $errorHandler)[0] ?? null;
 
-        return $nodes[0] ?? new Expr\Error();
+        if ($node instanceof Stmt\Expression) {
+            $node = $node->expr;
+        }
+
+        return $node instanceof Expr ? $node : new Expr\Error();
         yield;
     }
 }
