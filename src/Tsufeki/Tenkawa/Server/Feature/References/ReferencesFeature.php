@@ -11,6 +11,7 @@ use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Feature\Feature;
+use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\Priority;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
 class ReferencesFeature implements Feature, MethodProvider
@@ -77,6 +78,7 @@ class ReferencesFeature implements Feature, MethodProvider
         ?ReferenceContext $context = null
     ): \Generator {
         $time = new Stopwatch();
+        yield Priority::background(-10);
 
         $document = $this->documentStore->get($textDocument->uri);
         $locations = array_merge(

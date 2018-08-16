@@ -17,6 +17,7 @@ use Tsufeki\Tenkawa\Server\Feature\Capabilities\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Feature;
 use Tsufeki\Tenkawa\Server\Uri;
+use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\Priority;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
 class DiagnosticsFeature implements Feature, OnOpen, OnChange, OnIndexingFinished
@@ -113,6 +114,7 @@ class DiagnosticsFeature implements Feature, OnOpen, OnChange, OnIndexingFinishe
 
     public function onOpen(Document $document): \Generator
     {
+        yield Priority::interactive(-10);
         yield array_map(
             function (DiagnosticsProvider $provider) use ($document) {
                 $diagnostics = yield $provider->getDiagnostics($document);
@@ -141,6 +143,7 @@ class DiagnosticsFeature implements Feature, OnOpen, OnChange, OnIndexingFinishe
             $this->logger->debug('Workspace diagnostics starting');
 
             $time = new Stopwatch();
+            yield Priority::background(-20);
 
             $documents = yield $this->documentStore->getDocuments();
             yield array_map(

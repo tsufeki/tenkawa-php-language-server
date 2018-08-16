@@ -12,6 +12,7 @@ use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Feature\Feature;
+use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\Priority;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
 class CodeActionFeature implements Feature, MethodProvider
@@ -81,6 +82,7 @@ class CodeActionFeature implements Feature, MethodProvider
     public function codeAction(TextDocumentIdentifier $textDocument, Range $range, CodeActionContext $context): \Generator
     {
         $time = new Stopwatch();
+        yield Priority::interactive(-10);
 
         try {
             $document = $this->documentStore->get($textDocument->uri);

@@ -11,6 +11,7 @@ use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Feature\Feature;
+use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\Priority;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
 class GoToDefinitionFeature implements Feature, MethodProvider
@@ -73,6 +74,7 @@ class GoToDefinitionFeature implements Feature, MethodProvider
     public function definition(TextDocumentIdentifier $textDocument, Position $position): \Generator
     {
         $time = new Stopwatch();
+        yield Priority::interactive();
 
         $document = $this->documentStore->get($textDocument->uri);
         $locations = array_merge(
