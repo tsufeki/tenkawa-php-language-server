@@ -19,6 +19,7 @@ use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
 use Tsufeki\Tenkawa\Server\Transport\RunnableTransport;
 use Tsufeki\Tenkawa\Server\Transport\StreamTransport;
 use Tsufeki\Tenkawa\Server\Utils\NestedKernelsSyncAsync;
+use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\ScheduledReactKernel;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
@@ -81,7 +82,7 @@ class Tenkawa
     {
         $options = self::parseArgs($cmdLineArgs);
 
-        $kernel = ReactKernel::create();
+        $kernel = ScheduledReactKernel::create();
         $logger = new CompositeLogger();
         self::setupErrorHandlers($logger, $kernel);
         self::setupLoggers($logger, $options);

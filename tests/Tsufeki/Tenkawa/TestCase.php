@@ -3,19 +3,20 @@
 namespace Tests\Tsufeki\Tenkawa;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
-use Recoil\React\ReactKernel;
+use Recoil\Kernel;
+use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\ScheduledReactKernel;
 
 abstract class TestCase extends BaseTestCase
 {
     /**
-     * @var ReactKernel
+     * @var Kernel
      */
     protected $kernel;
 
     protected function setUp()
     {
         parent::setUp();
-        $this->kernel = ReactKernel::create();
+        $this->kernel = ScheduledReactKernel::create();
     }
 
     protected function async($coroutine)
