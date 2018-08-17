@@ -41,6 +41,11 @@ class ConstExprEvaluation
      */
     private $cache;
 
+    /**
+     * @var resource|null
+     */
+    private static $dummyStream;
+
     public function __construct(
         Parser $parser,
         ReflectionProvider $reflectionProvider,
@@ -92,7 +97,7 @@ class ConstExprEvaluation
     {
         $key = $const->name;
         if ($const->nameContext->class) {
-            $key = "{$const->nameContext->class}\\$key";
+            $key = "{$const->nameContext->class}::$key";
         }
 
         $value = $this->cache->get($key);
@@ -104,7 +109,16 @@ class ConstExprEvaluation
         }
         $this->cache->set($key, InfiniteRecursionMarker::get());
 
-        $value = yield $this->evaluate($const->valueExpression ?? '', $const->nameContext);
+        if (in_array($const->name, ['\\STDIN', '\\STDOUT', '\\STDERR'], true)) {
+            if (self::$dummyStream === null) {
+                self::$dummyStream = fopen('data://text/plain;base64,', 'r') ?: null;
+            }
+
+            $value = self::$dummyStream;
+        } else {
+            $value = yield $this->evaluate($const->valueExpression ?? '', $const->nameContext);
+        }
+
         $this->cache->set($key, $value);
 
         return $value;
