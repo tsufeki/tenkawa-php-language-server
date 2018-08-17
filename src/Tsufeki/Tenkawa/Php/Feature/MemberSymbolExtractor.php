@@ -117,10 +117,6 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
         $symbol->document = $document;
         $symbol->referencedNames = $node->name instanceof Identifier ? [$node->name->name] : [];
         $symbol->range = PositionUtils::rangeFromNodeAttrs($node->name->getAttributes(), $document);
-        if ($node instanceof Expr\StaticPropertyFetch) {
-            // account for '$' TODO: there may be whitespace or {}
-            $symbol->range->start->character--;
-        }
 
         if ($node instanceof Expr\PropertyFetch || $node instanceof Expr\MethodCall) {
             $symbol->static = false;
