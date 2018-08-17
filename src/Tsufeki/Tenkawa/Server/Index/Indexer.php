@@ -22,6 +22,7 @@ use Tsufeki\Tenkawa\Server\Io\FileLister\FileFilter;
 use Tsufeki\Tenkawa\Server\Io\FileLister\FileLister;
 use Tsufeki\Tenkawa\Server\Io\FileReader;
 use Tsufeki\Tenkawa\Server\Uri;
+use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\Priority;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
 class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
@@ -227,7 +228,9 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
         $this->globalIndex = $this->indexStorageFactory->createGlobalIndex($this->indexDataVersion, $uriPrefix);
 
         yield Recoil::execute(array_map(function (GlobalIndexer $globalIndexer) {
-            return $globalIndexer->index($this->globalIndex, $this);
+            yield Priority::background();
+
+            return yield $globalIndexer->index($this->globalIndex, $this);
         }, $this->globalIndexers));
     }
 
@@ -263,6 +266,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
 
     public function onChange(Document $document): \Generator
     {
+        yield Priority::interactive(10);
         /** @var Project $project */
         $project = yield $this->documentStore->getProjectForDocument($document);
 
@@ -275,6 +279,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
 
     public function onClose(Document $document): \Generator
     {
+        yield Priority::interactive(10);
         /** @var Project $project */
         $project = yield $this->documentStore->getProjectForDocument($document);
 
@@ -298,7 +303,10 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
             foreach ($projects as $project) {
                 yield $this->onProjectOpen($project);
                 $indexStorage = $project->get('index.project_files');
-                yield Recoil::execute($this->indexProject($project, $indexStorage, $uri, null));
+                yield Recoil::execute(function () use ($project, $indexStorage, $uri) {
+                    yield Priority::background();
+                    yield $this->indexProject($project, $indexStorage, $uri, null);
+                });
             }
         }
     }

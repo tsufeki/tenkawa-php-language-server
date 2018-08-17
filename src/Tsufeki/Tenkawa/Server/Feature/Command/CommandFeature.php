@@ -10,6 +10,7 @@ use Tsufeki\Tenkawa\Server\Feature\Capabilities\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ExecuteCommandOptions;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Feature;
+use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\Priority;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
 class CommandFeature implements Feature, MethodProvider
@@ -79,6 +80,7 @@ class CommandFeature implements Feature, MethodProvider
     public function executeCommand(string $command, array $arguments): \Generator
     {
         $time = new Stopwatch();
+        yield Priority::interactive();
 
         $provider = $this->providers[$command] ?? null;
         if ($provider === null) {

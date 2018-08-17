@@ -12,6 +12,7 @@ use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Feature\Feature;
 use Tsufeki\Tenkawa\Server\Feature\Server\TextDocument\Hover;
+use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\Priority;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
 class HoverFeature implements Feature, MethodProvider
@@ -73,6 +74,7 @@ class HoverFeature implements Feature, MethodProvider
     public function hover(TextDocumentIdentifier $textDocument, Position $position): \Generator
     {
         $time = new Stopwatch();
+        yield Priority::interactive();
 
         $document = $this->documentStore->get($textDocument->uri);
         $hover = null;

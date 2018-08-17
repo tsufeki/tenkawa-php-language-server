@@ -11,6 +11,7 @@ use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Common\SymbolInformation;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Feature\Feature;
+use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\Priority;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
 class DocumentSymbolsFeature implements Feature, MethodProvider
@@ -74,6 +75,7 @@ class DocumentSymbolsFeature implements Feature, MethodProvider
     public function documentSymbol(TextDocumentIdentifier $textDocument): \Generator
     {
         $time = new Stopwatch();
+        yield Priority::interactive(-10);
 
         $document = $this->documentStore->get($textDocument->uri);
         $symbols = array_merge(

@@ -12,6 +12,7 @@ use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Feature\Feature;
+use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\Priority;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
 class CompletionFeature implements Feature, MethodProvider
@@ -87,6 +88,7 @@ class CompletionFeature implements Feature, MethodProvider
         ?CompletionContext $context = null
     ): \Generator {
         $time = new Stopwatch();
+        yield Priority::interactive();
 
         $document = $this->documentStore->get($textDocument->uri);
         $completions = yield $this->getCompletions($document, $position, $context);
