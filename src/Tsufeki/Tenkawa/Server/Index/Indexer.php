@@ -14,8 +14,8 @@ use Tsufeki\Tenkawa\Server\Event\Document\OnProjectOpen;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Event\OnIndexingFinished;
-use Tsufeki\Tenkawa\Server\Event\OnStart;
 use Tsufeki\Tenkawa\Server\Index\Storage\ChainedStorage;
+use Tsufeki\Tenkawa\Server\Index\Storage\IndexStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\MergedStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\WritableIndexStorage;
 use Tsufeki\Tenkawa\Server\Io\FileLister\FileFilter;
@@ -25,7 +25,7 @@ use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\Priority;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
 
-class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
+class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
 {
     /**
      * @var IndexDataProvider[]
@@ -68,7 +68,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
     private $fileFilterFactories;
 
     /**
-     * @var WritableIndexStorage
+     * @var IndexStorage|null
      */
     private $globalIndex;
 
@@ -86,6 +86,11 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
      * @var string
      */
     private $indexDataVersion;
+
+    /**
+     * @var bool
+     */
+    private $buildingGlobalIndex = false;
 
     /**
      * @param IndexDataProvider[] $indexDataProviders
@@ -208,30 +213,35 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
         }
 
         if ($processedFilesCount > 0) {
-            yield $this->eventDispatcher->dispatch(OnIndexingFinished::class);
+            if (!$this->buildingGlobalIndex) {
+                yield $this->eventDispatcher->dispatch(OnIndexingFinished::class);
+            }
             if ($stopwatch->getSeconds() >= 10.0) {
                 $this->logger->info("Indexing finished: $subpath [$processedFilesCount files, $stopwatch]");
             }
         }
     }
 
-    public function onStart(array $options): \Generator
+    public function buildGlobalIndex(): \Generator
     {
-        $uriPrefix = '';
-        foreach ($this->globalIndexers as $globalIndexer) {
-            if ($globalIndexer->getUriPrefixHint()) {
-                $uriPrefix = $globalIndexer->getUriPrefixHint();
-                break;
-            }
+        $this->buildingGlobalIndex = true;
+
+        yield array_map(function (GlobalIndexer $globalIndexer) {
+            return $globalIndexer->buildIndex($this);
+        }, $this->globalIndexers);
+
+        $this->buildingGlobalIndex = false;
+    }
+
+    private function getGlobalIndex(): \Generator
+    {
+        if ($this->globalIndex === null) {
+            $this->globalIndex = new MergedStorage(yield array_map(function (GlobalIndexer $globalIndexer) {
+                return $globalIndexer->getIndex();
+            }, $this->globalIndexers));
         }
 
-        $this->globalIndex = $this->indexStorageFactory->createGlobalIndex($this->indexDataVersion, $uriPrefix);
-
-        yield Recoil::execute(array_map(function (GlobalIndexer $globalIndexer) {
-            yield Priority::background();
-
-            return yield $globalIndexer->index($this->globalIndex, $this);
-        }, $this->globalIndexers));
+        return $this->globalIndex;
     }
 
     public function onProjectOpen(Project $project): \Generator
@@ -247,7 +257,7 @@ class Indexer implements OnStart, OnOpen, OnChange, OnClose, OnProjectOpen, OnFi
             $openFilesIndex,
             new MergedStorage([
                 $projectFilesIndex,
-                $this->globalIndex,
+                yield $this->getGlobalIndex(),
             ])
         );
 

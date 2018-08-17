@@ -12,6 +12,8 @@ UNRELEASED
 
 * Upgrade to PHPStan 0.10, with greatly improved standard library type
   information. Also allowing us to add support for anonymous classes.
+* Standard library index is now prebuilt, not scanned at startup.
+* Schedule tasks by priorities to improve latency on interactive requests.
 
 0.2.0 - 2018-07-01
 ------------------

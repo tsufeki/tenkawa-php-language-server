@@ -85,7 +85,6 @@ class ServerPlugin extends Plugin
         }
 
         $container->setClass(Indexer::class);
-        $container->setAlias(OnStart::class, Indexer::class, true);
         $container->setAlias(OnOpen::class, Indexer::class, true);
         $container->setAlias(OnChange::class, Indexer::class, true);
         $container->setAlias(OnClose::class, Indexer::class, true);

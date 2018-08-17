@@ -2,14 +2,14 @@
 
 namespace Tsufeki\Tenkawa\Server\Index;
 
-use Tsufeki\Tenkawa\Server\Index\Storage\WritableIndexStorage;
+use Tsufeki\Tenkawa\Server\Index\Storage\IndexStorage;
 
 interface GlobalIndexer
 {
-    public function index(WritableIndexStorage $globalIndexStorage, Indexer $indexer): \Generator;
-
     /**
-     * Propose a common prefix for indexed URIs.
+     * @resolve IndexStorage
      */
-    public function getUriPrefixHint(): string;
+    public function getIndex(): \Generator;
+
+    public function buildIndex(Indexer $indexer): \Generator;
 }

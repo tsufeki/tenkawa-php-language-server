@@ -27,15 +27,6 @@ class LocalCacheIndexStorageFactory implements IndexStorageFactory
         $this->documentStore = $documentStore;
     }
 
-    public function createGlobalIndex(string $indexDataVersion, string $uriPrefixHint = ''): WritableIndexStorage
-    {
-        return new SqliteStorage(
-            $this->cacheDir . '/global.sqlite',
-            $indexDataVersion,
-            $uriPrefixHint
-        );
-    }
-
     public function createOpenedFilesIndex(Project $project, string $indexDataVersion): WritableIndexStorage
     {
         return new OpenDocumentsStorage($project, $this->documentStore);

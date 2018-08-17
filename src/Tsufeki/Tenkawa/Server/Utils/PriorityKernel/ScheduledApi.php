@@ -108,6 +108,7 @@ class ScheduledApi implements Api
 
         return array_map(function ($coroutine) use ($priority) {
             yield Priority::set($priority);
+
             return yield $coroutine;
         }, $coroutines);
     }

@@ -16,8 +16,7 @@ suggestions, questions are welcome.
 Installation
 ------------
 
-Requires PHP >= 7.1 (7.0 is deprecated but still supported) with pdo_sqlite
-extension.
+Requires PHP >= 7.1 with pdo_sqlite extension.
 
 For Visual Studio Code extension, see [here][vsix].
 
@@ -42,6 +41,12 @@ $ git clone https://github.com/tsufeki/tenkawa-php-language-server.git tenkawa/
 $ cd tenkawa/
 $ composer install --no-dev
 $ cd ..
+```
+
+Build index of the standard library:
+
+```sh
+$ php ~/tenkawa/bin/tenkawa.php --build-index --log-stderr
 ```
 
 Now configure your client to start the server with this command to use stdio:
@@ -111,6 +116,7 @@ Command line options
 * `--log-level=<level>` - log only messages of the given level and up.
   `<level>` can be one of `emergency`, `alert`, `critical`, `error`,
   `warning`, `notice`, `info`, `debug`. Defaults to `info`.
+* `--build-index` - build standard library index instead of starting the server.
 
 Configuration
 -------------

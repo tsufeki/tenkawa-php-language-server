@@ -13,6 +13,7 @@ use Tsufeki\HmContainer\Container;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnStart;
 use Tsufeki\Tenkawa\Server\Exception\IoException;
+use Tsufeki\Tenkawa\Server\Index\Indexer;
 use Tsufeki\Tenkawa\Server\Logger\CompositeLogger;
 use Tsufeki\Tenkawa\Server\Logger\LevelFilteringLogger;
 use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
@@ -56,15 +57,8 @@ class Tenkawa
         $time = new Stopwatch();
         $this->logger->debug('start');
 
-        $container = new Container();
-        $container->setValue(LoggerInterface::class, $this->logger);
-        $container->setValue(Kernel::class, $this->kernel);
-        $container->setValue(SyncAsync::class, new NestedKernelsSyncAsync([ReactKernel::class, 'create']));
+        $container = $this->createContainer($options);
         $container->setValue(Transport::class, $transport);
-
-        foreach ($this->plugins as $plugin) {
-            $plugin->configureContainer($container, $options);
-        }
 
         /** @var EventDispatcher $eventDispatcher */
         $eventDispatcher = $container->get(EventDispatcher::class);
@@ -78,6 +72,37 @@ class Tenkawa
         yield $transport->run();
     }
 
+    public function buildIndex(array $options = []): \Generator
+    {
+        $time = new Stopwatch();
+        $this->logger->debug('start');
+
+        $container = $this->createContainer($options);
+
+        /** @var Indexer $indexer */
+        $indexer = $container->get(Indexer::class);
+
+        $this->logger->debug("started [$time]");
+
+        yield $indexer->buildGlobalIndex();
+
+        $this->logger->info("index built [$time]");
+    }
+
+    private function createContainer(array $options = []): Container
+    {
+        $container = new Container();
+        $container->setValue(LoggerInterface::class, $this->logger);
+        $container->setValue(Kernel::class, $this->kernel);
+        $container->setValue(SyncAsync::class, new NestedKernelsSyncAsync([ReactKernel::class, 'create']));
+
+        foreach ($this->plugins as $plugin) {
+            $plugin->configureContainer($container, $options);
+        }
+
+        return $container;
+    }
+
     public static function main(array $cmdLineArgs): void
     {
         $options = self::parseArgs($cmdLineArgs);
@@ -89,10 +114,18 @@ class Tenkawa
         $logger->debug('PHP ' . PHP_VERSION . ' ' . PHP_OS);
 
         $plugins = (new PluginFinder())->findPlugins();
-        $transport = self::createTransport($options);
-
         $app = new self($kernel, $logger, $plugins);
-        $kernel->execute($app->run($transport, $options));
+
+        switch ($options['cmd']) {
+            case 'run':
+                $transport = self::createTransport($options);
+                $kernel->execute($app->run($transport, $options));
+                break;
+            case 'build_index':
+                $kernel->execute($app->buildIndex($options));
+                break;
+        }
+
         $kernel->run();
     }
 
@@ -100,6 +133,7 @@ class Tenkawa
     {
         array_shift($cmdLineArgs);
         $options = [
+            'cmd' => 'run',
             'log.stderr' => false,
             'log.file' => false,
             'log.client' => false,
@@ -115,6 +149,9 @@ class Tenkawa
                 }
 
                 switch ($option) {
+                    case '--build-index':
+                        $options['cmd'] = 'build_index';
+                        continue 2;
                     case '--log-stderr':
                         $options['log.stderr'] = true;
                         continue 2;
