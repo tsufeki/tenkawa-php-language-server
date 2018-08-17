@@ -1859,16 +1859,16 @@
         },
         {
             "name": "tsufeki/kayo-json-mapper",
-            "version": "0.3.2",
+            "version": "0.3.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsufeki/kayo-json-mapper.git",
-                "reference": "7ba243b7e7b49c24a982e759d079554fb0402c26"
+                "reference": "64035796b66c219c8bf2a6deb7840278020a622b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsufeki/kayo-json-mapper/zipball/7ba243b7e7b49c24a982e759d079554fb0402c26",
-                "reference": "7ba243b7e7b49c24a982e759d079554fb0402c26",
+                "url": "https://api.github.com/repos/tsufeki/kayo-json-mapper/zipball/64035796b66c219c8bf2a6deb7840278020a622b",
+                "reference": "64035796b66c219c8bf2a6deb7840278020a622b",
                 "shasum": ""
             },
             "require": {
@@ -1899,7 +1899,7 @@
                 }
             ],
             "description": "Map JSON data to PHP objects",
-            "time": "2018-08-12T15:09:54+00:00"
+            "time": "2018-08-17T23:15:44+00:00"
         },
         {
             "name": "tsufeki/php-lenient-parser",

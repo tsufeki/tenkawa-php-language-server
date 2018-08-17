@@ -202,6 +202,7 @@ class ServerPlugin extends Plugin
             ->throwOnInfiniteRecursion(true)
             ->acceptStdClassAsArray(true)
             ->setStrictNulls(true)
+            ->setConvertFloatToInt(true)
             ->addLoader($uriMapper)
             ->addDumper($uriMapper)
             ->getMapper();
