@@ -115,6 +115,9 @@ class ConstExprEvaluation
             }
 
             $value = self::$dummyStream;
+        } elseif ($const->name === '\\PHP_INT_MIN') {
+            // Special case as it can't be expressed as int literal (it converts to float).
+            $value = PHP_INT_MIN;
         } else {
             $value = yield $this->evaluate($const->valueExpression ?? '', $const->nameContext);
         }

@@ -5,6 +5,7 @@ namespace Tsufeki\Tenkawa\Php\Reflection;
 use League\HTMLToMarkdown\HtmlConverter;
 use Tsufeki\Tenkawa\Php\Index\StubsIndexer;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
+use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
@@ -45,6 +46,10 @@ class StubsReflectionTransformer
             foreach ($element->consts as $const) {
                 $this->transformDocComment($const->docComment);
             }
+        }
+
+        if ($element instanceof Const_ && $element->name === '\\PHP_INT_MIN') {
+            $element->valueExpression = (string)PHP_INT_MIN;
         }
 
         $this->transformDocComment($element->docComment);
