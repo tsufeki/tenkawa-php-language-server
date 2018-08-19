@@ -14,6 +14,8 @@ use Tsufeki\Tenkawa\Server\Event\Document\OnProjectOpen;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Event\OnIndexingFinished;
+use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\Progress;
+use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\ProgressNotificationFeature;
 use Tsufeki\Tenkawa\Server\Index\Storage\ChainedStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\IndexStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\MergedStorage;
@@ -78,6 +80,11 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
     private $eventDispatcher;
 
     /**
+     * @var ProgressNotificationFeature
+     */
+    private $progressNotificationFeature;
+
+    /**
      * @var LoggerInterface
      */
     private $logger;
@@ -108,6 +115,7 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         array $fileFilters,
         array $fileFilterFactories,
         EventDispatcher $eventDispatcher,
+        ProgressNotificationFeature $progressNotificationFeature,
         LoggerInterface $logger
     ) {
         $this->indexDataProviders = $indexDataProviders;
@@ -119,6 +127,7 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         $this->fileFilters = $fileFilters;
         $this->fileFilterFactories = $fileFilterFactories;
         $this->eventDispatcher = $eventDispatcher;
+        $this->progressNotificationFeature = $progressNotificationFeature;
         $this->logger = $logger;
 
         $versions = array_map(function (IndexDataProvider $provider) {
@@ -181,6 +190,8 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
 
         $stopwatch = new Stopwatch();
         // $this->logger->debug("Indexing started: $subpath");
+        /** @var Progress $progress */
+        $progress = yield $this->progressNotificationFeature->create();
 
         $indexedFiles = yield $indexStorage->getFileTimestamps($subpath);
         $processedFilesCount = 0;
@@ -190,6 +201,10 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
             if (array_key_exists($uriString, $indexedFiles) && $indexedFiles[$uriString] === $timestamp) {
                 unset($indexedFiles[$uriString]);
                 continue;
+            }
+
+            if ($stopwatch->getSeconds() >= 2.0) {
+                $progress->set('Indexing files...');
             }
 
             try {
@@ -211,6 +226,8 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
             yield $this->clearDocument($uri, $indexStorage);
             $processedFilesCount++;
         }
+
+        $progress->done();
 
         if ($processedFilesCount > 0) {
             if (!$this->buildingGlobalIndex) {

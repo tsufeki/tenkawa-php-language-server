@@ -20,6 +20,8 @@ use Tsufeki\Tenkawa\Php\TypeInference\UnionType;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Exception\DocumentNotOpenException;
 use Tsufeki\Tenkawa\Server\Feature\Common\Range;
+use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\Progress;
+use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\ProgressNotificationFeature;
 use Tsufeki\Tenkawa\Server\Io\FileReader;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
@@ -56,13 +58,19 @@ class MemberReferenceFinder implements ReferenceFinder
      */
     private $fileReader;
 
+    /**
+     * @var ProgressNotificationFeature
+     */
+    private $progressNotificationFeature;
+
     public function __construct(
         SymbolExtractor $symbolExtractor,
         SymbolReflection $symbolReflection,
         InheritanceTreeTraverser $inheritanceTreeTraverser,
         GlobalReferenceFinder $globalReferenceFinder,
         DocumentStore $documentStore,
-        FileReader $fileReader
+        FileReader $fileReader,
+        ProgressNotificationFeature $progressNotificationFeature
     ) {
         $this->symbolExtractor = $symbolExtractor;
         $this->symbolReflection = $symbolReflection;
@@ -70,6 +78,7 @@ class MemberReferenceFinder implements ReferenceFinder
         $this->globalReferenceFinder = $globalReferenceFinder;
         $this->documentStore = $documentStore;
         $this->fileReader = $fileReader;
+        $this->progressNotificationFeature = $progressNotificationFeature;
     }
 
     /**
@@ -85,6 +94,9 @@ class MemberReferenceFinder implements ReferenceFinder
         $analyzedUris = [];
         /** @var Uri[] $uriQueue */
         $uriQueue = yield $this->getClassUris($targetNames, $symbol);
+        /** @var Progress $progress */
+        $progress = yield $this->progressNotificationFeature->create();
+        $progress->set('Finding references...');
 
         while (!empty($uriQueue)) {
             /** @var Uri $uri */
@@ -100,6 +112,7 @@ class MemberReferenceFinder implements ReferenceFinder
             $fileSymbols = yield $this->getSymbolsFromUri($uri);
             foreach ($fileSymbols as $fileSymbol) {
                 if ($fileSymbol instanceof DefinitionSymbol && in_array($fileSymbol->kind, GlobalSymbol::KINDS, true)) {
+                    $progress->set('Finding references...');
                     yield;
                     /** @var Reference[] $refs */
                     $refs = yield $this->globalReferenceFinder->getReferences($fileSymbol);
@@ -113,6 +126,8 @@ class MemberReferenceFinder implements ReferenceFinder
                 }
             }
         }
+
+        $progress->done();
 
         return $references;
     }

@@ -38,6 +38,7 @@ use Tsufeki\Tenkawa\Server\Feature\GoToDefinition\GoToDefinitionFeature;
 use Tsufeki\Tenkawa\Server\Feature\Hover\HoverFeature;
 use Tsufeki\Tenkawa\Server\Feature\LanguageServer;
 use Tsufeki\Tenkawa\Server\Feature\Message\MessageFeature;
+use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\ProgressNotificationFeature;
 use Tsufeki\Tenkawa\Server\Feature\References\ReferencesFeature;
 use Tsufeki\Tenkawa\Server\Feature\Registration\RegistrationFeature;
 use Tsufeki\Tenkawa\Server\Feature\TextDocument\TextDocumentFeature;
@@ -165,6 +166,9 @@ class ServerPlugin extends Plugin
 
         $container->setClass(MessageFeature::class);
         $container->setAlias(Feature::class, MessageFeature::class, true);
+
+        $container->setClass(ProgressNotificationFeature::class);
+        $container->setAlias(Feature::class, ProgressNotificationFeature::class, true);
 
         $container->setClass(ReferencesFeature::class);
         $container->setAlias(Feature::class, ReferencesFeature::class, true);
