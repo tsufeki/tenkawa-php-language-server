@@ -25,6 +25,13 @@ class SymbolInformation
     public $kind;
 
     /**
+     * Indicates if this symbol is deprecated.
+     *
+     * @var bool|null
+     */
+    public $deprecated;
+
+    /**
      * The location of this symbol.
      *
      * The location's range is used by a tool to reveal the location in the

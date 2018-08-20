@@ -7,6 +7,7 @@ use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ClientCapabilities;
+use Tsufeki\Tenkawa\Server\Feature\Capabilities\DocumentSymbolClientCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Common\SymbolInformation;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextDocumentIdentifier;
@@ -32,6 +33,11 @@ class DocumentSymbolsFeature implements Feature, MethodProvider
     private $logger;
 
     /**
+     * @var DocumentSymbolClientCapabilities
+     */
+    private $capabilities;
+
+    /**
      * @param DocumentSymbolsProvider[] $providers
      */
     public function __construct(array $providers, DocumentStore $documentStore, LoggerInterface $logger)
@@ -44,6 +50,7 @@ class DocumentSymbolsFeature implements Feature, MethodProvider
     public function initialize(ClientCapabilities $clientCapabilities, ServerCapabilities $serverCapabilities): \Generator
     {
         $serverCapabilities->documentSymbolProvider = !empty($this->providers);
+        $this->capabilities = $clientCapabilities->textDocument->documentSymbol ?? new DocumentSymbolClientCapabilities();
 
         return;
         yield;
@@ -70,7 +77,7 @@ class DocumentSymbolsFeature implements Feature, MethodProvider
      *
      * @param TextDocumentIdentifier $textDocument The text document.
      *
-     * @resolve SymbolInformation[]|null
+     * @resolve DocumentSymbol[]|SymbolInformation[]|null
      */
     public function documentSymbol(TextDocumentIdentifier $textDocument): \Generator
     {
@@ -80,7 +87,7 @@ class DocumentSymbolsFeature implements Feature, MethodProvider
         $document = $this->documentStore->get($textDocument->uri);
         $symbols = array_merge(
             ...yield array_map(function (DocumentSymbolsProvider $provider) use ($document) {
-                return $provider->getSymbols($document);
+                return $provider->getSymbols($document, $this->capabilities);
             }, $this->providers)
         );
 

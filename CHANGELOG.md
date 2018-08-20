@@ -4,6 +4,10 @@ Changelog
 UNRELEASED
 ----------
 
+### Added
+
+* Hierarchical document symbols.
+
 ### Removed
 
 * Drop PHP 7.0 support.
