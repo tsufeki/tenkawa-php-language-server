@@ -230,6 +230,15 @@ class DocumentStore
         $this->cache->clear();
     }
 
+    /**
+     * @resolve Projects[]
+     */
+    public function getProjects(): \Generator
+    {
+        return array_values($this->projects);
+        yield;
+    }
+
     public function closeAll(): \Generator
     {
         foreach ($this->documents as $document) {

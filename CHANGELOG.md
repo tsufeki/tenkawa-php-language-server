@@ -7,6 +7,7 @@ UNRELEASED
 ### Added
 
 * Progress notifications as a custom protocol extension.
+* Workspace symbols search.
 * Hierarchical document symbols.
 
 ### Removed

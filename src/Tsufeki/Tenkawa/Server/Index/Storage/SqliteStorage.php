@@ -172,6 +172,7 @@ class SqliteStorage implements WritableIndexStorage
 
         $stmt->execute($params);
         $result = [];
+        $i = 0;
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $entry = new IndexEntry();
             $entry->sourceUri = Uri::fromString($this->uriMapper->restorePrefix($row['source_uri']));
@@ -184,6 +185,10 @@ class SqliteStorage implements WritableIndexStorage
                 );
             }
             $result[] = $entry;
+            $i++;
+            if ($i % 300 === 0) {
+                yield;
+            }
         }
 
         return $result;

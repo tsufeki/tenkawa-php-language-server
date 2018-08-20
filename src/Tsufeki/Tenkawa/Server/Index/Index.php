@@ -20,15 +20,21 @@ class Index
     }
 
     /**
+     * @param Document|Project $documentOrProject
+     *
      * @resolve IndexEntry[]
      */
-    public function search(Document $document, Query $query): \Generator
+    public function search($documentOrProject, Query $query, bool $projectOnly = false): \Generator
     {
-        /** @var Project $project */
-        $project = yield $this->documentStore->getProjectForDocument($document);
+        if ($documentOrProject instanceof Document) {
+            /** @var Project $project */
+            $project = yield $this->documentStore->getProjectForDocument($documentOrProject);
+        } else {
+            $project = $documentOrProject;
+        }
 
         /** @var IndexStorage $indexStorage */
-        $indexStorage = $project->get('index');
+        $indexStorage = $project->get('index' . ($projectOnly ? '.project_only' : ''));
 
         return yield $indexStorage->search($query);
     }
