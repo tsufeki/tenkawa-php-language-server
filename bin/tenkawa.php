@@ -8,6 +8,19 @@ if (PHP_MAJOR_VERSION !== 7 || PHP_MINOR_VERSION < 1) {
     exit(1);
 }
 
+$requiredExtensions = [
+    'pdo_sqlite' => 2,
+    'mbstring' => 3,
+];
+
+foreach ($requiredExtensions as $ext => $errorCode) {
+    if (!extension_loaded($ext)) {
+        fprintf(STDERR, "Tenkawa requires $ext extension\n");
+        exit($errorCode);
+    }
+}
+unset($requiredExtensions, $ext, $errorCode);
+
 foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
     if (file_exists($file)) {
         require_once $file;
@@ -15,5 +28,10 @@ foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../autoload.php', __DI
     }
 }
 unset($file);
+
+if (!class_exists(Tenkawa::class)) {
+    fprintf(STDERR, "Tenkawa was not properly installed\n");
+    exit(9);
+}
 
 Tenkawa::main($argv);

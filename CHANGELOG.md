@@ -6,6 +6,7 @@ UNRELEASED
 
 ### Added
 
+* Progress notifications as a custom protocol extension.
 * Hierarchical document symbols.
 
 ### Removed
