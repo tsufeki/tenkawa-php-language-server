@@ -20,7 +20,7 @@ interface NodePathSymbolExtractor
      *
      * @resolve Symbol|null
      */
-    public function getSymbolAt(Document $document, Position $position, array $nodes): \Generator;
+    public function getSymbolAt(Document $document, Position $position, array $nodes, bool $forCompletion): \Generator;
 
     /**
      * @param (Node|Comment)[][] $nodes

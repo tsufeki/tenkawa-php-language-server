@@ -51,7 +51,7 @@ class SymbolCompletionProvider implements CompletionProvider
         }
 
         /** @var Symbol|null */
-        $symbol = yield $this->symbolExtractor->getSymbolAt($document, $position);
+        $symbol = yield $this->symbolExtractor->getSymbolAt($document, $position, true);
         if ($symbol === null) {
             return new CompletionList();
         }

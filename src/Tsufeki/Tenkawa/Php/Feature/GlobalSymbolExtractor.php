@@ -69,7 +69,7 @@ class GlobalSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve Symbol|null
      */
-    public function getSymbolAt(Document $document, Position $position, array $nodes): \Generator
+    public function getSymbolAt(Document $document, Position $position, array $nodes, bool $forCompletion): \Generator
     {
         /** @var GlobalSymbol|null $symbol */
         $symbol = yield $this->getSymbolFromNodes($nodes, $document);

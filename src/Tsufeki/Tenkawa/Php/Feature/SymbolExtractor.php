@@ -39,7 +39,7 @@ class SymbolExtractor
     /**
      * @resolve Symbol|null
      */
-    public function getSymbolAt(Document $document, Position $position): \Generator
+    public function getSymbolAt(Document $document, Position $position, bool $forCompletion = false): \Generator
     {
         /** @var (Node|Comment)[] $nodes */
         $nodes = yield $this->nodeFinder->getNodePath($document, $position);
@@ -54,7 +54,7 @@ class SymbolExtractor
 
         foreach ($this->nodePathSymbolExtractors as $nodePathSymbolExtractor) {
             if ($nodePathSymbolExtractor->filterNode($firstNode)) {
-                $symbol = yield $nodePathSymbolExtractor->getSymbolAt($document, $position, $nodes);
+                $symbol = yield $nodePathSymbolExtractor->getSymbolAt($document, $position, $nodes, $forCompletion);
                 if ($symbol !== null) {
                     return $symbol;
                 }

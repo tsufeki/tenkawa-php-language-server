@@ -60,15 +60,20 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve Symbol|null
      */
-    public function getSymbolAt(Document $document, Position $position, array $nodes): \Generator
+    public function getSymbolAt(Document $document, Position $position, array $nodes, bool $forCompletion): \Generator
     {
         /** @var MemberSymbol|null $symbol */
         $symbol = yield $this->getSymbolFromNodes($nodes, $document, null);
 
         if ($symbol !== null) {
+            $range = $symbol->range;
+            if ($forCompletion) {
+                $range = $symbol->completionRange ?? $range;
+            }
+
             $offset = PositionUtils::offsetFromPosition($position, $document);
-            $start = PositionUtils::offsetFromPosition($symbol->range->start, $document);
-            $end = PositionUtils::offsetFromPosition($symbol->range->end, $document);
+            $start = PositionUtils::offsetFromPosition($range->start, $document);
+            $end = PositionUtils::offsetFromPosition($range->end, $document);
 
             if ($offset < $start || $offset > $end) {
                 $symbol = null;
@@ -129,10 +134,27 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
             }
         }
 
+        $symbol->completionRange = $this->getCompletionRange($symbol, $leftNode);
         $symbol->objectType = yield $this->getTypeFromNode($leftNode, $symbol->nameContext, $document, $cache);
         $symbol->isInObjectContext = $this->isInObjectContext($nodes);
 
         return $symbol;
+    }
+
+    private function getCompletionRange(MemberSymbol $symbol, Node $leftNode): ?Range
+    {
+        $middleStart = PositionUtils::rangeFromNodeAttrs($leftNode->getAttributes(), $symbol->document)->end;
+        $middleEnd = $symbol->range->start;
+        $middleText = PositionUtils::extractRange(new Range($middleStart, $middleEnd), $symbol->document);
+        $op = $symbol->static ? '::' : '->';
+        if (strlen($middleText) !== strrpos($middleText, $op) + 2) {
+            $start = PositionUtils::offsetFromPosition($middleStart, $symbol->document) + strrpos($middleText, $op) + 2;
+            $position = PositionUtils::positionFromOffset($start, $symbol->document);
+
+            return new Range($position, $position);
+        }
+
+        return null;
     }
 
     /**

@@ -56,7 +56,7 @@ class DocCommentSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve Symbol|null
      */
-    public function getSymbolAt(Document $document, Position $position, array $nodes): \Generator
+    public function getSymbolAt(Document $document, Position $position, array $nodes, bool $forCompletion): \Generator
     {
         if (count($nodes) < 2 || !($nodes[0] instanceof Comment\Doc) || !($nodes[1] instanceof Node)) {
             return null;
