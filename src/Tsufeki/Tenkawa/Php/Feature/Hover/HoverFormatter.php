@@ -216,7 +216,7 @@ class HoverFormatter
             if ($class->parentClass !== null) {
                 $s .= ' extends ' . StringUtils::getShortName($class->parentClass);
             }
-            if (!empty($class->intefaces)) {
+            if ($class->interfaces !== []) {
                 $s .= ' implements ' . implode(', ', array_map(
                     [StringUtils::class, 'getShortName'],
                     $class->interfaces
@@ -224,7 +224,7 @@ class HoverFormatter
             }
         } elseif ($class->isInterface) {
             $s .= 'interface ' . StringUtils::getShortName($class->name);
-            if (!empty($class->intefaces)) {
+            if ($class->interfaces !== []) {
                 $s .= ' extends ' . implode(', ', array_map(
                     [StringUtils::class, 'getShortName'],
                     $class->interfaces
