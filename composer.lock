@@ -1814,16 +1814,16 @@
         },
         {
             "name": "tsufeki/hmcontainer",
-            "version": "0.3.2",
+            "version": "0.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsufeki/hmcontainer.git",
-                "reference": "a189510c4103a79cda7a1c447c81497dbb1d800c"
+                "reference": "bdaec329f4b49e4e0b388cf0a234bd0bae6d9b2e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsufeki/hmcontainer/zipball/a189510c4103a79cda7a1c447c81497dbb1d800c",
-                "reference": "a189510c4103a79cda7a1c447c81497dbb1d800c",
+                "url": "https://api.github.com/repos/tsufeki/hmcontainer/zipball/bdaec329f4b49e4e0b388cf0a234bd0bae6d9b2e",
+                "reference": "bdaec329f4b49e4e0b388cf0a234bd0bae6d9b2e",
                 "shasum": ""
             },
             "require": {
@@ -1855,7 +1855,7 @@
                 }
             ],
             "description": "Hierarchical dependency injection container inspired by Angular",
-            "time": "2017-12-22T22:16:04+00:00"
+            "time": "2018-08-20T08:40:27+00:00"
         },
         {
             "name": "tsufeki/kayo-json-mapper",

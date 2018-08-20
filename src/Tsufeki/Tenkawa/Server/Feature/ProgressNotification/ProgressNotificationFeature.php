@@ -14,11 +14,11 @@ use Tsufeki\Tenkawa\Server\Feature\Feature;
 class ProgressNotificationFeature implements Feature
 {
     /**
-     * @var MappedJsonRpc
+     * @var MappedJsonRpc|null
      */
     private $rpc;
 
-    public function __construct(MappedJsonRpc $rpc)
+    public function __construct(?MappedJsonRpc $rpc = null)
     {
         $this->rpc = $rpc;
     }
@@ -41,7 +41,9 @@ class ProgressNotificationFeature implements Feature
 
     private function progress(string $id, ?string $label = null, ?int $status = null, bool $done = false): \Generator
     {
-        yield $this->rpc->notify('$/tenkawaphp/window/progress', compact('id', 'label', 'status', 'done'));
+        if ($this->rpc !== null) {
+            yield $this->rpc->notify('$/tenkawaphp/window/progress', compact('id', 'label', 'status', 'done'));
+        }
     }
 
     private function generateId(): string
