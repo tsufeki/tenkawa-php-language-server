@@ -179,6 +179,7 @@ class PhpPlugin extends Plugin
 
         if ($options['index.stubs'] ?? true) {
             $container->setClass(GlobalIndexer::class, StubsIndexer::class, true);
+            $container->setValue(FileFilter::class, new GlobRejectDirectoryFilter('../../jetbrains/phpstorm-stubs/tests'), true);
         }
 
         $container->setValue(FileFilter::class, new GlobFileFilter('**/*.php', 'php'), true);

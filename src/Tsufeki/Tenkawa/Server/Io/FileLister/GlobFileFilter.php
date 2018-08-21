@@ -17,16 +17,22 @@ class GlobFileFilter implements FileFilter
      */
     private $fileType;
 
-    public function __construct(string $glob, string $fileType)
+    /**
+     * @var int
+     */
+    private $action;
+
+    public function __construct(string $glob, string $fileType, int $action = self::ACCEPT)
     {
         $this->glob = $glob;
         $this->fileType = $fileType;
+        $this->action = $action;
     }
 
     public function filter(string $uri, string $baseUri): int
     {
         if (Glob::match($uri, Path::join($baseUri, $this->glob))) {
-            return self::ACCEPT;
+            return $this->action;
         }
 
         return self::ABSTAIN;
