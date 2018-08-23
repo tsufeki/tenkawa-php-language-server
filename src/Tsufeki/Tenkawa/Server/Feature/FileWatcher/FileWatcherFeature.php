@@ -82,7 +82,7 @@ class FileWatcherFeature implements Feature, FileWatcher, MethodProvider
     public function start(): \Generator
     {
         $fileSystemWatcher = new FileSystemWatcher();
-        $fileSystemWatcher->globPattern = '**/*';
+        $fileSystemWatcher->globPattern = '**';
         $fileSystemWatcher->kind = WatchKind::CREATE | WatchKind::DELETE | WatchKind::CHANGE;
 
         $this->unregistration = yield $this->registerFileSystemWatchers([$fileSystemWatcher]);
