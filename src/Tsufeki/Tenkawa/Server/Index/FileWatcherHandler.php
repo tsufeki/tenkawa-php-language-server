@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Server\Index;
 
+use Psr\Log\LoggerInterface;
 use Recoil\Recoil;
 use Tsufeki\Tenkawa\Server\Document\Project;
 use Tsufeki\Tenkawa\Server\Event\Document\OnProjectClose;
@@ -30,6 +31,11 @@ class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen, OnProject
     private $eventDispatcher;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @var FileWatcher[]
      */
     private $activeFileWatchers = [];
@@ -48,11 +54,16 @@ class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen, OnProject
      * @param FileWatcher[] $fileWatchers
      * @param FileWatcher[] $backupFileWatchers
      */
-    public function __construct(array $fileWatchers, array $backupFileWatchers, EventDispatcher $eventDispatcher)
-    {
+    public function __construct(
+        array $fileWatchers,
+        array $backupFileWatchers,
+        EventDispatcher $eventDispatcher,
+        LoggerInterface $logger
+    ) {
         $this->fileWatchers = $fileWatchers;
         $this->backupFileWatchers = $backupFileWatchers;
         $this->eventDispatcher = $eventDispatcher;
+        $this->logger = $logger;
     }
 
     public function onInit(): \Generator
@@ -73,7 +84,11 @@ class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen, OnProject
         }
 
         foreach ($this->activeFileWatchers as $fileWatcher) {
-            yield $fileWatcher->start();
+            try {
+                yield $fileWatcher->start();
+            } catch (\Throwable $e) {
+                $this->logger->error('File watcher failed to start', ['exception' => $e]);
+            }
         }
 
         $this->started = true;
@@ -95,7 +110,11 @@ class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen, OnProject
     public function onProjectClose(Project $project): \Generator
     {
         foreach ($this->activeFileWatchers as $fileWatcher) {
-            yield $fileWatcher->removeDirectory($project->getRootUri());
+            try {
+                yield $fileWatcher->removeDirectory($project->getRootUri());
+            } catch (\Throwable $e) {
+                $this->logger->error('File watcher failed to unwatch a directory', ['exception' => $e]);
+            }
         }
     }
 
@@ -110,7 +129,11 @@ class FileWatcherHandler implements OnInit, OnShutdown, OnProjectOpen, OnProject
     {
         if (!$project->isClosed()) {
             foreach ($this->activeFileWatchers as $fileWatcher) {
-                yield $fileWatcher->addDirectory($project->getRootUri());
+                try {
+                    yield $fileWatcher->addDirectory($project->getRootUri());
+                } catch (\Throwable $e) {
+                    $this->logger->error('File watcher failed to watch a directory', ['exception' => $e]);
+                }
             }
 
             yield $this->eventDispatcher->dispatch(OnFileChange::class, [$project->getRootUri()]);
