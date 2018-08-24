@@ -11,15 +11,17 @@ class PositionUtils
     /**
      * Return line beginnings offsets.
      *
+     * @param Document|string $document
+     *
      * @return int[]
      */
-    private static function getLineOffsets(Document $document): array
+    private static function getLineOffsets($document): array
     {
-        if (null !== $lineOffsets = $document->get('line_offsets')) {
+        if ($document instanceof Document && null !== $lineOffsets = $document->get('line_offsets')) {
             return $lineOffsets;
         }
 
-        $text = $document->getText();
+        $text = $document instanceof Document ? $document->getText() : $document;
         $lineOffsets = [];
         $offset = 0;
 
@@ -33,14 +35,19 @@ class PositionUtils
         }
 
         $lineOffsets[] = strlen($text);
-        $document->set('line_offsets', $lineOffsets);
+        if ($document instanceof Document) {
+            $document->set('line_offsets', $lineOffsets);
+        }
 
         return $lineOffsets;
     }
 
-    public static function positionFromOffset(int $offset, Document $document): Position
+    /**
+     * @param Document|string $document
+     */
+    public static function positionFromOffset(int $offset, $document): Position
     {
-        $text = $document->getText();
+        $text = $document instanceof Document ? $document->getText() : $document;
         $offset = max(0, min($offset, strlen($text)));
 
         $lineOffsets = self::getLineOffsets($document);
