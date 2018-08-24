@@ -75,6 +75,9 @@ Features
 * ✔ Hover info
 * ✔ References
 * ✔ Document symbols
+* ✔ Workspace symbols
+  * ✔ Classes/functions/consts
+  * ✘ Class members
 * ✔ Code actions
   * ✔ Import class/function
   * ✘ More to come...
@@ -85,7 +88,6 @@ Unimplemented (yet?):
 * ✘ Go to implementation
 * ✘ Go to type definition
 * ✘ Signature help
-* ✘ Workspace symbols
 * ✘ Document highlight
 * ✘ Code lens
 * ✘ Formatting
