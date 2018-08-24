@@ -26,6 +26,13 @@ class ServerCapabilities
     public $completionProvider;
 
     /**
+     * The server provides signature help support.
+     *
+     * @var SignatureHelpOptions|null
+     */
+    public $signatureHelpProvider;
+
+    /**
      * The server provides goto definition support.
      *
      * @var bool
