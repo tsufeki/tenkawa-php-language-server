@@ -128,6 +128,7 @@ use Tsufeki\Tenkawa\Php\Feature\References\ReferenceFinder;
 use Tsufeki\Tenkawa\Php\Feature\References\SymbolReferencesProvider;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
+use Tsufeki\Tenkawa\Php\Feature\WorkspaceSymbols\ReflectionWorkspaceSymbolsProvider;
 use Tsufeki\Tenkawa\Php\Index\ComposerFileFilterFactory;
 use Tsufeki\Tenkawa\Php\Index\StubsIndexer;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
@@ -162,6 +163,7 @@ use Tsufeki\Tenkawa\Server\Feature\DocumentSymbols\DocumentSymbolsProvider;
 use Tsufeki\Tenkawa\Server\Feature\GoToDefinition\GoToDefinitionProvider;
 use Tsufeki\Tenkawa\Server\Feature\Hover\HoverProvider;
 use Tsufeki\Tenkawa\Server\Feature\References\ReferencesProvider;
+use Tsufeki\Tenkawa\Server\Feature\WorkspaceSymbols\WorkspaceSymbolsProvider;
 use Tsufeki\Tenkawa\Server\Index\FileFilterFactory;
 use Tsufeki\Tenkawa\Server\Index\GlobalIndexer;
 use Tsufeki\Tenkawa\Server\Index\IndexDataProvider;
@@ -237,6 +239,8 @@ class PhpPlugin extends Plugin
         $container->setClass(IndexDataProvider::class, GlobalReferencesIndexDataProvider::class, true);
         $container->setClass(MemberReferenceFinder::class);
         $container->setAlias(ReferenceFinder::class, MemberReferenceFinder::class, true);
+
+        $container->setClass(WorkspaceSymbolsProvider::class, ReflectionWorkspaceSymbolsProvider::class, true);
 
         $container->setValue('checkAlwaysTrueCheckTypeFunctionCall', true);
         $container->setValue('checkAlwaysTrueInstanceof', true);

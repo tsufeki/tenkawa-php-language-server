@@ -6,59 +6,101 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Document\Project;
 use Tsufeki\Tenkawa\Server\Uri;
 
 interface ReflectionProvider
 {
     /**
+     * @param Document|Project $documentOrProject
+     *
      * @resolve ClassLike[]
      */
-    public function getClass(Document $document, string $fullyQualifiedName): \Generator;
+    public function getClass($documentOrProject, string $fullyQualifiedName): \Generator;
 
     /**
+     * @param Document|Project $documentOrProject
+     *
      * @resolve Function_[]
      */
-    public function getFunction(Document $document, string $fullyQualifiedName): \Generator;
+    public function getFunction($documentOrProject, string $fullyQualifiedName): \Generator;
 
     /**
+     * @param Document|Project $documentOrProject
+     *
      * @resolve Const_[]
      */
-    public function getConst(Document $document, string $fullyQualifiedName): \Generator;
+    public function getConst($documentOrProject, string $fullyQualifiedName): \Generator;
 
     /**
+     * @param Document|Project $documentOrProject
+     *
      * @resolve ClassLike[]
      */
-    public function getClassesFromUri(Document $document, Uri $uri): \Generator;
+    public function getClassesFromUri($documentOrProject, Uri $uri): \Generator;
 
     /**
+     * @param Document|Project $documentOrProject
+     *
      * @resolve Function_[]
      */
-    public function getFunctionsFromUri(Document $document, Uri $uri): \Generator;
+    public function getFunctionsFromUri($documentOrProject, Uri $uri): \Generator;
 
     /**
+     * @param Document|Project $documentOrProject
+     *
      * @resolve Const_[]
      */
-    public function getConstsFromUri(Document $document, Uri $uri): \Generator;
+    public function getConstsFromUri($documentOrProject, Uri $uri): \Generator;
 
     /**
+     * @param Document|Project $documentOrProject
+     *
      * @resolve ClassLike[]
      */
-    public function getClassesByShortName(Document $document, string $shortName): \Generator;
+    public function getClassesByShortName($documentOrProject, string $shortName): \Generator;
 
     /**
+     * @param Document|Project $documentOrProject
+     *
      * @resolve Function_[]
      */
-    public function getFunctionsByShortName(Document $document, string $shortName): \Generator;
+    public function getFunctionsByShortName($documentOrProject, string $shortName): \Generator;
 
     /**
+     * @param Document|Project $documentOrProject
+     *
      * @resolve Const_[]
      */
-    public function getConstsByShortName(Document $document, string $shortName): \Generator;
+    public function getConstsByShortName($documentOrProject, string $shortName): \Generator;
 
     /**
      * Get class-likes extending, implementing or using (for traits) given class-like.
      *
+     * @param Document|Project $documentOrProject
+     *
      * @resolve string[]
      */
-    public function getInheritingClasses(Document $document, string $fullyQualifiedName): \Generator;
+    public function getInheritingClasses($documentOrProject, string $fullyQualifiedName): \Generator;
+
+    /**
+     * @param Document|Project $documentOrProject
+     *
+     * @resolve string[]
+     */
+    public function getAllClassNames($documentOrProject): \Generator;
+
+    /**
+     * @param Document|Project $documentOrProject
+     *
+     * @resolve string[]
+     */
+    public function getAllFunctionNames($documentOrProject): \Generator;
+
+    /**
+     * @param Document|Project $documentOrProject
+     *
+     * @resolve string[]
+     */
+    public function getAllConstNames($documentOrProject): \Generator;
 }

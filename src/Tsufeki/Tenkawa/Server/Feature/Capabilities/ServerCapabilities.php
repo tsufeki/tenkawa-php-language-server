@@ -47,6 +47,13 @@ class ServerCapabilities
     public $documentSymbolProvider = false;
 
     /**
+     * The server provides workspace symbol support.
+     *
+     * @var bool
+     */
+    public $workspaceSymbolProvider = false;
+
+    /**
      * The server provides code actions.
      *
      * @var bool

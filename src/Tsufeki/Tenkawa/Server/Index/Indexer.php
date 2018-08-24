@@ -278,8 +278,14 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
             ])
         );
 
+        $projectOnlyIndex = new ChainedStorage(
+            $openFilesIndex,
+            $projectFilesIndex
+        );
+
         $project->set('index.open_files', $openFilesIndex);
         $project->set('index.project_files', $projectFilesIndex);
+        $project->set('index.project_only', $projectOnlyIndex);
         $project->set('index', $index);
 
         return;

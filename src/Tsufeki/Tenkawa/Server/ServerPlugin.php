@@ -44,6 +44,7 @@ use Tsufeki\Tenkawa\Server\Feature\Registration\RegistrationFeature;
 use Tsufeki\Tenkawa\Server\Feature\TextDocument\TextDocumentFeature;
 use Tsufeki\Tenkawa\Server\Feature\Workspace\WorkspaceFeature;
 use Tsufeki\Tenkawa\Server\Feature\WorkspaceEdit\WorkspaceEditFeature;
+use Tsufeki\Tenkawa\Server\Feature\WorkspaceSymbols\WorkspaceSymbolsFeature;
 use Tsufeki\Tenkawa\Server\Index\FileWatcherHandler;
 use Tsufeki\Tenkawa\Server\Index\Index;
 use Tsufeki\Tenkawa\Server\Index\Indexer;
@@ -60,6 +61,7 @@ use Tsufeki\Tenkawa\Server\Io\LocalFileReader;
 use Tsufeki\Tenkawa\Server\Logger\ClientLogger;
 use Tsufeki\Tenkawa\Server\Mapper\UriMapper;
 use Tsufeki\Tenkawa\Server\Refactor\EditHelper;
+use Tsufeki\Tenkawa\Server\Utils\FuzzyMatcher;
 
 class ServerPlugin extends Plugin
 {
@@ -124,6 +126,7 @@ class ServerPlugin extends Plugin
         $container->setAlias(OnProjectClose::class, FileWatcherHandler::class, true);
 
         $container->setClass(EditHelper::class);
+        $container->setClass(FuzzyMatcher::class);
 
         $container->setClass(MethodProvider::class, LanguageServer::class, true);
 
@@ -187,6 +190,10 @@ class ServerPlugin extends Plugin
 
         $container->setClass(WorkspaceEditFeature::class);
         $container->setAlias(Feature::class, WorkspaceEditFeature::class, true);
+
+        $container->setClass(WorkspaceSymbolsFeature::class);
+        $container->setAlias(Feature::class, WorkspaceSymbolsFeature::class, true);
+        $container->setAlias(MethodProvider::class, WorkspaceSymbolsFeature::class, true);
     }
 
     /**
