@@ -97,4 +97,20 @@ class PositionUtils
 
         return substr($document->getText(), $start, $end - $start);
     }
+
+    public static function contains(Range $range, Position $position): bool
+    {
+        return self::compare($range->start, $position) <= 0
+            && self::compare($position, $range->end) < 0;
+    }
+
+    public static function compare(Position $position1, Position $position2): int
+    {
+        return [$position1->line, $position1->character] <=> [$position2->line, $position2->character];
+    }
+
+    public static function move(Position $position, int $characters, Document $document): Position
+    {
+        return self::positionFromOffset(self::offsetFromPosition($position, $document) + $characters, $document);
+    }
 }

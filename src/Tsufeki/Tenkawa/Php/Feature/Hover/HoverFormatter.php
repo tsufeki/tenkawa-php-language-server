@@ -156,7 +156,7 @@ class HoverFormatter
         return $s;
     }
 
-    private function formatParam(Param $param): string
+    public function formatParam(Param $param): string
     {
         $s = '';
         if ($param->type !== null) {

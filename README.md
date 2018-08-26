@@ -73,6 +73,7 @@ Features
       (see [Known issues](#known-issues))
 * ✔ Go to definition
 * ✔ Hover info
+* ✔ Signature help
 * ✔ References
 * ✔ Document symbols
 * ✔ Workspace symbols
@@ -87,7 +88,6 @@ Unimplemented (yet?):
 
 * ✘ Go to implementation
 * ✘ Go to type definition
-* ✘ Signature help
 * ✘ Document highlight
 * ✘ Code lens
 * ✘ Formatting

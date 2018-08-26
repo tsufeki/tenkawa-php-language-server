@@ -6,9 +6,10 @@ UNRELEASED
 
 ### Added
 
-* Progress notifications as a custom protocol extension.
+* Signature help.
 * Workspace symbols search.
 * Hierarchical document symbols.
+* Progress notifications as a custom protocol extension.
 
 ### Removed
 
