@@ -67,8 +67,9 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
 
         if ($symbol !== null) {
             $range = $symbol->range;
-            if ($forCompletion) {
-                $range = $symbol->completionRange ?? $range;
+            if ($forCompletion && $symbol->completionRange !== null) {
+                $range = $symbol->completionRange;
+                $symbol->kind = $symbol->static ? MemberSymbol::CLASS_CONST : MemberSymbol::PROPERTY;
             }
 
             $offset = PositionUtils::offsetFromPosition($position, $document);
