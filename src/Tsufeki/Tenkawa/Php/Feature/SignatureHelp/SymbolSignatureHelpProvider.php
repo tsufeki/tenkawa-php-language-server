@@ -81,12 +81,15 @@ class SymbolSignatureHelpProvider implements SignatureHelpProvider
 
         /** @var array<int,Range> $argRanges */
         $argRanges = yield $this->findArgRanges($callNode, $document);
-        $argIndex = 0;
+        $argIndex = null;
         foreach ($argRanges as $i => $argRange) {
             if (PositionUtils::contains($argRange, $position)) {
                 $argIndex = $i;
                 break;
             }
+        }
+        if ($argIndex === null) {
+            return null;
         }
 
         $namePosition = PositionUtils::rangeFromNodeAttrs($callNode->name->getAttributes(), $document)->start;
@@ -135,13 +138,15 @@ class SymbolSignatureHelpProvider implements SignatureHelpProvider
             $argStartPositions[] = PositionUtils::positionFromOffset($tokenIter->getOffset(), $document);
             $tokenIter->eatUntilType(')');
         }
-        $tokenIter->next();
         $endPosition = PositionUtils::positionFromOffset($tokenIter->getOffset(), $document);
-        $endPosition = PositionUtils::move($endPosition, 1, $document);
+        $endPositionInclusive = PositionUtils::move($endPosition, 1, $document);
 
         $argRanges = [];
         foreach ($argStartPositions as $i => $pos) {
-            $argRanges[] = $r = new Range($pos, $argStartPositions[$i + 1] ?? $endPosition);
+            $argRanges[] = new Range($pos, $argStartPositions[$i + 1] ?? $endPositionInclusive);
+        }
+        if ($argRanges === []) {
+            $argRanges[] = new Range($endPosition, $endPositionInclusive);
         }
 
         return $argRanges;
