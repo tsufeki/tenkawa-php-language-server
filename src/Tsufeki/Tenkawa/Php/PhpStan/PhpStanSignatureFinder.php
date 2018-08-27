@@ -16,11 +16,13 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedMethod;
 use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
+use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\SignatureHelp\ParameterInformation;
 use Tsufeki\Tenkawa\Server\Feature\SignatureHelp\SignatureHelp;
 use Tsufeki\Tenkawa\Server\Feature\SignatureHelp\SignatureInformation;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\StringUtils;
+use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
 
 class PhpStanSignatureFinder implements SignatureFinder
 {
@@ -39,14 +41,35 @@ class PhpStanSignatureFinder implements SignatureFinder
      */
     private $symbolReflection;
 
+    /**
+     * @var SyncAsync
+     */
+    private $syncAsync;
+
+    /**
+     * @var IndexBroker
+     */
+    private $broker;
+
+    /**
+     * @var PhpDocResolver
+     */
+    private $phpDocResolver;
+
     public function __construct(
         SignatureMapProvider $signatureMapProvider,
         TypeInference $typeInference,
-        SymbolReflection $symbolReflection
+        SymbolReflection $symbolReflection,
+        SyncAsync $syncAsync,
+        IndexBroker $broker,
+        PhpDocResolver $phpDocResolver
     ) {
         $this->signatureMapProvider = $signatureMapProvider;
         $this->typeInference = $typeInference;
         $this->symbolReflection = $symbolReflection;
+        $this->syncAsync = $syncAsync;
+        $this->broker = $broker;
+        $this->phpDocResolver = $phpDocResolver;
     }
 
     /**
@@ -72,14 +95,16 @@ class PhpStanSignatureFinder implements SignatureFinder
         $cache = new Cache();
         yield $this->typeInference->infer($symbol->document, $cache);
 
-        $unpack = false;
-        $types = array_map(function (Node\Arg $arg) use (&$unpack) {
-            $unpack = $unpack || $arg->unpack;
+        $types = [];
+        foreach ($args as $arg) {
+            if ($arg->unpack) {
+                break;
+            }
 
-            return $arg->value->getAttribute('phpstanType') ?? new MixedType();
-        }, $args);
+            $types[] = $arg->value->getAttribute('phpstanType') ?? new MixedType();
+        }
 
-        $signatureHelp->activeSignature = yield $this->match($candidates, $types, $unpack);
+        $signatureHelp->activeSignature = yield $this->match($candidates, $types, $symbol->document, $cache);
         $signatureHelp->activeParameter = max(0, min($argIndex, count($signatureHelp->signatures[$signatureHelp->activeSignature]->parameters) - 1));
 
         return $signatureHelp;
@@ -165,7 +190,68 @@ class PhpStanSignatureFinder implements SignatureFinder
      *
      * @resolve int
      */
-    private function match(array $candidates, array $types, bool $unpack): \Generator
+    private function match(array $candidates, array $types, Document $document, Cache $cache): \Generator
     {
+        $index = $this->syncAsync->callSync(
+            function () use ($candidates, $types) {
+                $bestMatched = -1;
+                $bestCandidateIndex = null;
+                foreach ($candidates as $i => $candidate) {
+                    $matched = $this->matchArgs($candidate, $types);
+                    if ($matched > $bestMatched) {
+                        $bestMatched = $matched;
+                        $bestCandidateIndex = $i;
+                    }
+                }
+
+                return $bestCandidateIndex ?? 0;
+            },
+            [],
+            function () use ($document, $cache) {
+                $this->broker->setDocument($document);
+                $this->broker->setCache($cache);
+                $this->phpDocResolver->setDocument($document);
+                $this->phpDocResolver->setCache($cache);
+            },
+            function () {
+                $this->broker->setDocument(null);
+                $this->broker->setCache(null);
+                $this->phpDocResolver->setDocument(null);
+                $this->phpDocResolver->setCache(null);
+            }
+        );
+
+        $cache->close();
+
+        return $index;
+        yield;
+    }
+
+    private function matchArgs(FunctionSignature $candidate, array $types): int
+    {
+        $parameters = [];
+        foreach ($candidate->getParameters() as $parameter) {
+            if ($parameter->isVariadic()) {
+                break;
+            }
+            $parameters[] = $parameter;
+        }
+
+        $matched = 0;
+        foreach ($types as $i => $type) {
+            $parameter = $parameters[$i] ?? null;
+
+            $argMatches = $parameter !== null
+                ? !$parameter->getType()->isSuperTypeOf($type)->no()
+                : $candidate->isVariadic();
+
+            if (!$argMatches) {
+                break;
+            }
+
+            $matched++;
+        }
+
+        return $matched;
     }
 }
