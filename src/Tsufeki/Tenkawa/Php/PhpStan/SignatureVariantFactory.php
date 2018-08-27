@@ -136,7 +136,7 @@ class SignatureVariantFactory
                 $methodSignature->getReturnType()
             );
             $i++;
-            $variantName = "$name\'$i";
+            $variantName = "$name'$i";
         }
 
         return $variants;
