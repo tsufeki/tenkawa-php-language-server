@@ -11,6 +11,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
 use Tsufeki\Tenkawa\Server\Feature\SignatureHelp\ParameterInformation;
 use Tsufeki\Tenkawa\Server\Feature\SignatureHelp\SignatureHelp;
 use Tsufeki\Tenkawa\Server\Feature\SignatureHelp\SignatureInformation;
+use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 
 class ReflectionSignatureFinder implements SignatureFinder
 {
@@ -66,7 +67,7 @@ class ReflectionSignatureFinder implements SignatureFinder
      */
     private function formatSignature(Function_ $element, array $parameters): string
     {
-        return $element->name . '(' . implode(', ', array_map(function (ParameterInformation $p) {
+        return StringUtils::getShortName($element->name) . '(' . implode(', ', array_map(function (ParameterInformation $p) {
             return $p->label;
         }, $parameters)) . ')';
     }

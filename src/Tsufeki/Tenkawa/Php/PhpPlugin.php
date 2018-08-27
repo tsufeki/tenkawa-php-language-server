@@ -143,6 +143,7 @@ use Tsufeki\Tenkawa\Php\PhpStan\ErrorTolerantPrettyPrinter;
 use Tsufeki\Tenkawa\Php\PhpStan\IndexBroker;
 use Tsufeki\Tenkawa\Php\PhpStan\PhpDocResolver;
 use Tsufeki\Tenkawa\Php\PhpStan\PhpStanDiagnosticsProvider;
+use Tsufeki\Tenkawa\Php\PhpStan\PhpStanSignatureFinder;
 use Tsufeki\Tenkawa\Php\PhpStan\PhpStanTypeInference;
 use Tsufeki\Tenkawa\Php\PhpStan\SignatureVariantFactory;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
@@ -245,6 +246,7 @@ class PhpPlugin extends Plugin
         $container->setAlias(ReferenceFinder::class, MemberReferenceFinder::class, true);
 
         $container->setClass(SignatureHelpProvider::class, SymbolSignatureHelpProvider::class, true);
+        $container->setClass(SignatureFinder::class, PhpStanSignatureFinder::class, true);
         $container->setClass(SignatureFinder::class, ReflectionSignatureFinder::class, true);
 
         $container->setClass(WorkspaceSymbolsProvider::class, ReflectionWorkspaceSymbolsProvider::class, true);

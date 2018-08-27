@@ -58,6 +58,7 @@ class PhpStanTypeInference implements TypeInference
                 if ($node instanceof Expr && !isset(self::IGNORED_EXPR_NODES[get_class($node)])) {
                     $type = $scope->getType($node);
                     $node->setAttribute('type', $this->processType($type));
+                    $node->setAttribute('phpstanType', $type);
                 }
             }
         );

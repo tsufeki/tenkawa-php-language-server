@@ -5,6 +5,7 @@ namespace Tsufeki\Tenkawa\Php\Feature\SignatureHelp;
 use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Stmt;
 use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
 use Tsufeki\Tenkawa\Php\Feature\MemberSymbol;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
@@ -72,6 +73,9 @@ class SymbolSignatureHelpProvider implements SignatureHelpProvider
         foreach ($nodes as $node) {
             if ($node instanceof Expr\FuncCall || $node instanceof Expr\MethodCall || $node instanceof Expr\StaticCall) {
                 $callNode = $node;
+                break;
+            }
+            if ($node instanceof Stmt) {
                 break;
             }
         }
