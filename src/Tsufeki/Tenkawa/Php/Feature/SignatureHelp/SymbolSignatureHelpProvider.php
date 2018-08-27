@@ -68,7 +68,7 @@ class SymbolSignatureHelpProvider implements SignatureHelpProvider
         }
 
         /** @var (Node|Comment)[] $nodes */
-        $nodes = yield $this->nodeFinder->getNodePath($document, $position);
+        $nodes = yield $this->nodeFinder->getNodePath($document, $position, true);
         $callNode = null;
         foreach ($nodes as $node) {
             if ($node instanceof Expr\FuncCall || $node instanceof Expr\MethodCall || $node instanceof Expr\StaticCall) {
@@ -142,8 +142,18 @@ class SymbolSignatureHelpProvider implements SignatureHelpProvider
             $argStartPositions[] = PositionUtils::positionFromOffset($tokenIter->getOffset(), $document);
             $tokenIter->eatUntilType(')');
         }
+
         $endPosition = PositionUtils::positionFromOffset($tokenIter->getOffset(), $document);
-        $endPositionInclusive = PositionUtils::move($endPosition, 1, $document);
+        $endPositionInclusive = $endPosition;
+
+        // Grab succeeding whitespace when node is not properly terminated.
+        // E.g. space after comma
+        if (!$tokenIter->isType(')')) {
+            $tokenIter = new TokenIterator($ast->tokens, $tokenIter->key(), PHP_INT_MAX, $tokenIter->getOffset());
+            $tokenIter->eatWhitespace();
+            $endPositionInclusive = PositionUtils::positionFromOffset($tokenIter->getOffset(), $document);
+        }
+        $endPositionInclusive = PositionUtils::move($endPositionInclusive, 1, $document);
 
         $argRanges = [];
         foreach ($argStartPositions as $i => $pos) {

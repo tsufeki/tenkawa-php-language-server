@@ -140,10 +140,10 @@ class TokenIterator implements \Iterator
         return new self($documentTokens, $index, $lastIndex, $offset);
     }
 
-    public static function fromParentNodeRemainingTokens(Node $lastSubnode, Node $parentNode, array $documentTokens): self
+    public static function fromParentNodeRemainingTokens(Node $lastSubnode, ?Node $parentNode, array $documentTokens): self
     {
         $index = $lastSubnode->getAttribute('endTokenPos') + 1;
-        $lastIndex = $parentNode->getAttribute('endTokenPos') + 1;
+        $lastIndex = $parentNode ? (int)$parentNode->getAttribute('endTokenPos') + 1 : PHP_INT_MAX;
         $offset = $lastSubnode->getAttribute('endFilePos') + 1;
 
         return new self($documentTokens, $index, $lastIndex, $offset);

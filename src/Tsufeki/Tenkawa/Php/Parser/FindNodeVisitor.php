@@ -18,6 +18,16 @@ class FindNodeVisitor extends NodeVisitorAbstract
     private $offset;
 
     /**
+     * @var int
+     */
+    private $rightEndAdjustment;
+
+    /**
+     * @var bool
+     */
+    private $withRightWhitespace = false;
+
+    /**
      * @var (Node|Comment)[]
      */
     private $nodes = [];
@@ -25,21 +35,28 @@ class FindNodeVisitor extends NodeVisitorAbstract
     /**
      * @var int
      */
-    private $rightEndAdjustment;
+    private $depth = 0;
 
     /**
-     * @var int
+     * @var array
      */
-    private $depth = 0;
+    private $tokens;
 
     /**
      * @param bool $stickToRightEnd If true, positions just after a node are
      *                              counted as belonging to it.
      */
-    public function __construct(Document $document, Position $position, bool $stickToRightEnd = false)
-    {
+    public function __construct(
+        Document $document,
+        Position $position,
+        bool $stickToRightEnd = false,
+        bool $withRightWhitespace = false,
+        array $tokens = []
+    ) {
         $this->offset = PositionUtils::offsetFromPosition($position, $document);
         $this->rightEndAdjustment = $stickToRightEnd ? 1 : 0;
+        $this->withRightWhitespace = $withRightWhitespace;
+        $this->tokens = $tokens;
     }
 
     public function enterNode(Node $node)
@@ -58,8 +75,9 @@ class FindNodeVisitor extends NodeVisitorAbstract
             }
         }
 
+        $rightAdjustment = max($this->rightEndAdjustment, $this->countWhitespace($node));
         if ($node->getAttribute('startFilePos') <= $this->offset
-            && $this->offset <= $node->getAttribute('endFilePos') + $this->rightEndAdjustment
+            && $this->offset <= $node->getAttribute('endFilePos') + $rightAdjustment
             && $this->depth > count($this->nodes)
         ) {
             $this->nodes[] = $node;
@@ -71,6 +89,18 @@ class FindNodeVisitor extends NodeVisitorAbstract
     public function leaveNode(Node $node)
     {
         $this->depth--;
+    }
+
+    private function countWhitespace(Node $node): int
+    {
+        if (!$this->withRightWhitespace) {
+            return 0;
+        }
+
+        $tokenIter = new TokenIterator($this->tokens, $node->getAttribute('endTokenPos') + 1, PHP_INT_MAX);
+        $tokenIter->eatWhitespace();
+
+        return $tokenIter->getOffset();
     }
 
     /**
