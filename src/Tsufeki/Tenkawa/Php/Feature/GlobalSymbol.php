@@ -24,4 +24,9 @@ class GlobalSymbol extends Symbol
      * @var bool
      */
     public $isImport = false;
+
+    /**
+     * @var bool
+     */
+    public $isNewExpression = false;
 }

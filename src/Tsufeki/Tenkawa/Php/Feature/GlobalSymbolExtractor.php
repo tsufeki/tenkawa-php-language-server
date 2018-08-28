@@ -114,6 +114,7 @@ class GlobalSymbolExtractor implements NodePathSymbolExtractor
         $symbol->range = PositionUtils::rangeFromNodeAttrs($name->getAttributes(), $document);
         $symbol->nameContext = $name->getAttribute('nameContext') ?? new NameContext();
         $symbol->originalName = PositionUtils::extractRange($symbol->range, $document);
+        $symbol->isNewExpression = $node instanceof Expr\New_;
 
         $kind = self::NODE_KINDS[get_class($node)] ?? null;
         if ($kind !== null) {

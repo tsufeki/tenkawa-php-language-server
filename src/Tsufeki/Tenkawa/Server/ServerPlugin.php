@@ -41,6 +41,7 @@ use Tsufeki\Tenkawa\Server\Feature\Message\MessageFeature;
 use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\ProgressNotificationFeature;
 use Tsufeki\Tenkawa\Server\Feature\References\ReferencesFeature;
 use Tsufeki\Tenkawa\Server\Feature\Registration\RegistrationFeature;
+use Tsufeki\Tenkawa\Server\Feature\SignatureHelp\SignatureHelpFeature;
 use Tsufeki\Tenkawa\Server\Feature\TextDocument\TextDocumentFeature;
 use Tsufeki\Tenkawa\Server\Feature\Workspace\WorkspaceFeature;
 use Tsufeki\Tenkawa\Server\Feature\WorkspaceEdit\WorkspaceEditFeature;
@@ -179,6 +180,10 @@ class ServerPlugin extends Plugin
 
         $container->setClass(RegistrationFeature::class);
         $container->setAlias(Feature::class, RegistrationFeature::class, true);
+
+        $container->setClass(SignatureHelpFeature::class);
+        $container->setAlias(Feature::class, SignatureHelpFeature::class, true);
+        $container->setAlias(MethodProvider::class, SignatureHelpFeature::class, true);
 
         $container->setClass(TextDocumentFeature::class);
         $container->setAlias(Feature::class, TextDocumentFeature::class, true);

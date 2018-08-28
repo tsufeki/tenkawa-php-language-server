@@ -6,6 +6,7 @@ use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassConst;
+use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedMethod;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedProperty;
 use Tsufeki\Tenkawa\Php\TypeInference\IntersectionType;
@@ -56,6 +57,22 @@ class SymbolReflection
         }
 
         return [];
+    }
+
+    /**
+     * @resolve Element[]
+     */
+    public function getReflectionOrConstructorFromSymbol(Symbol $symbol): \Generator
+    {
+        if ($symbol instanceof GlobalSymbol && $symbol->kind === GlobalSymbol::CLASS_ && $symbol->isNewExpression) {
+            /** @var ResolvedClassLike|null $resolvedClass */
+            $resolvedClass = yield $this->classResolver->resolve($symbol->referencedNames[0], $symbol->document);
+            if ($resolvedClass !== null && isset($resolvedClass->methods['__construct'])) {
+                return [$resolvedClass->methods['__construct']];
+            }
+        }
+
+        return yield $this->getReflectionFromSymbol($symbol);
     }
 
     /**

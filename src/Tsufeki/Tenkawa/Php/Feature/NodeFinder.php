@@ -27,11 +27,11 @@ class NodeFinder
     /**
      * @resolve (Node|Comment)[] Nodes at $position, from the closest to the root.
      */
-    public function getNodePath(Document $document, Position $position): \Generator
+    public function getNodePath(Document $document, Position $position, bool $withRightWhitespace = false): \Generator
     {
         $ast = yield $this->parser->parse($document);
 
-        $visitor = new FindNodeVisitor($document, $position, true);
+        $visitor = new FindNodeVisitor($document, $position, true, $withRightWhitespace, $ast->tokens);
         $nodeTraverser = new NodeTraverser();
         $nodeTraverser->addVisitor($visitor);
         $nodeTraverser->traverse($ast->nodes);
