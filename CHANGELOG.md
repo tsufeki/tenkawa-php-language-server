@@ -8,7 +8,6 @@ UNRELEASED
 
 * Signature help.
 * Workspace symbols search.
-* Hierarchical document symbols.
 * Progress notifications as a custom protocol extension.
 
 ### Removed
@@ -21,6 +20,8 @@ UNRELEASED
   information. Also allowing us to add support for anonymous classes.
 * Standard library index is now prebuilt, not scanned at startup.
 * Schedule tasks by priorities to improve latency on interactive requests.
+* Hierarchical document symbols.
+* _Go to_ and hover point to constructor when in new expressions.
 
 0.2.0 - 2018-07-01
 ------------------

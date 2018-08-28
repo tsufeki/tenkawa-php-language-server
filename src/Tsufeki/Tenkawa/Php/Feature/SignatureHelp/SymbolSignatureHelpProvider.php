@@ -5,6 +5,7 @@ namespace Tsufeki\Tenkawa\Php\Feature\SignatureHelp;
 use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
 use Tsufeki\Tenkawa\Php\Feature\MemberSymbol;
@@ -71,7 +72,11 @@ class SymbolSignatureHelpProvider implements SignatureHelpProvider
         $nodes = yield $this->nodeFinder->getNodePath($document, $position, true);
         $callNode = null;
         foreach ($nodes as $node) {
-            if ($node instanceof Expr\FuncCall || $node instanceof Expr\MethodCall || $node instanceof Expr\StaticCall) {
+            if ($node instanceof Expr\FuncCall ||
+                $node instanceof Expr\MethodCall ||
+                $node instanceof Expr\StaticCall ||
+                ($node instanceof Expr\New_ && $node->class instanceof Name)
+            ) {
                 $callNode = $node;
                 break;
             }
@@ -96,10 +101,11 @@ class SymbolSignatureHelpProvider implements SignatureHelpProvider
             return null;
         }
 
-        $namePosition = PositionUtils::rangeFromNodeAttrs($callNode->name->getAttributes(), $document)->start;
-        /** @var Symbol|null $symbol */
+        $nameNode = $callNode instanceof Expr\New_ ? $callNode->class : $callNode->name;
+        $namePosition = PositionUtils::rangeFromNodeAttrs($nameNode->getAttributes(), $document)->start;
+        /** @var Symbol $symbol */
         $symbol = yield $this->symbolExtractor->getSymbolAt($document, $namePosition);
-        if ($symbol === null || !in_array($symbol->kind, [GlobalSymbol::FUNCTION_, MemberSymbol::METHOD], true)) {
+        if (!$this->checkSymbol($symbol, $callNode)) {
             return null;
         }
 
@@ -114,7 +120,7 @@ class SymbolSignatureHelpProvider implements SignatureHelpProvider
     }
 
     /**
-     * @param Expr\FuncCall|Expr\MethodCall|Expr\StaticCall $callNode
+     * @param Expr\FuncCall|Expr\MethodCall|Expr\StaticCall|Expr\New_ $callNode
      *
      * @resolve Range[]
      */
@@ -124,17 +130,18 @@ class SymbolSignatureHelpProvider implements SignatureHelpProvider
         $ast = yield $this->parser->parse($document);
         $argStartPositions = [];
         $separator = '(';
+        $prevNode = $firstNode = $callNode instanceof Expr\New_ ? $callNode->class : $callNode->name;
         foreach ($callNode->args as $i => $argNode) {
-            $prevNode = $callNode->args[$i - 1] ?? $callNode->name;
             $tokenIter = TokenIterator::fromBetweenNodes($prevNode, $argNode, $ast->tokens);
             $tokenIter->eatUntilType($separator);
             $tokenIter->next();
             $argStartPositions[] = PositionUtils::positionFromOffset($tokenIter->getOffset(), $document);
 
             $separator = ',';
+            $prevNode = $argNode;
         }
 
-        $lastNode = end($callNode->args) ?: $callNode->name;
+        $lastNode = end($callNode->args) ?: $firstNode;
         $tokenIter = TokenIterator::fromParentNodeRemainingTokens($lastNode, $callNode, $ast->tokens);
         $tokenIter->eatUntilType(',', ')');
         if ($tokenIter->isType(',')) {
@@ -164,6 +171,18 @@ class SymbolSignatureHelpProvider implements SignatureHelpProvider
         }
 
         return $argRanges;
+    }
+
+    private function checkSymbol(?Symbol $symbol, Node $node): bool
+    {
+        if ($symbol === null) {
+            return false;
+        }
+        if ($node instanceof Expr\New_) {
+            return $symbol instanceof GlobalSymbol && $symbol->kind === GlobalSymbol::CLASS_ && $symbol->isNewExpression;
+        }
+
+        return in_array($symbol->kind, [GlobalSymbol::FUNCTION_, MemberSymbol::METHOD], true);
     }
 
     /**

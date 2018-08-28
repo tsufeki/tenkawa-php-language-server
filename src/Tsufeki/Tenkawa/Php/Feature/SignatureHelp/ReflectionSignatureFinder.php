@@ -6,7 +6,9 @@ use PhpParser\Node;
 use Tsufeki\Tenkawa\Php\Feature\Hover\HoverFormatter;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
+use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
+use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
 use Tsufeki\Tenkawa\Server\Feature\SignatureHelp\ParameterInformation;
 use Tsufeki\Tenkawa\Server\Feature\SignatureHelp\SignatureHelp;
@@ -38,9 +40,9 @@ class ReflectionSignatureFinder implements SignatureFinder
      */
     public function findSignature(Symbol $symbol, array $args, int $argIndex): \Generator
     {
-        /** @var Function_|null $element */
-        $element = (yield $this->symbolReflection->getReflectionFromSymbol($symbol))[0] ?? null;
-        if ($element === null) {
+        /** @var Element|null $element */
+        $element = (yield $this->symbolReflection->getReflectionOrConstructorFromSymbol($symbol))[0] ?? null;
+        if (!($element instanceof Function_)) {
             return null;
         }
 
@@ -67,7 +69,12 @@ class ReflectionSignatureFinder implements SignatureFinder
      */
     private function formatSignature(Function_ $element, array $parameters): string
     {
-        return StringUtils::getShortName($element->name) . '(' . implode(', ', array_map(function (ParameterInformation $p) {
+        $name = StringUtils::getShortName($element->name);
+        if ($element instanceof Method && strtolower($element->name) === '__construct') {
+            $name = 'new ' . StringUtils::getShortName($element->nameContext->class ?: '');
+        }
+
+        return $name . '(' . implode(', ', array_map(function (ParameterInformation $p) {
             return $p->label;
         }, $parameters)) . ')';
     }

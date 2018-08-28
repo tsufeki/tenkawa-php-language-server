@@ -12,7 +12,9 @@ use PHPStan\Type\VerbosityLevel;
 use Tsufeki\Tenkawa\Php\Feature\SignatureHelp\SignatureFinder;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
+use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
+use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Param;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedMethod;
 use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
@@ -79,15 +81,21 @@ class PhpStanSignatureFinder implements SignatureFinder
      */
     public function findSignature(Symbol $symbol, array $args, int $argIndex): \Generator
     {
+        /** @var Element|null $element */
+        $element = (yield $this->symbolReflection->getReflectionOrConstructorFromSymbol($symbol))[0] ?? null;
+        if (!($element instanceof Function_)) {
+            return null;
+        }
+
         /** @var FunctionSignature[] $candidates */
-        $candidates = yield $this->getCandidates($symbol);
+        $candidates = yield $this->getCandidates($element);
         if ($candidates === []) {
             return null;
         }
 
         $signatureHelp = new SignatureHelp();
 
-        $shortName = StringUtils::getShortName($symbol->referencedNames[0]);
+        $shortName = $this->formatName($element);
         $signatureHelp->signatures = array_map(function (FunctionSignature $candidate) use ($shortName) {
             return $this->makeSignature($shortName, $candidate);
         }, $candidates);
@@ -113,14 +121,8 @@ class PhpStanSignatureFinder implements SignatureFinder
     /**
      * @resolve FunctionSignature[]
      */
-    private function getCandidates(Symbol $symbol): \Generator
+    private function getCandidates(Function_ $element): \Generator
     {
-        /** @var Function_|null $element */
-        $element = (yield $this->symbolReflection->getReflectionFromSymbol($symbol))[0] ?? null;
-        if ($element === null) {
-            return [];
-        }
-
         $name = ltrim($element->name, '\\');
         $class = null;
         if ($element instanceof ResolvedMethod) {
@@ -138,6 +140,17 @@ class PhpStanSignatureFinder implements SignatureFinder
         }
 
         return $candidates;
+        yield;
+    }
+
+    private function formatName(Function_ $element): string
+    {
+        $name = StringUtils::getShortName($element->name);
+        if ($element instanceof Method && strtolower($element->name) === '__construct') {
+            $name = 'new ' . StringUtils::getShortName($element->nameContext->class ?: '');
+        }
+
+        return $name;
     }
 
     private function makeSignature(string $name, FunctionSignature $candidate): SignatureInformation

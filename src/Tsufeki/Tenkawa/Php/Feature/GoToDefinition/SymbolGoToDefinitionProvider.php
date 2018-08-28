@@ -45,7 +45,7 @@ class SymbolGoToDefinitionProvider implements GoToDefinitionProvider
         }
 
         /** @var Element[] $elements */
-        $elements = yield $this->symbolReflection->getReflectionFromSymbol($symbol);
+        $elements = yield $this->symbolReflection->getReflectionOrConstructorFromSymbol($symbol);
         if (empty($elements) || (
             $elements[0] instanceof Const_ &&
             in_array(strtolower($elements[0]->name), ['\\null', '\\true', '\\false'], true)
