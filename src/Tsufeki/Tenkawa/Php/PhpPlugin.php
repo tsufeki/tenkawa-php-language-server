@@ -100,6 +100,7 @@ use PHPStan\Type\Php\VersionCompareFunctionDynamicReturnTypeExtension;
 use PHPStan\Type\StaticMethodTypeSpecifyingExtension;
 use Tsufeki\HmContainer\Container;
 use Tsufeki\HmContainer\Definition\Value;
+use Tsufeki\Tenkawa\Php\Composer\ComposerService;
 use Tsufeki\Tenkawa\Php\Feature\CodeAction\ImportCodeActionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Command\WorkspaceEditCommandProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\GlobalSymbolCompleter;
@@ -132,7 +133,6 @@ use Tsufeki\Tenkawa\Php\Feature\SignatureHelp\SymbolSignatureHelpProvider;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Feature\WorkspaceSymbols\ReflectionWorkspaceSymbolsProvider;
-use Tsufeki\Tenkawa\Php\Index\ComposerFileFilterFactory;
 use Tsufeki\Tenkawa\Php\Index\StubsIndexer;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
 use Tsufeki\Tenkawa\Php\Parser\ParserDiagnosticsProvider;
@@ -158,6 +158,7 @@ use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionTransformer;
 use Tsufeki\Tenkawa\Php\Reflection\StubsReflectionTransformer;
 use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
+use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionProvider;
 use Tsufeki\Tenkawa\Server\Feature\Command\CommandProvider;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionProvider;
@@ -191,7 +192,6 @@ class PhpPlugin extends Plugin
 
         $container->setValue(FileFilter::class, new GlobFileFilter('**/*.php', 'php'), true);
         $container->setValue(FileFilter::class, new GlobRejectDirectoryFilter('{var,app/cache,cache,.git}'), true);
-        $container->setClass(FileFilterFactory::class, ComposerFileFilterFactory::class, true);
         $container->setClass(IndexDataProvider::class, ReflectionIndexDataProvider::class, true);
         $container->setClass(ReflectionTransformer::class, StubsReflectionTransformer::class, true);
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
@@ -200,6 +200,10 @@ class PhpPlugin extends Plugin
         $container->setClass(ClassResolverExtension::class, InheritPhpDocClassResolverExtension::class, true);
         $container->setClass(ClassResolverExtension::class, MembersFromAnnotationClassResolverExtension::class, true);
         $container->setClass(ConstExprEvaluator::class);
+
+        $container->setClass(ComposerService::class);
+        $container->setClass(FileFilterFactory::class, ComposerService::class, true);
+        $container->setClass(OnFileChange::class, ComposerService::class, true);
 
         $container->setClass(NodeFinder::class);
 
