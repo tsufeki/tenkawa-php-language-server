@@ -127,4 +127,23 @@ class UriTest extends TestCase
             ['file://example.com/foo'],
         ];
     }
+
+    /**
+     * @dataProvider extract_path_data
+     */
+    public function test_extract_subpath($uriString, $subString, $expected)
+    {
+        $uri = Uri::fromString($uriString);
+        $sub = Uri::fromString($subString);
+
+        $this->assertSame($expected, $uri->extractSubpath($sub));
+    }
+
+    public function extract_path_data(): array
+    {
+        return [
+            ['file:///foo/bar', 'file:///foo/bar/baz', 'baz'],
+            ['file:///foo/bar', 'file:///foo/quuux', null],
+        ];
+    }
 }

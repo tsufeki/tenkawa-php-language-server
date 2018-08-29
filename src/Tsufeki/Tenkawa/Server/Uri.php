@@ -248,6 +248,22 @@ class Uri
         return StringUtils::startsWith($otherNormalized, $thisNormalized);
     }
 
+    public function extractSubpath(self $subUri): ?string
+    {
+        if (!in_array($this->scheme, ['file', null], true) || !in_array($subUri->scheme, ['file', null], true)) {
+            return null;
+        }
+
+        $thisNormalized = $this->getNormalizedWithSlash();
+        $subNormalized = $subUri->getNormalized();
+
+        if (!StringUtils::startsWith($subNormalized, $thisNormalized)) {
+            return null;
+        }
+
+        return substr($subNormalized, strlen($thisNormalized));
+    }
+
     public function withLineNumber(int $lineNumber): self
     {
         $uri = clone $this;

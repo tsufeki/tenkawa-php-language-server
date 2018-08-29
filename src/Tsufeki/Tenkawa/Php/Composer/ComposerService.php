@@ -4,6 +4,7 @@ namespace Tsufeki\Tenkawa\Php\Composer;
 
 use Tsufeki\BlancheJsonRpc\Exception\JsonException;
 use Tsufeki\BlancheJsonRpc\Json;
+use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Document\Project;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
@@ -11,6 +12,7 @@ use Tsufeki\Tenkawa\Server\Exception\IoException;
 use Tsufeki\Tenkawa\Server\Index\FileFilterFactory;
 use Tsufeki\Tenkawa\Server\Io\FileReader;
 use Tsufeki\Tenkawa\Server\Uri;
+use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 
 class ComposerService implements FileFilterFactory, OnFileChange
 {
@@ -191,5 +193,45 @@ class ComposerService implements FileFilterFactory, OnFileChange
                 }
             }
         }
+    }
+
+    /**
+     * @resolve string|null
+     */
+    public function getAutoloadClassForFile(Document $document): \Generator
+    {
+        if (!StringUtils::endsWith($document->getUri()->getNormalized(), '.php')) {
+            return null;
+        }
+
+        /** @var Project $project */
+        $project = yield $this->documentStore->getProjectForDocument($document);
+        $json = yield $this->getComposerJson($project);
+        if (!$json) {
+            return null;
+        }
+
+        $rootUri = $project->getRootUri();
+        foreach (['autoload', 'autoload-dev'] as $key) {
+            foreach (['psr-4', 'psr-0'] as $psr) {
+                $autoloads = $json->$key->$psr ?? null;
+                if (!is_object($autoloads)) {
+                    continue;
+                }
+
+                foreach (get_object_vars($autoloads) as $ns => $pathPrefix) {
+                    $subpath = Uri::fromString("$rootUri/$pathPrefix")->extractSubpath($document->getUri());
+                    if ($subpath) {
+                        $ns = $psr === 'psr-4' ? '\\' . trim($ns, '\\') : '';
+                        $class = $ns . '\\' . str_replace('/', '\\', substr_replace($subpath, '', -4));
+                        if (preg_match('/^(\\\\[A-Za-z_][A-Za-z0-9_]*)+$/', $class) === 1) {
+                            return $class;
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }
