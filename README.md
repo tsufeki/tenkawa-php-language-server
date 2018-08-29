@@ -78,9 +78,10 @@ Features
 * ✔ Document symbols
 * ✔ Workspace symbols
   * ✔ Classes/functions/consts
-  * ✘ Class members
+  * ✘ Class members (not yet)
 * ✔ Code actions
   * ✔ Import class/function
+  * ✔ Fix wrong autoloaded class/namespace name
   * ✘ More to come...
 * ✔ Multi-root workspace
 

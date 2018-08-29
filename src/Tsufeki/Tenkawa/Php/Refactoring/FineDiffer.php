@@ -12,7 +12,7 @@ use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextEdit;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
-class FineDiffer
+class FineDiffer implements Differ
 {
     /**
      * @var Parser

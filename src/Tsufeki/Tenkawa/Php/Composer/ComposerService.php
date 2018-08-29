@@ -72,7 +72,6 @@ class ComposerService implements FileFilterFactory, OnFileChange
             'installed' => Uri::fromString("$root/vendor/composer/installed.json"),
             'vendor' => Uri::fromString("$root/vendor"),
         ];
-        $project->set('composer.uris', $uris);
 
         try {
             $json = Json::decode(yield $this->fileReader->read($uris['composer']));
@@ -80,6 +79,7 @@ class ComposerService implements FileFilterFactory, OnFileChange
             $json = false;
         }
 
+        $project->set('composer.uris', $uris);
         $project->set('composer.json', $json);
 
         return $json;

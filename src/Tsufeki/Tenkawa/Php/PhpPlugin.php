@@ -122,6 +122,7 @@ use Tsufeki\Tenkawa\Php\Feature\MemberSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
 use Tsufeki\Tenkawa\Php\Feature\NodePathSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\PhpDocFormatter;
+use Tsufeki\Tenkawa\Php\Feature\Refactoring\FixAutoloadClassNameRefactoring;
 use Tsufeki\Tenkawa\Php\Feature\References\GlobalReferenceFinder;
 use Tsufeki\Tenkawa\Php\Feature\References\GlobalReferencesIndexDataProvider;
 use Tsufeki\Tenkawa\Php\Feature\References\MemberReferenceFinder;
@@ -146,6 +147,9 @@ use Tsufeki\Tenkawa\Php\PhpStan\PhpStanDiagnosticsProvider;
 use Tsufeki\Tenkawa\Php\PhpStan\PhpStanSignatureFinder;
 use Tsufeki\Tenkawa\Php\PhpStan\PhpStanTypeInference;
 use Tsufeki\Tenkawa\Php\PhpStan\SignatureVariantFactory;
+use Tsufeki\Tenkawa\Php\Refactoring\Differ;
+use Tsufeki\Tenkawa\Php\Refactoring\FineDiffer;
+use Tsufeki\Tenkawa\Php\Refactoring\RefactoringExecutor;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolverExtension;
 use Tsufeki\Tenkawa\Php\Reflection\ConstExprEvaluator;
@@ -206,6 +210,8 @@ class PhpPlugin extends Plugin
         $container->setClass(OnFileChange::class, ComposerService::class, true);
 
         $container->setClass(NodeFinder::class);
+        $container->setClass(RefactoringExecutor::class);
+        $container->setClass(Differ::class, FineDiffer::class);
 
         $container->setClass(SymbolExtractor::class);
         $container->setClass(DocCommentSymbolExtractor::class);
@@ -241,6 +247,11 @@ class PhpPlugin extends Plugin
         $container->setClass(HoverProvider::class, SymbolHoverProvider::class, true);
         $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
         $container->setClass(HoverFormatter::class);
+
+        $container->setClass(FixAutoloadClassNameRefactoring::class);
+        $container->setAlias(DiagnosticsProvider::class, FixAutoloadClassNameRefactoring::class, true);
+        $container->setAlias(CodeActionProvider::class, FixAutoloadClassNameRefactoring::class, true);
+        $container->setAlias(CommandProvider::class, FixAutoloadClassNameRefactoring::class, true);
 
         $container->setClass(ReferencesProvider::class, SymbolReferencesProvider::class, true);
         $container->setClass(GlobalReferenceFinder::class);

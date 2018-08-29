@@ -120,4 +120,10 @@ class PositionUtils
     {
         return self::positionFromOffset(self::offsetFromPosition($position, $document) + $characters, $document);
     }
+
+    public static function overlap(Range $range1, Range $range2): bool
+    {
+        return self::compare($range1->end, $range2->start) > 0
+            && self::compare($range2->end, $range1->start) > 0;
+    }
 }

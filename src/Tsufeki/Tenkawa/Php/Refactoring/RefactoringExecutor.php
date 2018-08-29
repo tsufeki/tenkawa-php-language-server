@@ -54,9 +54,11 @@ class RefactoringExecutor
     }
 
     /**
+     * @param callable (Node[] $nodes): \Generator $nodesModifier
+     *
      * @resolve WorkspaceEdit
      */
-    public function execute(Refactoring $refactoring, Document $document): \Generator
+    public function execute(callable $nodesModifier, Document $document): \Generator
     {
         $errorHandler = new ErrorHandler\Collecting();
         $version = $document->getVersion();
@@ -69,8 +71,7 @@ class RefactoringExecutor
         $traverser->addVisitor(new CloningVisitor());
         $newNodes = $traverser->traverse($oldNodes);
 
-        /** @var Node[] $newNodes */
-        $newNodes = yield $refactoring->refactor($newNodes);
+        yield $nodesModifier($newNodes);
 
         $newText = $this->printer->printFormatPreserving($newNodes, $oldNodes, $oldTokens);
         $textEdits = yield $this->differ->diff($oldText, $newText);
