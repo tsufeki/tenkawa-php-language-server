@@ -222,7 +222,7 @@ class ComposerService implements FileFilterFactory, OnFileChange
                 foreach (get_object_vars($autoloads) as $ns => $pathPrefix) {
                     $subpath = Uri::fromString("$rootUri/$pathPrefix")->extractSubpath($document->getUri());
                     if ($subpath) {
-                        $ns = $psr === 'psr-4' ? '\\' . trim($ns, '\\') : '';
+                        $ns = ($psr === 'psr-4' && $ns !== '') ? '\\' . trim((string)$ns, '\\') : '';
                         $class = $ns . '\\' . str_replace('/', '\\', substr_replace($subpath, '', -4));
                         if (preg_match('/^(\\\\[A-Za-z_][A-Za-z0-9_]*)+$/', $class) === 1) {
                             return $class;
