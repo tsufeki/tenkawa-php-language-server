@@ -11,15 +11,17 @@ class PositionUtils
     /**
      * Return line beginnings offsets.
      *
+     * @param Document|string $document
+     *
      * @return int[]
      */
-    private static function getLineOffsets(Document $document): array
+    private static function getLineOffsets($document): array
     {
-        if (null !== $lineOffsets = $document->get('line_offsets')) {
+        if ($document instanceof Document && null !== $lineOffsets = $document->get('line_offsets')) {
             return $lineOffsets;
         }
 
-        $text = $document->getText();
+        $text = $document instanceof Document ? $document->getText() : $document;
         $lineOffsets = [];
         $offset = 0;
 
@@ -33,14 +35,19 @@ class PositionUtils
         }
 
         $lineOffsets[] = strlen($text);
-        $document->set('line_offsets', $lineOffsets);
+        if ($document instanceof Document) {
+            $document->set('line_offsets', $lineOffsets);
+        }
 
         return $lineOffsets;
     }
 
-    public static function positionFromOffset(int $offset, Document $document): Position
+    /**
+     * @param Document|string $document
+     */
+    public static function positionFromOffset(int $offset, $document): Position
     {
-        $text = $document->getText();
+        $text = $document instanceof Document ? $document->getText() : $document;
         $offset = max(0, min($offset, strlen($text)));
 
         $lineOffsets = self::getLineOffsets($document);
@@ -112,5 +119,29 @@ class PositionUtils
     public static function move(Position $position, int $characters, Document $document): Position
     {
         return self::positionFromOffset(self::offsetFromPosition($position, $document) + $characters, $document);
+    }
+
+    public static function overlap(Range $range1, Range $range2): bool
+    {
+        return self::compare($range1->end, $range2->start) > 0
+            && self::compare($range2->end, $range1->start) > 0;
+    }
+
+    /**
+     * Check if two ranges overlap. Zero-length ranges can also overlap on start points.
+     */
+    public static function overlapZeroLength(Range $range1, Range $range2): bool
+    {
+        if ($range1->start == $range1->end) {
+            $range1 = clone $range1;
+            $range1->end->character++;
+        }
+
+        if ($range2->start == $range2->end) {
+            $range2 = clone $range2;
+            $range2->end->character++;
+        }
+
+        return self::overlap($range1, $range2);
     }
 }

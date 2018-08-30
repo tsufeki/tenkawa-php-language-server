@@ -100,6 +100,7 @@ use PHPStan\Type\Php\VersionCompareFunctionDynamicReturnTypeExtension;
 use PHPStan\Type\StaticMethodTypeSpecifyingExtension;
 use Tsufeki\HmContainer\Container;
 use Tsufeki\HmContainer\Definition\Value;
+use Tsufeki\Tenkawa\Php\Composer\ComposerService;
 use Tsufeki\Tenkawa\Php\Feature\CodeAction\ImportCodeActionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Command\WorkspaceEditCommandProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\GlobalSymbolCompleter;
@@ -108,6 +109,7 @@ use Tsufeki\Tenkawa\Php\Feature\Completion\MemberSymbolCompleter;
 use Tsufeki\Tenkawa\Php\Feature\Completion\SymbolCompleter;
 use Tsufeki\Tenkawa\Php\Feature\Completion\SymbolCompletionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\VariableCompletionProvider;
+use Tsufeki\Tenkawa\Php\Feature\Completion\WholeFileSnippetCompletionProvider;
 use Tsufeki\Tenkawa\Php\Feature\DefinitionSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\DocCommentSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\DocumentSymbols\SymbolDocumentSymbolsProvider;
@@ -121,6 +123,7 @@ use Tsufeki\Tenkawa\Php\Feature\MemberSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
 use Tsufeki\Tenkawa\Php\Feature\NodePathSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\PhpDocFormatter;
+use Tsufeki\Tenkawa\Php\Feature\Refactoring\FixAutoloadClassNameRefactoring;
 use Tsufeki\Tenkawa\Php\Feature\References\GlobalReferenceFinder;
 use Tsufeki\Tenkawa\Php\Feature\References\GlobalReferencesIndexDataProvider;
 use Tsufeki\Tenkawa\Php\Feature\References\MemberReferenceFinder;
@@ -132,7 +135,6 @@ use Tsufeki\Tenkawa\Php\Feature\SignatureHelp\SymbolSignatureHelpProvider;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Feature\WorkspaceSymbols\ReflectionWorkspaceSymbolsProvider;
-use Tsufeki\Tenkawa\Php\Index\ComposerFileFilterFactory;
 use Tsufeki\Tenkawa\Php\Index\StubsIndexer;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
 use Tsufeki\Tenkawa\Php\Parser\ParserDiagnosticsProvider;
@@ -146,6 +148,9 @@ use Tsufeki\Tenkawa\Php\PhpStan\PhpStanDiagnosticsProvider;
 use Tsufeki\Tenkawa\Php\PhpStan\PhpStanSignatureFinder;
 use Tsufeki\Tenkawa\Php\PhpStan\PhpStanTypeInference;
 use Tsufeki\Tenkawa\Php\PhpStan\SignatureVariantFactory;
+use Tsufeki\Tenkawa\Php\Refactoring\Differ;
+use Tsufeki\Tenkawa\Php\Refactoring\FineDiffer;
+use Tsufeki\Tenkawa\Php\Refactoring\RefactoringExecutor;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolverExtension;
 use Tsufeki\Tenkawa\Php\Reflection\ConstExprEvaluator;
@@ -158,6 +163,7 @@ use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionTransformer;
 use Tsufeki\Tenkawa\Php\Reflection\StubsReflectionTransformer;
 use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
+use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionProvider;
 use Tsufeki\Tenkawa\Server\Feature\Command\CommandProvider;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionProvider;
@@ -176,6 +182,7 @@ use Tsufeki\Tenkawa\Server\Io\FileLister\FileFilter;
 use Tsufeki\Tenkawa\Server\Io\FileLister\GlobFileFilter;
 use Tsufeki\Tenkawa\Server\Io\FileLister\GlobRejectDirectoryFilter;
 use Tsufeki\Tenkawa\Server\Plugin;
+use Tsufeki\Tenkawa\Server\Utils\StringTemplate;
 
 class PhpPlugin extends Plugin
 {
@@ -191,7 +198,6 @@ class PhpPlugin extends Plugin
 
         $container->setValue(FileFilter::class, new GlobFileFilter('**/*.php', 'php'), true);
         $container->setValue(FileFilter::class, new GlobRejectDirectoryFilter('{var,app/cache,cache,.git}'), true);
-        $container->setClass(FileFilterFactory::class, ComposerFileFilterFactory::class, true);
         $container->setClass(IndexDataProvider::class, ReflectionIndexDataProvider::class, true);
         $container->setClass(ReflectionTransformer::class, StubsReflectionTransformer::class, true);
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);
@@ -201,7 +207,13 @@ class PhpPlugin extends Plugin
         $container->setClass(ClassResolverExtension::class, MembersFromAnnotationClassResolverExtension::class, true);
         $container->setClass(ConstExprEvaluator::class);
 
+        $container->setClass(ComposerService::class);
+        $container->setClass(FileFilterFactory::class, ComposerService::class, true);
+        $container->setClass(OnFileChange::class, ComposerService::class, true);
+
         $container->setClass(NodeFinder::class);
+        $container->setClass(RefactoringExecutor::class);
+        $container->setClass(Differ::class, FineDiffer::class);
 
         $container->setClass(SymbolExtractor::class);
         $container->setClass(DocCommentSymbolExtractor::class);
@@ -230,6 +242,23 @@ class PhpPlugin extends Plugin
         $container->setClass(SymbolCompleter::class, ImportSymbolCompleter::class, true);
         $container->setClass(SymbolCompleter::class, MemberSymbolCompleter::class, true);
 
+        $container->setClass(CompletionProvider::class, WholeFileSnippetCompletionProvider::class, true, ['wholeFileSnippets']);
+        $container->setValue('wholeFileSnippets', [
+            'key' => 'class',
+            'description' => 'Class snippet',
+            'template' => new StringTemplate("<?php\n\nnamespace {{namespace}};\n\nclass {{class}}\n{\n    \n}"),
+        ], true);
+        $container->setValue('wholeFileSnippets', [
+            'key' => 'interface',
+            'description' => 'Interface snippet',
+            'template' => new StringTemplate("<?php\n\nnamespace {{namespace}};\n\ninterface {{class}}\n{\n    \n}"),
+        ], true);
+        $container->setValue('wholeFileSnippets', [
+            'key' => 'trait',
+            'description' => 'Trait snippet',
+            'template' => new StringTemplate("<?php\n\nnamespace {{namespace}};\n\ntrait {{class}}\n{\n    \n}"),
+        ], true);
+
         $container->setClass(DocumentSymbolsProvider::class, SymbolDocumentSymbolsProvider::class, true);
 
         $container->setClass(GoToDefinitionProvider::class, SymbolGoToDefinitionProvider::class, true);
@@ -237,6 +266,11 @@ class PhpPlugin extends Plugin
         $container->setClass(HoverProvider::class, SymbolHoverProvider::class, true);
         $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
         $container->setClass(HoverFormatter::class);
+
+        $container->setClass(FixAutoloadClassNameRefactoring::class);
+        $container->setAlias(DiagnosticsProvider::class, FixAutoloadClassNameRefactoring::class, true);
+        $container->setAlias(CodeActionProvider::class, FixAutoloadClassNameRefactoring::class, true);
+        $container->setAlias(CommandProvider::class, FixAutoloadClassNameRefactoring::class, true);
 
         $container->setClass(ReferencesProvider::class, SymbolReferencesProvider::class, true);
         $container->setClass(GlobalReferenceFinder::class);

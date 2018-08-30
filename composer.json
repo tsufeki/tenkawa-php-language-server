@@ -13,6 +13,7 @@
         "ext-mbstring": "*",
         "ext-pdo": "*",
         "ext-pdo_sqlite": "*",
+        "cogpowered/finediff": "^0.3.1",
         "evenement/evenement": "^3",
         "jetbrains/phpstorm-stubs": "dev-master",
         "league/html-to-markdown": "^4",

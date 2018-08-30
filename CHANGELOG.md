@@ -4,15 +4,17 @@ Changelog
 UNRELEASED
 ----------
 
+### Removed
+
+* Drop PHP 7.0 support.
+
 ### Added
 
 * Signature help.
 * Workspace symbols search.
 * Progress notifications as a custom protocol extension.
-
-### Removed
-
-* Drop PHP 7.0 support.
+* Add "Fix wrong autoloaded class/namespace name" code action.
+* Class/interface/trait snippets.
 
 ### Changed
 
@@ -21,7 +23,7 @@ UNRELEASED
 * Standard library index is now prebuilt, not scanned at startup.
 * Schedule tasks by priorities to improve latency on interactive requests.
 * Hierarchical document symbols.
-* _Go to_ and hover point to constructor when in new expressions.
+* "Go to" and hover point to constructor when in new expressions.
 
 0.2.0 - 2018-07-01
 ------------------

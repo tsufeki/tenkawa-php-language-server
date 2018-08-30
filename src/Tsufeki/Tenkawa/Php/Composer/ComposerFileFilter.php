@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\Index;
+namespace Tsufeki\Tenkawa\Php\Composer;
 
 use Tsufeki\Tenkawa\Server\Io\FileLister\FileFilter;
 use Tsufeki\Tenkawa\Server\Uri;
