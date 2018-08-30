@@ -14,6 +14,7 @@ UNRELEASED
 * Workspace symbols search.
 * Progress notifications as a custom protocol extension.
 * Add "Fix wrong autoloaded class/namespace name" code action.
+* Class/interface/trait snippets.
 
 ### Changed
 

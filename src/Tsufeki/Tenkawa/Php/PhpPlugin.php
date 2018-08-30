@@ -109,6 +109,7 @@ use Tsufeki\Tenkawa\Php\Feature\Completion\MemberSymbolCompleter;
 use Tsufeki\Tenkawa\Php\Feature\Completion\SymbolCompleter;
 use Tsufeki\Tenkawa\Php\Feature\Completion\SymbolCompletionProvider;
 use Tsufeki\Tenkawa\Php\Feature\Completion\VariableCompletionProvider;
+use Tsufeki\Tenkawa\Php\Feature\Completion\WholeFileSnippetCompletionProvider;
 use Tsufeki\Tenkawa\Php\Feature\DefinitionSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\DocCommentSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\DocumentSymbols\SymbolDocumentSymbolsProvider;
@@ -181,6 +182,7 @@ use Tsufeki\Tenkawa\Server\Io\FileLister\FileFilter;
 use Tsufeki\Tenkawa\Server\Io\FileLister\GlobFileFilter;
 use Tsufeki\Tenkawa\Server\Io\FileLister\GlobRejectDirectoryFilter;
 use Tsufeki\Tenkawa\Server\Plugin;
+use Tsufeki\Tenkawa\Server\Utils\StringTemplate;
 
 class PhpPlugin extends Plugin
 {
@@ -239,6 +241,23 @@ class PhpPlugin extends Plugin
         $container->setClass(SymbolCompleter::class, GlobalSymbolCompleter::class, true);
         $container->setClass(SymbolCompleter::class, ImportSymbolCompleter::class, true);
         $container->setClass(SymbolCompleter::class, MemberSymbolCompleter::class, true);
+
+        $container->setClass(CompletionProvider::class, WholeFileSnippetCompletionProvider::class, true, ['wholeFileSnippets']);
+        $container->setValue('wholeFileSnippets', [
+            'key' => 'class',
+            'description' => 'Class snippet',
+            'template' => new StringTemplate("<?php\n\nnamespace {{namespace}};\n\nclass {{class}}\n{\n    \n}"),
+        ], true);
+        $container->setValue('wholeFileSnippets', [
+            'key' => 'interface',
+            'description' => 'Interface snippet',
+            'template' => new StringTemplate("<?php\n\nnamespace {{namespace}};\n\ninterface {{class}}\n{\n    \n}"),
+        ], true);
+        $container->setValue('wholeFileSnippets', [
+            'key' => 'trait',
+            'description' => 'Trait snippet',
+            'template' => new StringTemplate("<?php\n\nnamespace {{namespace}};\n\ntrait {{class}}\n{\n    \n}"),
+        ], true);
 
         $container->setClass(DocumentSymbolsProvider::class, SymbolDocumentSymbolsProvider::class, true);
 
