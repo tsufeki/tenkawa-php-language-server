@@ -126,4 +126,22 @@ class PositionUtils
         return self::compare($range1->end, $range2->start) > 0
             && self::compare($range2->end, $range1->start) > 0;
     }
+
+    /**
+     * Check if two ranges overlap. Zero-length ranges can also overlap on start points.
+     */
+    public static function overlapZeroLength(Range $range1, Range $range2): bool
+    {
+        if ($range1->start == $range1->end) {
+            $range1 = clone $range1;
+            $range1->end->character++;
+        }
+
+        if ($range2->start == $range2->end) {
+            $range2 = clone $range2;
+            $range2->end->character++;
+        }
+
+        return self::overlap($range1, $range2);
+    }
 }

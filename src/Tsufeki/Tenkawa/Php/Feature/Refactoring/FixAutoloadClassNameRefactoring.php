@@ -132,7 +132,7 @@ class FixAutoloadClassNameRefactoring implements DiagnosticsProvider, CodeAction
         $codeActions = [];
 
         $nsRange = PositionUtils::rangeFromNodeAttrs($nsNode->getAttributes(), $document);
-        if ($autoloadNamespace !== (string)$nsNode && PositionUtils::overlap($range, $nsRange)) {
+        if ($autoloadNamespace !== (string)$nsNode && PositionUtils::overlapZeroLength($range, $nsRange)) {
             $cmd = new Command();
             $cmd->title = "Change name to $autoloadNamespace";
             $cmd->command = $this->getCommand();
@@ -141,7 +141,7 @@ class FixAutoloadClassNameRefactoring implements DiagnosticsProvider, CodeAction
         }
 
         $classRange = PositionUtils::rangeFromNodeAttrs($classNode->getAttributes(), $document);
-        if ($autoloadClass !== (string)$classNode && PositionUtils::overlap($range, $classRange)) {
+        if ($autoloadClass !== (string)$classNode && PositionUtils::overlapZeroLength($range, $classRange)) {
             $cmd = new Command();
             $cmd->title = "Change name to $autoloadClass";
             $cmd->command = $this->getCommand();
@@ -200,7 +200,7 @@ class FixAutoloadClassNameRefactoring implements DiagnosticsProvider, CodeAction
         foreach ($nodes as $node) {
             if ($node instanceof Stmt\Namespace_ && $nsNode === null) {
                 $nsNode = $node;
-            } elseif (!($node instanceof Stmt\Declare_)) {
+            } elseif (!($node instanceof Stmt\Declare_ || $node instanceof Stmt\Nop)) {
                 return [null, null];
             }
         }
