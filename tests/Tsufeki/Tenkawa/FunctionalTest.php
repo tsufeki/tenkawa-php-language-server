@@ -139,37 +139,41 @@ class FunctionalTest extends TestCase
                         'label' => '$bar',
                         'kind' => 6,
                         'detail' => 'mixed',
+                        'filterText' => 'bar',
+                        'sortText' => 'bar',
                         'insertText' => 'bar',
                         'textEdit' => [
                             'range' => [
                                 'start' => [
                                     'line' => 0,
-                                    'character' => 37,
+                                    'character' => 38,
                                 ],
                                 'end' => [
                                     'line' => 0,
                                     'character' => 39,
                                 ],
                             ],
-                            'newText' => '$bar',
+                            'newText' => 'bar',
                         ],
                     ],
                     [
                         'label' => '$baz',
                         'kind' => 6,
+                        'filterText' => 'baz',
+                        'sortText' => 'baz',
                         'insertText' => 'baz',
                         'textEdit' => [
                             'range' => [
                                 'start' => [
                                     'line' => 0,
-                                    'character' => 37,
+                                    'character' => 38,
                                 ],
                                 'end' => [
                                     'line' => 0,
                                     'character' => 39,
                                 ],
                             ],
-                            'newText' => '$baz',
+                            'newText' => 'baz',
                         ],
                     ],
                 ],
@@ -191,19 +195,21 @@ class FunctionalTest extends TestCase
                         'label' => '$bar',
                         'kind' => 6,
                         'detail' => 'mixed',
+                        'filterText' => 'bar',
+                        'sortText' => 'bar',
                         'insertText' => 'bar',
                         'textEdit' => [
                             'range' => [
                                 'start' => [
                                     'line' => 0,
-                                    'character' => 23,
+                                    'character' => 24,
                                 ],
                                 'end' => [
                                     'line' => 0,
                                     'character' => 24,
                                 ],
                             ],
-                            'newText' => '$bar',
+                            'newText' => 'bar',
                         ],
                     ],
                 ],

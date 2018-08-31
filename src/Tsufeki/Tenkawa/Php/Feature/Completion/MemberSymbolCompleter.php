@@ -116,8 +116,8 @@ class MemberSymbolCompleter implements SymbolCompleter
             }));
         }
 
-        return array_map(function (Element $element) use ($symbol, $kind) {
-            return $this->makeItem($element, $kind, $symbol->range, $kind !== MemberSymbol::METHOD);
+        return array_map(function (Element $element) use ($symbol, $kind, $position) {
+            return $this->makeItem($element, $position, $symbol->range, $kind !== MemberSymbol::METHOD);
         }, $elements);
     }
 
@@ -208,7 +208,7 @@ class MemberSymbolCompleter implements SymbolCompleter
         return false;
     }
 
-    private function makeItem(Element $element, $symbolKind, Range $range, bool $addTrailingParen): CompletionItem
+    private function makeItem(Element $element, Position $position, Range $range, bool $addTrailingParen): CompletionItem
     {
         $item = new CompletionItem();
         $item->label = $element->name;
@@ -228,13 +228,18 @@ class MemberSymbolCompleter implements SymbolCompleter
             $item->sortText = $item->label;
             $item->label = '$' . $item->label;
             if ($element->static) {
-                if ($symbolKind === MemberSymbol::CLASS_CONST) {
-                    $item->insertText = '$' . $item->insertText;
-                }
-
                 $item->textEdit = new TextEdit();
                 $item->textEdit->range = $range;
-                $item->textEdit->newText = '$' . $element->name;
+
+                if ($position == $range->start) {
+                    $item->textEdit->newText = '$' . $element->name;
+                    $item->insertText = '$' . $item->insertText;
+                } else {
+                    $item->textEdit->newText = $element->name;
+                    $item->textEdit->range = clone $item->textEdit->range;
+                    $item->textEdit->range->start = clone $item->textEdit->range->start;
+                    $item->textEdit->range->start->character++;
+                }
             }
         }
 

@@ -82,6 +82,10 @@ class VariableCompletionProvider implements CompletionProvider
         if (count($nodes) < 1 || !($nodes[0] instanceof Expr\Variable)) {
             return $completions;
         }
+        $range = PositionUtils::rangeFromNodeAttrs($nodes[0]->getAttributes(), $document);
+        if ($position == $range->start) {
+            return $completions;
+        }
 
         yield $this->typeInference->infer($document);
         /** @var array<string,Type|null> $variables */
@@ -95,10 +99,14 @@ class VariableCompletionProvider implements CompletionProvider
                 $item->label = '$' . $name;
                 $item->kind = CompletionItemKind::VARIABLE;
                 $item->detail = $type ? (string)$type : null;
+                $item->filterText = $name;
+                $item->sortText = $name;
                 $item->insertText = $name;
                 $item->textEdit = new TextEdit();
-                $item->textEdit->range = PositionUtils::rangeFromNodeAttrs($nodes[0]->getAttributes(), $document);
-                $item->textEdit->newText = '$' . $name;
+                $item->textEdit->range = clone $range;
+                $item->textEdit->range->start = clone $item->textEdit->range->start;
+                $item->textEdit->range->start->character++;
+                $item->textEdit->newText = $name;
 
                 $completions->items[] = $item;
             }
