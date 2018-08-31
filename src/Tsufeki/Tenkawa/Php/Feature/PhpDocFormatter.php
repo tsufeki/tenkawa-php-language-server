@@ -33,7 +33,12 @@ class PhpDocFormatter
     public function format(string $docComment, NameContext $nameContext): string
     {
         $context = new Context($nameContext->namespace, $nameContext->uses);
-        $phpDoc = $this->docBlockFactory->create($docComment, $context);
+
+        try {
+            $phpDoc = $this->docBlockFactory->create($docComment, $context);
+        } catch (\InvalidArgumentException $e) {
+            return '';
+        }
 
         $paragraphs = [];
 
