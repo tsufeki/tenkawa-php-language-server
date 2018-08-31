@@ -133,6 +133,7 @@ class PhpStanSignatureFinder implements SignatureFinder
         $candidates = [];
         $i = 0;
         $candidateName = $name;
+        // TODO wrap in callSync
         while ($this->signatureMapProvider->hasFunctionSignature($candidateName)) {
             $candidates[] = $this->signatureMapProvider->getFunctionSignature($candidateName, $class);
             $i++;

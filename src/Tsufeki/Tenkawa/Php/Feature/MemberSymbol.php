@@ -3,7 +3,6 @@
 namespace Tsufeki\Tenkawa\Php\Feature;
 
 use Tsufeki\Tenkawa\Php\TypeInference\Type;
-use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 
 class MemberSymbol extends Symbol
 {
@@ -36,9 +35,4 @@ class MemberSymbol extends Symbol
      * @var bool
      */
     public $isInObjectContext = false;
-
-    /**
-     * @var Range|null
-     */
-    public $completionRange;
 }

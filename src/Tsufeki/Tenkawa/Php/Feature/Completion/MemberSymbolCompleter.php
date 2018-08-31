@@ -21,7 +21,6 @@ use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextEdit;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItem;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItemKind;
-use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class MemberSymbolCompleter implements SymbolCompleter
 {
@@ -62,12 +61,6 @@ class MemberSymbolCompleter implements SymbolCompleter
         }
 
         $kind = $symbol->kind;
-        $offset = PositionUtils::offsetFromPosition($position, $symbol->document);
-        if ($offset > 0 && trim($symbol->document->getText()[$offset - 1]) === '') {
-            // Treat whitespace as separators, this should give better results on
-            // partial input (it won't glue unrelated tokens from the next line, etc.)
-            $kind = $symbol->static ? MemberSymbol::CLASS_CONST : MemberSymbol::PROPERTY;
-        }
 
         /** @var ResolvedClassConst[] $consts */
         $consts = yield $this->getMembers($symbol, MemberSymbol::CLASS_CONST);

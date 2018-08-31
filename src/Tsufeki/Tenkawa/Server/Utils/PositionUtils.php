@@ -134,11 +134,13 @@ class PositionUtils
     {
         if ($range1->start == $range1->end) {
             $range1 = clone $range1;
+            $range1->end = clone $range1->end;
             $range1->end->character++;
         }
 
         if ($range2->start == $range2->end) {
             $range2 = clone $range2;
+            $range2->end = clone $range2->end;
             $range2->end->character++;
         }
 

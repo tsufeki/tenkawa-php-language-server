@@ -63,22 +63,10 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
     public function getSymbolAt(Document $document, Position $position, array $nodes, bool $forCompletion): \Generator
     {
         /** @var MemberSymbol|null $symbol */
-        $symbol = yield $this->getSymbolFromNodes($nodes, $document, null);
+        $symbol = yield $this->getSymbolFromNodes($nodes, $document, null, $forCompletion);
 
-        if ($symbol !== null) {
-            $range = $symbol->range;
-            if ($forCompletion && $symbol->completionRange !== null) {
-                $range = $symbol->completionRange;
-                $symbol->kind = $symbol->static ? MemberSymbol::CLASS_CONST : MemberSymbol::PROPERTY;
-            }
-
-            $offset = PositionUtils::offsetFromPosition($position, $document);
-            $start = PositionUtils::offsetFromPosition($range->start, $document);
-            $end = PositionUtils::offsetFromPosition($range->end, $document);
-
-            if ($offset < $start || $offset > $end) {
-                $symbol = null;
-            }
+        if ($symbol !== null && (PositionUtils::compare($position, $symbol->range->start) < 0 || PositionUtils::compare($position, $symbol->range->end) > 0)) {
+            $symbol = null;
         }
 
         return $symbol;
@@ -107,7 +95,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
      *
      * @resolve MemberSymbol|null
      */
-    private function getSymbolFromNodes(array $nodes, Document $document, ?Cache $cache): \Generator
+    private function getSymbolFromNodes(array $nodes, Document $document, ?Cache $cache, bool $forCompletion = false): \Generator
     {
         if (empty($nodes)) {
             return null;
@@ -135,9 +123,14 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
             }
         }
 
-        $symbol->completionRange = $this->getCompletionRange($symbol, $leftNode);
         $symbol->objectType = yield $this->getTypeFromNode($leftNode, $symbol->nameContext, $document, $cache);
         $symbol->isInObjectContext = $this->isInObjectContext($nodes);
+
+        $completionRange = $this->getCompletionRange($symbol, $leftNode);
+        if ($forCompletion && $completionRange !== null) {
+            $symbol->range = $completionRange;
+            $symbol->kind = $symbol->static ? MemberSymbol::CLASS_CONST : MemberSymbol::PROPERTY;
+        }
 
         return $symbol;
     }
