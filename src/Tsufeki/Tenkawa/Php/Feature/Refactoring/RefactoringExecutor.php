@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\Refactoring;
+namespace Tsufeki\Tenkawa\Php\Feature\Refactoring;
 
 use PhpLenientParser\LenientParser;
 use PhpLenientParser\LenientParserFactory;

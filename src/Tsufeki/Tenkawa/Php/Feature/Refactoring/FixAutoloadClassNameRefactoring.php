@@ -8,7 +8,6 @@ use PhpParser\Node\Stmt;
 use Tsufeki\Tenkawa\Php\Composer\ComposerService;
 use Tsufeki\Tenkawa\Php\Parser\Ast;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
-use Tsufeki\Tenkawa\Php\Refactoring\RefactoringExecutor;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionContext;

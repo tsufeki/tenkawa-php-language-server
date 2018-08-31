@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\Feature\Command;
+namespace Tsufeki\Tenkawa\Php\Feature\Refactoring;
 
 use Tsufeki\Tenkawa\Server\Feature\Command\CommandProvider;
 use Tsufeki\Tenkawa\Server\Feature\Common\WorkspaceEdit;

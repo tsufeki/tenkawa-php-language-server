@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\Refactoring;
+namespace Tsufeki\Tenkawa\Php\Feature\Refactoring;
 
 use cogpowered\FineDiff\Granularity\Word;
 use cogpowered\FineDiff\Parser\Operations\Copy;

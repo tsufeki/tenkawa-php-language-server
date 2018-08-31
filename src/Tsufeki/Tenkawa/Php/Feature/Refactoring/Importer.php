@@ -1,17 +1,18 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\Feature;
+namespace Tsufeki\Tenkawa\Php\Feature\Refactoring;
 
 use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\Node\Stmt;
+use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
+use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
 use Tsufeki\Tenkawa\Php\Parser\Ast;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextEdit;
-use Tsufeki\Tenkawa\Server\Refactor\EditHelper;
 use Tsufeki\Tenkawa\Server\Utils\PositionUtils;
 
 class Importer

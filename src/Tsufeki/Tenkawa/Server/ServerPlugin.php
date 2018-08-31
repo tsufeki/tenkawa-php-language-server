@@ -61,7 +61,6 @@ use Tsufeki\Tenkawa\Server\Io\FileWatcher\InotifyWaitFileWatcher;
 use Tsufeki\Tenkawa\Server\Io\LocalFileReader;
 use Tsufeki\Tenkawa\Server\Logger\ClientLogger;
 use Tsufeki\Tenkawa\Server\Mapper\UriMapper;
-use Tsufeki\Tenkawa\Server\Refactor\EditHelper;
 use Tsufeki\Tenkawa\Server\Utils\FuzzyMatcher;
 
 class ServerPlugin extends Plugin
@@ -126,7 +125,6 @@ class ServerPlugin extends Plugin
         $container->setAlias(OnProjectOpen::class, FileWatcherHandler::class, true);
         $container->setAlias(OnProjectClose::class, FileWatcherHandler::class, true);
 
-        $container->setClass(EditHelper::class);
         $container->setClass(FuzzyMatcher::class);
 
         $container->setClass(MethodProvider::class, LanguageServer::class, true);

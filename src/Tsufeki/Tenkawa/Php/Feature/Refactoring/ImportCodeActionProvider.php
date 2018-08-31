@@ -1,10 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\Feature\CodeAction;
+namespace Tsufeki\Tenkawa\Php\Feature\Refactoring;
 
-use Tsufeki\Tenkawa\Php\Feature\Command\WorkspaceEditCommandProvider;
 use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
-use Tsufeki\Tenkawa\Php\Feature\Importer;
 use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;

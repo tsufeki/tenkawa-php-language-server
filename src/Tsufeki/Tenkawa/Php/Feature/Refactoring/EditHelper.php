@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Server\Refactor;
+namespace Tsufeki\Tenkawa\Php\Feature\Refactoring;
 
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;

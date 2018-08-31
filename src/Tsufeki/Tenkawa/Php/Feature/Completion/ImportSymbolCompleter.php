@@ -3,7 +3,7 @@
 namespace Tsufeki\Tenkawa\Php\Feature\Completion;
 
 use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
-use Tsufeki\Tenkawa\Php\Feature\Importer;
+use Tsufeki\Tenkawa\Php\Feature\Refactoring\Importer;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Php\Reflection\NameHelper;
