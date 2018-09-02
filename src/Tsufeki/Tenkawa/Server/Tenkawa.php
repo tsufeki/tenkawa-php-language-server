@@ -132,6 +132,7 @@ class Tenkawa
     private static function parseArgs(array $cmdLineArgs): array
     {
         array_shift($cmdLineArgs);
+        /** @var array<string,mixed> $options */
         $options = [
             'cmd' => 'run',
             'log.stderr' => false,
@@ -171,6 +172,10 @@ class Tenkawa
             }
 
             throw new \RuntimeException("Unrecognized argument: $arg");
+        }
+
+        if (!$options['log.stderr'] && !$options['log.file'] && !$options['log.client']) {
+            $options['log.stderr'] = true;
         }
 
         return $options;

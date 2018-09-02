@@ -46,7 +46,7 @@ $ cd ..
 Build index of the standard library:
 
 ```sh
-$ php ~/tenkawa/bin/tenkawa.php --build-index --log-stderr
+$ php ~/tenkawa/bin/tenkawa.php --build-index
 ```
 
 Now configure your client to start the server with this command to use stdio:
