@@ -321,6 +321,21 @@ class IndexClassReflection extends ClassReflection
         return $property;
     }
 
+    /**
+     * @return PhpPropertyReflection[]
+     */
+    public function getNativeProperties(): array
+    {
+        $properties = [];
+        foreach (array_keys($this->class->properties) as $propertyName) {
+            if ($this->hasNativeProperty($propertyName)) {
+                $properties[$propertyName] = $this->getNativeProperty($propertyName);
+            }
+        }
+
+        return $properties;
+    }
+
     private function createProperties(string $propertyName)
     {
         if (isset($this->properties[$propertyName])) {
