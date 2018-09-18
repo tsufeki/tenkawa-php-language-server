@@ -252,12 +252,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "435257758651096093209ff56fa0ae1a6e63ec56"
+                "reference": "eae9c1b5b5fa6c0e1d5a8a845b0c9269f3cc35eb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/435257758651096093209ff56fa0ae1a6e63ec56",
-                "reference": "435257758651096093209ff56fa0ae1a6e63ec56",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/eae9c1b5b5fa6c0e1d5a8a845b0c9269f3cc35eb",
+                "reference": "eae9c1b5b5fa6c0e1d5a8a845b0c9269f3cc35eb",
                 "shasum": ""
             },
             "require-dev": {
@@ -282,7 +282,7 @@
                 "stubs",
                 "type"
             ],
-            "time": "2018-08-13T13:39:18+00:00"
+            "time": "2018-09-14T12:31:19+00:00"
         },
         {
             "name": "league/html-to-markdown",
@@ -827,16 +827,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v4.0.3",
+            "version": "v4.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "bd088dc940a418f09cda079a9b5c7c478890fb8d"
+                "reference": "fa6ee28600d21d49b2b4e1006b48426cec8e579c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/bd088dc940a418f09cda079a9b5c7c478890fb8d",
-                "reference": "bd088dc940a418f09cda079a9b5c7c478890fb8d",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/fa6ee28600d21d49b2b4e1006b48426cec8e579c",
+                "reference": "fa6ee28600d21d49b2b4e1006b48426cec8e579c",
                 "shasum": ""
             },
             "require": {
@@ -874,7 +874,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2018-07-15T17:25:16+00:00"
+            "time": "2018-09-18T07:03:24+00:00"
         },
         {
             "name": "ocramius/package-versions",
