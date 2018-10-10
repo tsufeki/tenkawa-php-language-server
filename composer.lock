@@ -252,12 +252,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "eae9c1b5b5fa6c0e1d5a8a845b0c9269f3cc35eb"
+                "reference": "5e60d1bae836b57a121d2f1cf088d4b07f6e1b30"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/eae9c1b5b5fa6c0e1d5a8a845b0c9269f3cc35eb",
-                "reference": "eae9c1b5b5fa6c0e1d5a8a845b0c9269f3cc35eb",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/5e60d1bae836b57a121d2f1cf088d4b07f6e1b30",
+                "reference": "5e60d1bae836b57a121d2f1cf088d4b07f6e1b30",
                 "shasum": ""
             },
             "require-dev": {
@@ -282,7 +282,7 @@
                 "stubs",
                 "type"
             ],
-            "time": "2018-09-14T12:31:19+00:00"
+            "time": "2018-10-10T13:27:13+00:00"
         },
         {
             "name": "league/html-to-markdown",
@@ -827,16 +827,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v4.0.4",
+            "version": "v4.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "fa6ee28600d21d49b2b4e1006b48426cec8e579c"
+                "reference": "d0230c5c77a7e3cfa69446febf340978540958c0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/fa6ee28600d21d49b2b4e1006b48426cec8e579c",
-                "reference": "fa6ee28600d21d49b2b4e1006b48426cec8e579c",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/d0230c5c77a7e3cfa69446febf340978540958c0",
+                "reference": "d0230c5c77a7e3cfa69446febf340978540958c0",
                 "shasum": ""
             },
             "require": {
@@ -852,7 +852,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "4.0-dev"
+                    "dev-master": "4.1-dev"
                 }
             },
             "autoload": {
@@ -874,7 +874,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2018-09-18T07:03:24+00:00"
+            "time": "2018-10-10T09:24:14+00:00"
         },
         {
             "name": "ocramius/package-versions",
