@@ -2,7 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Server\Feature\ProgressNotification;
 
-use Recoil\Recoil;
+use Recoil\Kernel;
 use Tsufeki\BlancheJsonRpc\MappedJsonRpc;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
@@ -18,9 +18,15 @@ class ProgressNotificationFeature implements Feature
      */
     private $rpc;
 
-    public function __construct(?MappedJsonRpc $rpc = null)
+    /**
+     * @var Kernel
+     */
+    private $kernel;
+
+    public function __construct(?MappedJsonRpc $rpc = null, Kernel $kernel)
     {
         $this->rpc = $rpc;
+        $this->kernel = $kernel;
     }
 
     public function initialize(ClientCapabilities $clientCapabilities, ServerCapabilities $serverCapabilities): \Generator
@@ -29,14 +35,13 @@ class ProgressNotificationFeature implements Feature
         yield;
     }
 
-    /**
-     * @resolve Progress
-     */
-    public function create(): \Generator
+    public function create(): ProgressGroup
     {
-        $callback = yield Recoil::callback(\Closure::fromCallable([$this, 'progress']));
+        $callback = function (string $id, ?string $label = null, ?int $status = null, bool $done = false) {
+            $this->kernel->execute($this->progress($id, $label, $status, $done));
+        };
 
-        return new Progress($this->generateId(), $callback);
+        return new ProgressGroup($this->generateId(), $callback);
     }
 
     private function progress(string $id, ?string $label = null, ?int $status = null, bool $done = false): \Generator

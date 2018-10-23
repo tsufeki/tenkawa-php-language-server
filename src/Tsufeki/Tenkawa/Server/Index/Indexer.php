@@ -14,7 +14,7 @@ use Tsufeki\Tenkawa\Server\Event\Document\OnProjectOpen;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Event\OnIndexingFinished;
-use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\Progress;
+use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\ProgressGroup;
 use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\ProgressNotificationFeature;
 use Tsufeki\Tenkawa\Server\Index\Storage\ChainedStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\IndexStorage;
@@ -80,9 +80,9 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
     private $eventDispatcher;
 
     /**
-     * @var ProgressNotificationFeature
+     * @var ProgressGroup
      */
-    private $progressNotificationFeature;
+    private $progress;
 
     /**
      * @var LoggerInterface
@@ -127,7 +127,7 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         $this->fileFilters = $fileFilters;
         $this->fileFilterFactories = $fileFilterFactories;
         $this->eventDispatcher = $eventDispatcher;
-        $this->progressNotificationFeature = $progressNotificationFeature;
+        $this->progress = $progressNotificationFeature->create();
         $this->logger = $logger;
 
         $versions = array_map(function (IndexDataProvider $provider) {
@@ -190,8 +190,7 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
 
         $stopwatch = new Stopwatch();
         // $this->logger->debug("Indexing started: $subpath");
-        /** @var Progress $progress */
-        $progress = yield $this->progressNotificationFeature->create();
+        $progress = $this->progress->get();
 
         $indexedFiles = yield $indexStorage->getFileTimestamps($subpath);
         $processedFilesCount = 0;

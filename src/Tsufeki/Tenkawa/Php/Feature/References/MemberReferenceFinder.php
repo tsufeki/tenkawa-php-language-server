@@ -20,7 +20,6 @@ use Tsufeki\Tenkawa\Php\TypeInference\UnionType;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Exception\DocumentNotOpenException;
 use Tsufeki\Tenkawa\Server\Feature\Common\Range;
-use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\Progress;
 use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\ProgressNotificationFeature;
 use Tsufeki\Tenkawa\Server\Io\FileReader;
 use Tsufeki\Tenkawa\Server\Uri;
@@ -94,8 +93,7 @@ class MemberReferenceFinder implements ReferenceFinder
         $analyzedUris = [];
         /** @var Uri[] $uriQueue */
         $uriQueue = yield $this->getClassUris($targetNames, $symbol);
-        /** @var Progress $progress */
-        $progress = yield $this->progressNotificationFeature->create();
+        $progress = $this->progressNotificationFeature->create()->get();
         $progress->set('Finding references...');
 
         while (!empty($uriQueue)) {

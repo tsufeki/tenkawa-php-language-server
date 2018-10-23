@@ -5,29 +5,18 @@ namespace Tsufeki\Tenkawa\Server\Feature\ProgressNotification;
 class Progress
 {
     /**
-     * @var string
+     * @var ProgressGroup
      */
-    private $id;
-
-    /**
-     * @var callable
-     */
-    private $progressCallback;
-
-    /**
-     * @var bool
-     */
-    private $started = false;
+    private $progressGroup;
 
     /**
      * @var bool
      */
     private $done = false;
 
-    public function __construct(string $id, callable $progressCallback)
+    public function __construct(ProgressGroup $progressGroup)
     {
-        $this->id = $id;
-        $this->progressCallback = $progressCallback;
+        $this->progressGroup = $progressGroup;
     }
 
     public function __destruct()
@@ -37,17 +26,14 @@ class Progress
 
     public function set(string $label, ?int $status = null): void
     {
-        if ($status !== null || !$this->started) {
-            $this->started = true;
-            ($this->progressCallback)($this->id, $label, $status);
-        }
+        $this->progressGroup->progress($label, $status);
     }
 
     public function done(): void
     {
-        if ($this->started && !$this->done) {
+        if (!$this->done) {
             $this->done = true;
-            ($this->progressCallback)($this->id, null, null, true);
+            $this->progressGroup->done();
         }
     }
 }
