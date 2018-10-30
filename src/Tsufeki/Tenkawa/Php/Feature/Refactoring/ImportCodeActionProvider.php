@@ -17,6 +17,7 @@ use Tsufeki\Tenkawa\Server\Feature\Common\TextDocumentEdit;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextEdit;
 use Tsufeki\Tenkawa\Server\Feature\Common\VersionedTextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Feature\Common\WorkspaceEdit;
+use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 
 class ImportCodeActionProvider implements CodeActionProvider
 {
@@ -87,7 +88,7 @@ class ImportCodeActionProvider implements CodeActionProvider
         }
 
         $importData = yield $this->importer->getImportEditData($symbol);
-        $name = preg_replace('~\\s~', '', $symbol->originalName);
+        $name = StringUtils::replace('~\\s~', '', $symbol->originalName);
         $parts = explode('\\', $name);
         $commands = [];
 

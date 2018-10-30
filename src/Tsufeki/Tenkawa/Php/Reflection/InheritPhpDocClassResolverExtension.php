@@ -8,6 +8,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 
 class InheritPhpDocClassResolverExtension implements ClassResolverExtension
 {
@@ -25,7 +26,7 @@ class InheritPhpDocClassResolverExtension implements ClassResolverExtension
         /** @var Property|Method $member */
         foreach ($class->$kind as $name => $member) {
             if ($member->docComment === null ||
-                preg_match('~\{@inheritDoc\}~i', $member->docComment->text)
+                StringUtils::match('~\{@inheritDoc\}~i', $member->docComment->text)
             ) {
                 $inheritedDocComment = $this->findDocComment($class, $kind, $name);
                 if (($member->docComment->text ?? null) !== ($inheritedDocComment->text ?? null)) {

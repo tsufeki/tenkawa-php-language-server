@@ -123,7 +123,7 @@ class Uri
 
     public static function fromString(string $string): self
     {
-        if (preg_match(self::REGEX, $string, $matches) !== 1) {
+        if (!StringUtils::match(self::REGEX, $string, $matches)) {
             throw new UriException("Invalid URI: $string"); // @codeCoverageIgnore
         }
 

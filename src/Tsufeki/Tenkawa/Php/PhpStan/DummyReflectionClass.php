@@ -55,4 +55,9 @@ class DummyReflectionClass extends \ReflectionClass
 
         return $properties;
     }
+
+    public function isUserDefined()
+    {
+        return $this->classReflection->isUserDefined();
+    }
 }

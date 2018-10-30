@@ -9,6 +9,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\DocComment;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
+use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 
 class StubsReflectionTransformer
 {
@@ -66,7 +67,7 @@ class StubsReflectionTransformer
 
         $optionalParams = [];
 
-        $function->docComment->text = preg_replace_callback(
+        $function->docComment->text = StringUtils::replace(
             '~@param' .
             '([ \t]+([^$]\S*))?' .
             '([ \t]+\$([a-zA-Z0-9_]+))?' .
@@ -99,13 +100,13 @@ class StubsReflectionTransformer
         }
 
         $text = substr(trim($docComment->text), 3, -2);
-        $text = preg_replace('~^\s*\*\s~m', '', $text);
-        $text = preg_replace('~^(\s*)@~m', '<br>$1@', $text);
+        $text = StringUtils::replace('~^\s*\*\s~m', '', $text);
+        $text = StringUtils::replace('~^(\s*)@~m', '<br>$1@', $text);
         $text = str_replace("\n\n", "<br>\n\n", $text);
         $text = "/**\n" . $this->htmlConverter->convert($text) . "\n*/";
         $text = str_replace('\\[\\]', '[]', $text);
         $text = str_replace('```', "\n```", $text);
-        $text = preg_replace_callback(
+        $text = StringUtils::replace(
             '~\\$([a-zA-Z0-9_]|\\\\_)*~',
             function ($match) {
                 return str_replace('\\', '', $match[0]);

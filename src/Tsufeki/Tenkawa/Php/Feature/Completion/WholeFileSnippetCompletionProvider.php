@@ -45,7 +45,7 @@ class WholeFileSnippetCompletionProvider implements CompletionProvider
         $completions = new CompletionList();
 
         $text = $document->getText();
-        if (preg_match('/\\A([ \\t]*[a-z]*[ \\t]*)\\n?\\z/', $text, $matches) !== 1) {
+        if (!StringUtils::match('/\\A([ \\t]*[a-z]*[ \\t]*)\\n?\\z/', $text, $matches)) {
             return $completions;
         }
 

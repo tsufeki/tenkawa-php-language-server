@@ -11,6 +11,7 @@ use PHPStan\Broker\AnonymousClassNameHelper;
 use PHPStan\Broker\Broker;
 use PHPStan\Broker\ClassNotFoundException;
 use PHPStan\Broker\FunctionNotFoundException;
+use PHPStan\File\RelativePathHelper;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\FunctionReflection;
 use PHPStan\Reflection\MethodsClassReflectionExtension;
@@ -134,8 +135,12 @@ class IndexBroker extends Broker
                 {
                 }
             },
-            $universalObjectCratesClasses,
-            ''
+            new class() extends RelativePathHelper {
+                public function __construct()
+                {
+                }
+            },
+            $universalObjectCratesClasses
         );
 
         $this->propertiesReflectionExtensions = $propertiesClassReflectionExtensions;

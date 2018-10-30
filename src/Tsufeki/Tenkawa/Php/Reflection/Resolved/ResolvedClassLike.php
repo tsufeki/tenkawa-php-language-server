@@ -82,4 +82,9 @@ class ResolvedClassLike
      * @var self[]
      */
     public $traits = [];
+
+    /**
+     * @var string|null
+     */
+    public $origin;
 }

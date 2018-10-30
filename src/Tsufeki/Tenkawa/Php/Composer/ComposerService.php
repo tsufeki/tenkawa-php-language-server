@@ -225,7 +225,7 @@ class ComposerService implements FileFilterFactory, OnFileChange
                     if ($subpath) {
                         $ns = ($psr === 'psr-4' && $ns !== '') ? '\\' . trim((string)$ns, '\\') : '';
                         $class = $ns . '\\' . str_replace('/', '\\', substr_replace($subpath, '', -4));
-                        if (preg_match('/^(\\\\[A-Za-z_][A-Za-z0-9_]*)+$/', $class) === 1) {
+                        if (StringUtils::match('/^(\\\\[A-Za-z_][A-Za-z0-9_]*)+$/', $class)) {
                             return $class;
                         }
                     }

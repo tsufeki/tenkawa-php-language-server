@@ -86,7 +86,7 @@ class HoverFormatter
 
     private function replaceAnonymousClass(string $str): string
     {
-        return preg_replace('/\\\\?Anonymous@[0-9a-f]+/', '<anonymous_class>', $str);
+        return StringUtils::replace('/\\\\?Anonymous@[0-9a-f]+/', '<anonymous_class>', $str);
     }
 
     private function formatClassPrefix(?string $class): string

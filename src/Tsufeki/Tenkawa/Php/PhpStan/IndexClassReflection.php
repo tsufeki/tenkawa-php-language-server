@@ -15,6 +15,7 @@ use PHPStan\Reflection\Php\PhpPropertyReflection;
 use PHPStan\Reflection\PropertiesClassReflectionExtension;
 use PHPStan\Reflection\PropertyReflection;
 use PHPStan\ShouldNotHappenException;
+use Tsufeki\Tenkawa\Php\Index\StubsIndexer;
 use Tsufeki\Tenkawa\Php\Reflection\NameHelper;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 
@@ -91,6 +92,11 @@ class IndexClassReflection extends ClassReflection
     private $final = false;
 
     /**
+     * @var bool
+     */
+    private $userDefined = true;
+
+    /**
      * @param PropertiesClassReflectionExtension[] $propertiesClassReflectionExtensions
      * @param MethodsClassReflectionExtension[]    $methodsClassReflectionExtensions
      */
@@ -109,6 +115,7 @@ class IndexClassReflection extends ClassReflection
         $this->propertiesClassReflectionExtensions = $propertiesClassReflectionExtensions;
         $this->methodsClassReflectionExtensions = $methodsClassReflectionExtensions;
         $this->final = $class->final;
+        $this->userDefined = $class->origin !== StubsIndexer::ORIGIN;
 
         if ($class->docComment) {
             $resolvedPhpDoc = $phpDocResolver->getResolvedPhpDocForReflectionElement($class);
@@ -512,5 +519,10 @@ class IndexClassReflection extends ClassReflection
         $parentClass = $this->getParentClass();
 
         return $parentClass !== false && $parentClass->hasTraitUse($traitName);
+    }
+
+    public function isUserDefined(): bool
+    {
+        return $this->userDefined;
     }
 }

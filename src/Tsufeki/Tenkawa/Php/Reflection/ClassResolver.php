@@ -99,6 +99,7 @@ class ClassResolver
         $resolved->isTrait = $class->isTrait;
         $resolved->abstract = $class->abstract;
         $resolved->final = $class->final;
+        $resolved->origin = $class->origin;
     }
 
     private function resolveSupers(ResolvedClassLike $resolved, ClassLike $class, Document $document, Cache $cache): \Generator

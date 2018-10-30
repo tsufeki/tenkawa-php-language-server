@@ -16,7 +16,8 @@ class DummyFunctionReflectionFactory implements FunctionReflectionFactory
         ?Type $phpDocThrowType,
         bool $isDeprecated,
         bool $isInternal,
-        bool $isFinal
+        bool $isFinal,
+        $filename
     ): PhpFunctionReflection {
         throw new ShouldNotHappenException();
     }
