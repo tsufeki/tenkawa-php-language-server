@@ -9,6 +9,7 @@ use PHPStan\Analyser\ScopeContext;
 use PHPStan\Analyser\ScopeFactory;
 use Psr\Log\LoggerInterface;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Exception\UriException;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
 
@@ -76,8 +77,13 @@ class Analyser
             return;
         }
 
+        try {
+            $path = $document->getUri()->getFilesystemPath();
+        } catch (UriException $e) {
+            return;
+        }
+
         $cache = $cache ?? new Cache();
-        $path = $document->getUri()->getFilesystemPath();
 
         $this->syncAsync->callSync(
             function () use ($path, $nodeCallback) {

@@ -104,7 +104,7 @@ class Uri
     public function getFilesystemPath(): string
     {
         if (!in_array($this->scheme, ['file', null], true)) {
-            throw new UriException('Not a file URI');
+            throw new UriException("Not a file URI: $this");
         }
 
         if (!in_array(strtolower((string)$this->authority), ['localhost', ''], true)) {

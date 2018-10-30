@@ -9,6 +9,7 @@ use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Document\Project;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Exception\IoException;
+use Tsufeki\Tenkawa\Server\Exception\UriException;
 use Tsufeki\Tenkawa\Server\Index\FileFilterFactory;
 use Tsufeki\Tenkawa\Server\Io\FileReader;
 use Tsufeki\Tenkawa\Server\Uri;
@@ -75,7 +76,7 @@ class ComposerService implements FileFilterFactory, OnFileChange
 
         try {
             $json = Json::decode(yield $this->fileReader->read($uris['composer']));
-        } catch (IoException | JsonException $e) {
+        } catch (IoException | JsonException | UriException $e) {
             $json = false;
         }
 
@@ -98,7 +99,7 @@ class ComposerService implements FileFilterFactory, OnFileChange
                 $installed = Json::decode(yield $this->fileReader->read(
                     $project->get('composer.uris')['installed']
                 ));
-            } catch (IoException | JsonException $e) {
+            } catch (IoException | JsonException | UriException $e) {
             }
         }
 
