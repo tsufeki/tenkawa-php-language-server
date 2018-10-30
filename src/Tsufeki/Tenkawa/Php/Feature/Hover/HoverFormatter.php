@@ -182,10 +182,15 @@ class HoverFormatter
 
     private function formatType(Type $type): string
     {
-        $s = $this->replaceAnonymousClass(StringUtils::getShortName($type->type));
-        if (($type->type[0] ?? '') === '?') {
-            $s = '?' . $s;
+        $s = '';
+        $identifier = $type->type;
+
+        if (($identifier[0] ?? '') === '?') {
+            $identifier = substr($identifier, 1);
+            $s = '?';
         }
+
+        $s .= $this->replaceAnonymousClass(StringUtils::getShortName($identifier));
 
         return $s;
     }
