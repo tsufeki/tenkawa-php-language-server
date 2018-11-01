@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.3.1 - 2018-11-01
+------------------
+
+### Fixed
+
+* Update phpstan to 0.10.5.
+* Group indexing progress notifications.
+* Fix ?nullable types display in hover popups.
+* Fix URIs with `untitled:` scheme causing error responses.
+
 0.3.0 - 2018-09-02
 ------------------
 
