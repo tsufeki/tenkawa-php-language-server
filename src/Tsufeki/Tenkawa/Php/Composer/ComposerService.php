@@ -94,16 +94,16 @@ class ComposerService implements FileFilterFactory, OnFileChange
         }
 
         $installed = null;
-        if (yield $this->getComposerJson($project)) {
+        $json = yield $this->getComposerJson($project);
+        $vendorDir = $project->get('composer.uris')['vendor'];
+        if ($json) {
             try {
-                $installed = Json::decode(yield $this->fileReader->read(
-                    $project->get('composer.uris')['installed']
-                ));
+                $installedUri = $project->get('composer.uris')['installed'];
+                $installed = Json::decode(yield $this->fileReader->read($installedUri));
             } catch (IoException | JsonException | UriException $e) {
             }
         }
 
-        $vendorDir = $project->get('composer.uris')['vendor'];
         $rejectGlobs = [];
         $acceptGlobs = [];
         $forceRejectGlobs = [];

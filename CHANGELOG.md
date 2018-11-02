@@ -1,6 +1,13 @@
 Changelog
 =========
 
+UNRELEASED
+----------
+
+### Fixed
+
+* Fix bug in composer path filter.
+
 0.3.2 - 2018-11-01
 ------------------
 
