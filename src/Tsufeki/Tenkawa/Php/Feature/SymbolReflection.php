@@ -154,14 +154,16 @@ class SymbolReflection
         }
 
         if ($type instanceof IntersectionType || ($type instanceof UnionType && !$strict)) {
+            /** @var array<int,array<string,Element[]>> $members */
             $members = yield array_map(function (Type $subtype) use ($kind, $document, $strict) {
                 return $this->getMemberReflectionForType($subtype, $kind, $document, $strict);
             }, $type->types);
 
-            return array_merge_recursive(...$members);
+            return $this->deduplicateMembers(array_merge_recursive(...$members));
         }
 
         if ($type instanceof UnionType) {
+            /** @var array<int,array<string,Element[]>> $members */
             $members = yield array_map(function (Type $subtype) use ($kind, $document, $strict) {
                 return $this->getMemberReflectionForType($subtype, $kind, $document, $strict);
             }, $type->types);
@@ -170,6 +172,7 @@ class SymbolReflection
                 return [];
             }
 
+            /** @var string[][] $keys */
             $keys = array_map('array_keys', $members);
             $keys = count($keys) === 1 ? $keys[0] : array_intersect(...$keys);
 
@@ -178,9 +181,21 @@ class SymbolReflection
                 $elements[$key] = array_merge(...array_column($members, $key));
             }
 
-            return $elements;
+            return $this->deduplicateMembers($elements);
         }
 
         return [];
+    }
+
+    /**
+     * @param array<string,Element[]> $members
+     *
+     * @return array<string,Element[]>
+     */
+    private function deduplicateMembers(array $members): array
+    {
+        return array_map(function (array $memberVariants) {
+            return array_unique($memberVariants, SORT_REGULAR);
+        }, $members);
     }
 }

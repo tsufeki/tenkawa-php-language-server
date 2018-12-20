@@ -1,6 +1,18 @@
 Changelog
 =========
 
+0.4.0 - UNRELEASED
+------------------
+
+### Changed
+
+* Completions, go to (and other features) for union type now include members
+  from all alternatives.
+
+### Fixed
+
+* Member completions are deduplicated.
+
 0.3.3 - 2018-11-02
 ------------------
 
