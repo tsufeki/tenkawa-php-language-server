@@ -127,8 +127,12 @@ class SymbolReflection
     /**
      * @resolve (ResolvedClassConst|ResolvedProperty|ResolvedMethod)[][] member name => member array
      */
-    public function getMemberReflectionForType(Type $type, string $kind, Document $document): \Generator
-    {
+    public function getMemberReflectionForType(
+        Type $type,
+        string $kind,
+        Document $document,
+        bool $strict = false
+    ): \Generator {
         if ($type instanceof ObjectType) {
             $resolvedClass = yield $this->classResolver->resolve($type->class, $document);
             if ($resolvedClass === null) {
@@ -149,31 +153,28 @@ class SymbolReflection
             }, $members);
         }
 
-        if ($type instanceof IntersectionType) {
-            $members = yield array_map(function (Type $subtype) use ($kind, $document) {
-                return $this->getMemberReflectionForType($subtype, $kind, $document);
+        if ($type instanceof IntersectionType || ($type instanceof UnionType && !$strict)) {
+            $members = yield array_map(function (Type $subtype) use ($kind, $document, $strict) {
+                return $this->getMemberReflectionForType($subtype, $kind, $document, $strict);
             }, $type->types);
 
             return array_merge_recursive(...$members);
         }
 
         if ($type instanceof UnionType) {
-            $subtypes = array_values(array_filter($type->types, function (Type $subtype) {
-                return $subtype instanceof ObjectType
-                    || $subtype instanceof UnionType
-                    || $subtype instanceof IntersectionType;
-            }));
+            $members = yield array_map(function (Type $subtype) use ($kind, $document, $strict) {
+                return $this->getMemberReflectionForType($subtype, $kind, $document, $strict);
+            }, $type->types);
 
-            if (empty($subtypes)) {
+            if ($members === []) {
                 return [];
             }
 
-            $members = yield array_map(function (Type $subtype) use ($kind, $document) {
-                return $this->getMemberReflectionForType($subtype, $kind, $document);
-            }, $subtypes);
+            $keys = array_map('array_keys', $members);
+            $keys = count($keys) === 1 ? $keys[0] : array_intersect(...$keys);
 
             $elements = [];
-            foreach (array_keys(count($members) === 1 ? $members[0] : array_intersect_key(...$members)) as $key) {
+            foreach ($keys as $key) {
                 $elements[$key] = array_merge(...array_column($members, $key));
             }
 
