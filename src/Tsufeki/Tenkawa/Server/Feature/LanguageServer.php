@@ -4,10 +4,12 @@ namespace Tsufeki\Tenkawa\Server\Feature;
 
 use Psr\Log\LoggerInterface;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
+use Tsufeki\BlancheJsonRpc\MappedJsonRpc;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnInit;
 use Tsufeki\Tenkawa\Server\Event\OnShutdown;
+use Tsufeki\Tenkawa\Server\Exception\RequestCancelledException;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\InitializeResult;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
@@ -23,6 +25,11 @@ class LanguageServer implements MethodProvider
      * @var EventDispatcher
      */
     private $eventDispatcher;
+
+    /**
+     * @var MappedJsonRpc
+     */
+    private $rpc;
 
     /**
      * @var DocumentStore
@@ -54,6 +61,7 @@ class LanguageServer implements MethodProvider
      */
     public function __construct(
         EventDispatcher $eventDispatcher,
+        MappedJsonRpc $rpc,
         DocumentStore $documentStore,
         LoggerInterface $logger,
         array $features,
@@ -61,6 +69,7 @@ class LanguageServer implements MethodProvider
         ConfigurationFeature $configurationFeature
     ) {
         $this->eventDispatcher = $eventDispatcher;
+        $this->rpc = $rpc;
         $this->documentStore = $documentStore;
         $this->logger = $logger;
         $this->features = $features;
@@ -80,6 +89,7 @@ class LanguageServer implements MethodProvider
     {
         return [
             'exit' => 'exit',
+            '$/cancelRequest' => 'cancelRequest',
         ];
     }
 
@@ -146,5 +156,22 @@ class LanguageServer implements MethodProvider
 
         exit(0);
         yield;
+    }
+
+    /**
+     * The base protocol offers support for request cancellation.
+     *
+     * A request that got canceled still needs to return from the server and
+     * send a response back. It can not be left open / hanging. This is in line
+     * with the JSON RPC protocol that requires that every request sends a
+     * response back. In addition it allows for returning partial results on
+     * cancel. If the request returns an error response on cancellation it is
+     * advised to set the error code to ErrorCodes.RequestCancelled.
+     *
+     * @param int|string $id
+     */
+    public function cancelRequest($id): \Generator
+    {
+        yield $this->rpc->cancelIncomingRequest($id, new RequestCancelledException());
     }
 }

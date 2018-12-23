@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "42431ae4d5e6d814acb867f6fc07cfab",
+    "content-hash": "da6e4edb7106064532e0c45a476e22f8",
     "packages": [
         {
             "name": "cogpowered/finediff",
@@ -252,16 +252,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "cbea95d2968b2b4ab3404757120792954d033541"
+                "reference": "0a22f47219d7cf27f2ad743edd21c83f34b81ae3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/cbea95d2968b2b4ab3404757120792954d033541",
-                "reference": "cbea95d2968b2b4ab3404757120792954d033541",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/0a22f47219d7cf27f2ad743edd21c83f34b81ae3",
+                "reference": "0a22f47219d7cf27f2ad743edd21c83f34b81ae3",
                 "shasum": ""
             },
             "require-dev": {
                 "nikic/php-parser": "v4.0.1",
+                "php": "^7.1",
                 "phpdocumentor/reflection-docblock": "^4.3",
                 "phpunit/phpunit": "7.1.4"
             },
@@ -282,7 +283,7 @@
                 "stubs",
                 "type"
             ],
-            "time": "2018-12-14T14:11:36+00:00"
+            "time": "2018-12-21T13:31:10+00:00"
         },
         {
             "name": "league/html-to-markdown",
@@ -1893,19 +1894,20 @@
         },
         {
             "name": "tsufeki/blanche-json-rpc",
-            "version": "0.2.2",
+            "version": "0.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsufeki/blanche-json-rpc.git",
-                "reference": "5e5b2638ce91d6f13f3cfd98eaa0f3b5dbfc6abe"
+                "reference": "cda3f58fdcbd39f8162e409ca8cfba36b057aae3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsufeki/blanche-json-rpc/zipball/5e5b2638ce91d6f13f3cfd98eaa0f3b5dbfc6abe",
-                "reference": "5e5b2638ce91d6f13f3cfd98eaa0f3b5dbfc6abe",
+                "url": "https://api.github.com/repos/tsufeki/blanche-json-rpc/zipball/cda3f58fdcbd39f8162e409ca8cfba36b057aae3",
+                "reference": "cda3f58fdcbd39f8162e409ca8cfba36b057aae3",
                 "shasum": ""
             },
             "require": {
+                "php": ">=7.1",
                 "psr/log": "^1.0",
                 "recoil/api": "^1.0",
                 "tsufeki/kayo-json-mapper": "^0.3.0"
@@ -1934,7 +1936,7 @@
                 }
             ],
             "description": "Async JSON-RPC library for Recoil PHP",
-            "time": "2018-10-30T20:33:36+00:00"
+            "time": "2018-12-23T21:35:01+00:00"
         },
         {
             "name": "tsufeki/hmcontainer",

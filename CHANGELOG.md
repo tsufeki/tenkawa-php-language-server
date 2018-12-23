@@ -4,6 +4,10 @@ Changelog
 0.4.0 - UNRELEASED
 ------------------
 
+### Added
+
+* Request cancellation.
+
 ### Changed
 
 * Completions, go to (and other features) for union type now include members

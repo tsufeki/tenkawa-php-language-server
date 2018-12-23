@@ -27,7 +27,7 @@
         "recoil/api": "^1",
         "recoil/kernel": "^1",
         "recoil/react": "^1",
-        "tsufeki/blanche-json-rpc": "^0.2",
+        "tsufeki/blanche-json-rpc": "^0.3",
         "tsufeki/hmcontainer": "^0.3",
         "tsufeki/kayo-json-mapper": "^0.3",
         "tsufeki/php-lenient-parser": "^0.1",
