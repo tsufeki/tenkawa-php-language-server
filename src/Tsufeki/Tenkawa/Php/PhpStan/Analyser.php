@@ -69,10 +69,15 @@ class Analyser
     }
 
     /**
-     * @param \Closure $nodeCallback (Node $node, Scope $scope)
+     * @param \Closure    $nodeCallback (Node $node, Scope $scope)
+     * @param Node[]|null $nodes
      */
-    public function analyse(Document $document, \Closure $nodeCallback, ?Cache $cache = null): \Generator
-    {
+    public function analyse(
+        Document $document,
+        \Closure $nodeCallback,
+        ?array $nodes = null,
+        ?Cache $cache = null
+    ): \Generator {
         if ($document->getLanguage() !== 'php') {
             return;
         }
@@ -86,10 +91,10 @@ class Analyser
         $cache = $cache ?? new Cache();
 
         $this->syncAsync->callSync(
-            function () use ($path, $nodeCallback) {
+            function () use ($path, $nodeCallback, $nodes) {
                 try {
                     $this->nodeScopeResolver->processNodes(
-                        $this->parser->parseFile($path),
+                        $nodes ?? $this->parser->parseFile($path),
                         $this->scopeFactory->create(ScopeContext::create($path)),
                         $nodeCallback
                     );

@@ -2,10 +2,15 @@
 
 namespace Tsufeki\Tenkawa\Php\TypeInference;
 
+use PhpParser\Comment;
+use PhpParser\Node;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
 
 interface TypeInference
 {
-    public function infer(Document $document, ?Cache $cache = null): \Generator;
+    /**
+     * @param (Node|Comment)[] $nodePath
+     */
+    public function infer(Document $document, ?array $nodePath = null, ?Cache $cache = null): \Generator;
 }

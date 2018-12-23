@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
+use PhpParser\Comment;
 use PhpParser\Node;
 use PHPStan\Reflection\SignatureMap\FunctionSignature;
 use PHPStan\Reflection\SignatureMap\ParameterSignature;
@@ -75,11 +76,12 @@ class PhpStanSignatureFinder implements SignatureFinder
     }
 
     /**
-     * @param Node\Arg[] $args
+     * @param Node\Arg[]            $args
+     * @param (Node|Comment)[]|null $nodePath
      *
      * @resolve SignatureHelp|null
      */
-    public function findSignature(Symbol $symbol, array $args, int $argIndex): \Generator
+    public function findSignature(Symbol $symbol, array $args, int $argIndex, ?array $nodePath): \Generator
     {
         /** @var Element|null $element */
         $element = (yield $this->symbolReflection->getReflectionOrConstructorFromSymbol($symbol))[0] ?? null;
@@ -101,7 +103,7 @@ class PhpStanSignatureFinder implements SignatureFinder
         }, $candidates);
 
         $cache = new Cache();
-        yield $this->typeInference->infer($symbol->document, $cache);
+        yield $this->typeInference->infer($symbol->document, $nodePath, $cache);
 
         $types = [];
         foreach ($args as $arg) {

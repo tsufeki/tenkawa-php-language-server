@@ -87,7 +87,7 @@ class VariableCompletionProvider implements CompletionProvider
             return $completions;
         }
 
-        yield $this->typeInference->infer($document);
+        yield $this->typeInference->infer($document, $nodes);
         /** @var array<string,Type|null> $variables */
         $variables = yield $this->getVariables($nodes, $document);
 

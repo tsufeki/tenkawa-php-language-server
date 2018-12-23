@@ -149,6 +149,7 @@ use Tsufeki\Tenkawa\Php\Parser\Parser;
 use Tsufeki\Tenkawa\Php\Parser\ParserDiagnosticsProvider;
 use Tsufeki\Tenkawa\Php\Parser\PhpParserAdapter;
 use Tsufeki\Tenkawa\Php\PhpStan\Analyser;
+use Tsufeki\Tenkawa\Php\PhpStan\AstPruner;
 use Tsufeki\Tenkawa\Php\PhpStan\DocumentParser;
 use Tsufeki\Tenkawa\Php\PhpStan\ErrorTolerantPrettyPrinter;
 use Tsufeki\Tenkawa\Php\PhpStan\IndexBroker;
@@ -344,6 +345,7 @@ class PhpPlugin extends Plugin
         ]);
 
         $container->setClass(TypeInference::class, PhpStanTypeInference::class);
+        $container->setClass(AstPruner::class);
         $container->setClass(NodeScopeResolver::class, null, false,
             [null, null, null, null, null, 'polluteScopeWithLoopInitialAssignments', 'polluteCatchScopeWithTryAssignments', 'earlyTerminatingMethodCalls']
         );

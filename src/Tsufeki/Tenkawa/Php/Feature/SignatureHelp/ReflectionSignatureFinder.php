@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\SignatureHelp;
 
+use PhpParser\Comment;
 use PhpParser\Node;
 use Tsufeki\Tenkawa\Php\Feature\Hover\HoverFormatter;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
@@ -34,11 +35,12 @@ class ReflectionSignatureFinder implements SignatureFinder
     }
 
     /**
-     * @param Node\Arg[] $args
+     * @param Node\Arg[]            $args
+     * @param (Node|Comment)[]|null $nodePath
      *
      * @resolve SignatureHelp|null
      */
-    public function findSignature(Symbol $symbol, array $args, int $argIndex): \Generator
+    public function findSignature(Symbol $symbol, array $args, int $argIndex, ?array $nodePath): \Generator
     {
         /** @var Element|null $element */
         $element = (yield $this->symbolReflection->getReflectionOrConstructorFromSymbol($symbol))[0] ?? null;

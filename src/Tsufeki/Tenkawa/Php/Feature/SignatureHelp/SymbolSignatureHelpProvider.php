@@ -110,7 +110,7 @@ class SymbolSignatureHelpProvider implements SignatureHelpProvider
         }
 
         foreach ($this->signatureFinders as $signatureFinder) {
-            $signatureHelp = yield $signatureFinder->findSignature($symbol, $callNode->args, $argIndex);
+            $signatureHelp = yield $signatureFinder->findSignature($symbol, $callNode->args, $argIndex, $nodes);
             if ($signatureHelp !== null) {
                 return $signatureHelp;
             }

@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\Hover;
 
+use PhpParser\Comment;
 use PhpParser\Node;
 use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
 use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
@@ -43,7 +44,7 @@ class ExpressionTypeHoverProvider implements HoverProvider
 
         /** @var (Node|Comment)[] $nodes */
         $nodes = yield $this->nodeFinder->getNodePath($document, $position);
-        yield $this->typeInference->infer($document);
+        yield $this->typeInference->infer($document, $nodes);
 
         if (!empty($nodes) && $nodes[0] instanceof Node\Name) {
             array_shift($nodes);

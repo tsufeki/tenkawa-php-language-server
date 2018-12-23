@@ -62,6 +62,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
      */
     public function getSymbolAt(Document $document, Position $position, array $nodes, bool $forCompletion): \Generator
     {
+        yield $this->typeInference->infer($document, $nodes);
         /** @var MemberSymbol|null $symbol */
         $symbol = yield $this->getSymbolFromNodes($nodes, $document, null, $forCompletion);
 
@@ -84,6 +85,7 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
         }
 
         $cache = new Cache();
+        yield $this->typeInference->infer($document, null, $cache);
 
         return array_values(array_filter(yield array_map(function (array $nodes) use ($document, $cache) {
             return $this->getSymbolFromNodes($nodes, $document, $cache);
@@ -160,8 +162,6 @@ class MemberSymbolExtractor implements NodePathSymbolExtractor
         Document $document,
         ?Cache $cache
     ): \Generator {
-        yield $this->typeInference->infer($document, $cache);
-
         $type = new BasicType();
         if ($node instanceof Node\Name) {
             $type = new ObjectType();

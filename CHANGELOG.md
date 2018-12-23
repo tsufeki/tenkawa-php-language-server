@@ -8,6 +8,7 @@ Changelog
 
 * Completions, go to (and other features) for union type now include members
   from all alternatives.
+* Improve performance by not inferring types of whole file when possible.
 
 ### Fixed
 

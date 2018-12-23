@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
+use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Scalar;
@@ -11,6 +12,8 @@ use PHPStan\Type\Type as PhpStanType;
 use PHPStan\Type\TypeWithClassName;
 use PHPStan\Type\UnionType as PhpStanUnionType;
 use PHPStan\Type\VerbosityLevel;
+use Tsufeki\Tenkawa\Php\Parser\Ast;
+use Tsufeki\Tenkawa\Php\Parser\Parser;
 use Tsufeki\Tenkawa\Php\TypeInference\BasicType;
 use Tsufeki\Tenkawa\Php\TypeInference\IntersectionType;
 use Tsufeki\Tenkawa\Php\TypeInference\ObjectType;
@@ -27,29 +30,43 @@ class PhpStanTypeInference implements TypeInference
      */
     private $analyser;
 
+    /**
+     * @var Parser
+     */
+    private $parser;
+
+    /**
+     * @var AstPruner
+     */
+    private $astPruner;
+
     private const IGNORED_EXPR_NODES = [
         Expr\ArrayItem::class => true,
         Expr\Error::class => true,
         Scalar\EncapsedStringPart::class => true,
     ];
 
-    public function __construct(Analyser $analyser)
+    public function __construct(Analyser $analyser, Parser $parser, AstPruner $astPruner)
     {
         $this->analyser = $analyser;
+        $this->parser = $parser;
+        $this->astPruner = $astPruner;
     }
 
-    public function infer(Document $document, ?Cache $cache = null): \Generator
+    /**
+     * @param (Node|Comment)[]|null $nodePath
+     */
+    public function infer(Document $document, ?array $nodePath = null, ?Cache $cache = null): \Generator
     {
         if ($document->getLanguage() !== 'php') {
             return;
         }
 
-        if ($cache !== null) {
-            $key = 'phpstan_type_inference.' . $document->getUri()->getNormalized();
-            if ($cache->get($key)) {
-                return;
-            }
-            $cache->set($key, true);
+        /** @var Ast $ast */
+        $ast = yield $this->parser->parse($document);
+        $nodes = $ast->nodes;
+        if ($nodePath !== null) {
+            $nodes = yield $this->astPruner->pruneToCurrentFunction($nodePath, $nodes);
         }
 
         yield $this->analyser->analyse(
@@ -60,7 +77,9 @@ class PhpStanTypeInference implements TypeInference
                     $node->setAttribute('type', $this->processType($type));
                     $node->setAttribute('phpstanType', $type);
                 }
-            }
+            },
+            $nodes,
+            $cache
         );
     }
 
