@@ -11,6 +11,7 @@ use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextEdit;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItem;
+use Tsufeki\Tenkawa\Server\Feature\Configuration\ConfigurationFeature;
 use Tsufeki\Tenkawa\Server\Index\Index;
 use Tsufeki\Tenkawa\Server\Index\IndexEntry;
 use Tsufeki\Tenkawa\Server\Index\Query;
@@ -28,10 +29,16 @@ class ImportSymbolCompleter implements SymbolCompleter
      */
     private $importer;
 
-    public function __construct(Index $index, Importer $importer)
+    /**
+     * @var ConfigurationFeature
+     */
+    private $configurationFeature;
+
+    public function __construct(Index $index, Importer $importer, ConfigurationFeature $configurationFeature)
     {
         $this->index = $index;
         $this->importer = $importer;
+        $this->configurationFeature = $configurationFeature;
     }
 
     public function getTriggerCharacters(): array
@@ -47,7 +54,8 @@ class ImportSymbolCompleter implements SymbolCompleter
         if (!($symbol instanceof GlobalSymbol) ||
             strpos($symbol->originalName, '\\') !== false ||
             $symbol->isImport ||
-            $symbol->kind === GlobalSymbol::NAMESPACE_
+            $symbol->kind === GlobalSymbol::NAMESPACE_ ||
+            (yield $this->configurationFeature->get('completion.autoImport', $symbol->document)) === false
         ) {
             return [];
         }
