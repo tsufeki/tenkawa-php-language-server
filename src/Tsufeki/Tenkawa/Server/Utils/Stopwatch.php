@@ -9,9 +9,15 @@ class Stopwatch
      */
     private $start;
 
-    public function __construct()
+    /**
+     * @var int
+     */
+    private $scale;
+
+    public function __construct(int $scale = 1)
     {
         $this->start = $this->now();
+        $this->scale = $scale;
     }
 
     public function getSeconds(): float
@@ -40,7 +46,7 @@ class Stopwatch
                 $result .= '0';
             }
         }
-        $result .= sprintf('%.1fs', $seconds);
+        $result .= sprintf("%.{$this->scale}fs", $seconds);
 
         return $result;
     }

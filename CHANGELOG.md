@@ -6,6 +6,7 @@ Changelog
 
 ### Added
 
+* PHPUnit integration.
 * Request cancellation.
 
 ### Changed

@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Server;
 
 use Tsufeki\Tenkawa\Php\PhpPlugin;
+use Tsufeki\Tenkawa\PhpUnit\PhpUnitPlugin;
 
 class PluginFinder
 {
@@ -11,6 +12,10 @@ class PluginFinder
      */
     public function findPlugins(): array
     {
-        return [new ServerPlugin(), new PhpPlugin()];
+        return [
+            new ServerPlugin(),
+            new PhpPlugin(),
+            new PhpUnitPlugin(),
+        ];
     }
 }

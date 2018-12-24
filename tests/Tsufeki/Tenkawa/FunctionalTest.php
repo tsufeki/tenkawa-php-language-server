@@ -6,6 +6,7 @@ use Psr\Log\LogLevel;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
 use Tsufeki\BlancheJsonRpc\JsonRpc;
 use Tsufeki\Tenkawa\Php\PhpPlugin;
+use Tsufeki\Tenkawa\PhpUnit\PhpUnitPlugin;
 use Tsufeki\Tenkawa\Server\Logger\LevelFilteringLogger;
 use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
 use Tsufeki\Tenkawa\Server\ServerPlugin;
@@ -39,7 +40,7 @@ class FunctionalTest extends TestCase
             $this->tenkawa = new Tenkawa(
                 $this->kernel,
                 new LevelFilteringLogger(new StreamLogger(STDERR), LogLevel::NOTICE),
-                [new ServerPlugin(), new PhpPlugin()]
+                [new ServerPlugin(), new PhpPlugin(), new PhpUnitPlugin()]
             );
 
             $transports = DummyTransportPair::create();
