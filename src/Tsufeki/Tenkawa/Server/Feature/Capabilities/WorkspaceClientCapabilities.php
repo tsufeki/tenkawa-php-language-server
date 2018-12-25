@@ -20,6 +20,13 @@ class WorkspaceClientCapabilities
     public $workspaceEdit;
 
     /**
+     * Capabilities specific to the `workspace/didChangeConfiguration` notification.
+     *
+     * @var DynamicRegistrationCapability|null
+     */
+    public $didChangeConfiguration;
+
+    /**
      * Capabilities specific to the `workspace/didChangeWatchedFiles` notification.
      *
      * @var DynamicRegistrationCapability|null
@@ -41,4 +48,13 @@ class WorkspaceClientCapabilities
      * @var bool|null
      */
     public $workspaceFolders;
+
+    /**
+     * The client supports `workspace/configuration` requests.
+     *
+     * Since 3.6.0
+     *
+     * @var bool|null
+     */
+    public $configuration;
 }

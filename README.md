@@ -86,6 +86,7 @@ Features
 * ✔ Multi-root workspace
 * ✔ Snippets
   * ✔ Class/interface/trait
+* ✔ Dynamic configuration
 
 Unimplemented (yet?):
 
@@ -98,7 +99,6 @@ Unimplemented (yet?):
   * ✘ range
   * ✘ on type
 * ✘ Rename
-* ✘ Dynamic configuration
 
 Known issues
 ------------
@@ -125,9 +125,12 @@ Command line options
 Configuration
 -------------
 
-Currently, the only way to pass configuration options to the server is through
-`initializationOptions` parameter of `initialize` protocol method. Recognized
-options:
+You can pass configuration options to the server through
+`initializationOptions` parameter of `initialize` protocol method or by
+implementing `workspace/configuration` request and sending
+`workspace/didChangeConfiguration` notifications from client.
+
+Recognized options:
 
 ```js
 {

@@ -115,7 +115,7 @@ class LanguageServer implements MethodProvider
             yield $feature->initialize($capabilities, $serverCapabilities);
         }
 
-        $this->configurationFeature->setGlobals($initializationOptions);
+        $this->configurationFeature->setDefaults($initializationOptions);
         yield $this->workspaceFeature->openInitialProjects($rootPath, $rootUri, $workspaceFolders);
 
         $result = new InitializeResult();
