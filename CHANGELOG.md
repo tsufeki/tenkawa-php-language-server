@@ -11,6 +11,7 @@ Changelog
   * Phony
   * Prophecy
   * Mockery
+  * webmozart/assert
 * Request cancellation.
 * Dynamic configuration (restart is no longer required).
 

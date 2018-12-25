@@ -7,6 +7,7 @@ use Tsufeki\Tenkawa\Phony\PhonyPlugin;
 use Tsufeki\Tenkawa\Php\PhpPlugin;
 use Tsufeki\Tenkawa\PhpUnit\PhpUnitPlugin;
 use Tsufeki\Tenkawa\Prophecy\ProphecyPlugin;
+use Tsufeki\Tenkawa\WebMozartAssert\WebMozartAssertPlugin;
 
 class PluginFinder
 {
@@ -22,6 +23,7 @@ class PluginFinder
             new PhonyPlugin(),
             new ProphecyPlugin(),
             new MockeryPlugin(),
+            new WebMozartAssertPlugin(),
         ];
     }
 }
