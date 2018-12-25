@@ -10,6 +10,7 @@ Changelog
   * PHPUnit
   * Phony
   * Prophecy
+  * Mockery
 * Request cancellation.
 * Dynamic configuration (restart is no longer required).
 

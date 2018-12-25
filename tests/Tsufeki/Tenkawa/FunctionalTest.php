@@ -5,6 +5,7 @@ namespace Tests\Tsufeki\Tenkawa;
 use Psr\Log\LogLevel;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
 use Tsufeki\BlancheJsonRpc\JsonRpc;
+use Tsufeki\Tenkawa\Mockery\MockeryPlugin;
 use Tsufeki\Tenkawa\Phony\PhonyPlugin;
 use Tsufeki\Tenkawa\Php\PhpPlugin;
 use Tsufeki\Tenkawa\PhpUnit\PhpUnitPlugin;
@@ -48,6 +49,7 @@ class FunctionalTest extends TestCase
                     new PhpUnitPlugin(),
                     new PhonyPlugin(),
                     new ProphecyPlugin(),
+                    new MockeryPlugin(),
                 ]
             );
 

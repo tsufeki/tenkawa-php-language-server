@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Server;
 
+use Tsufeki\Tenkawa\Mockery\MockeryPlugin;
 use Tsufeki\Tenkawa\Phony\PhonyPlugin;
 use Tsufeki\Tenkawa\Php\PhpPlugin;
 use Tsufeki\Tenkawa\PhpUnit\PhpUnitPlugin;
@@ -20,6 +21,7 @@ class PluginFinder
             new PhpUnitPlugin(),
             new PhonyPlugin(),
             new ProphecyPlugin(),
+            new MockeryPlugin(),
         ];
     }
 }
