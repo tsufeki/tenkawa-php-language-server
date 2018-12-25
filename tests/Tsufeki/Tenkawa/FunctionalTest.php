@@ -8,6 +8,7 @@ use Tsufeki\BlancheJsonRpc\JsonRpc;
 use Tsufeki\Tenkawa\Phony\PhonyPlugin;
 use Tsufeki\Tenkawa\Php\PhpPlugin;
 use Tsufeki\Tenkawa\PhpUnit\PhpUnitPlugin;
+use Tsufeki\Tenkawa\Prophecy\ProphecyPlugin;
 use Tsufeki\Tenkawa\Server\Logger\LevelFilteringLogger;
 use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
 use Tsufeki\Tenkawa\Server\ServerPlugin;
@@ -46,6 +47,7 @@ class FunctionalTest extends TestCase
                     new PhpPlugin(),
                     new PhpUnitPlugin(),
                     new PhonyPlugin(),
+                    new ProphecyPlugin(),
                 ]
             );
 

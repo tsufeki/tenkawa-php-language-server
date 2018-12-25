@@ -5,6 +5,7 @@ namespace Tsufeki\Tenkawa\Server;
 use Tsufeki\Tenkawa\Phony\PhonyPlugin;
 use Tsufeki\Tenkawa\Php\PhpPlugin;
 use Tsufeki\Tenkawa\PhpUnit\PhpUnitPlugin;
+use Tsufeki\Tenkawa\Prophecy\ProphecyPlugin;
 
 class PluginFinder
 {
@@ -18,6 +19,7 @@ class PluginFinder
             new PhpPlugin(),
             new PhpUnitPlugin(),
             new PhonyPlugin(),
+            new ProphecyPlugin(),
         ];
     }
 }

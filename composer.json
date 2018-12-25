@@ -16,6 +16,7 @@
         "cogpowered/finediff": "^0.3.1",
         "eloquent/phpstan-phony": "0.3.0",
         "evenement/evenement": "^3",
+        "jangregor/phpstan-prophecy": "0.2.0",
         "jetbrains/phpstorm-stubs": "dev-master",
         "league/html-to-markdown": "^4",
         "nikic/php-parser": "^4",

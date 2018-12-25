@@ -9,6 +9,7 @@ Changelog
 * Integrations for:
   * PHPUnit
   * Phony
+  * Prophecy
 * Request cancellation.
 * Dynamic configuration (restart is no longer required).
 
