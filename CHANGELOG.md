@@ -6,7 +6,8 @@ Changelog
 
 ### Added
 
-* Integrations for:
+* Type information extensions for:
+  * Doctrine
   * PHPUnit
   * Phony
   * Prophecy

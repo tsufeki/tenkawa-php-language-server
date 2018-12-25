@@ -5,6 +5,8 @@ namespace Tests\Tsufeki\Tenkawa;
 use Psr\Log\LogLevel;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
 use Tsufeki\BlancheJsonRpc\JsonRpc;
+use Tsufeki\Tenkawa\BeberleiAssert\BeberleiAssertPlugin;
+use Tsufeki\Tenkawa\Doctrine\DoctrinePlugin;
 use Tsufeki\Tenkawa\Mockery\MockeryPlugin;
 use Tsufeki\Tenkawa\Phony\PhonyPlugin;
 use Tsufeki\Tenkawa\Php\PhpPlugin;
@@ -15,7 +17,6 @@ use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
 use Tsufeki\Tenkawa\Server\ServerPlugin;
 use Tsufeki\Tenkawa\Server\Tenkawa;
 use Tsufeki\Tenkawa\WebMozartAssert\WebMozartAssertPlugin;
-use Tsufeki\Tenkawa\BeberleiAssert\BeberleiAssertPlugin;
 
 /**
  * @coversNothing
@@ -48,6 +49,7 @@ class FunctionalTest extends TestCase
                 [
                     new ServerPlugin(),
                     new PhpPlugin(),
+                    new DoctrinePlugin(),
                     new PhpUnitPlugin(),
                     new PhonyPlugin(),
                     new ProphecyPlugin(),

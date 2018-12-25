@@ -1,19 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Tsufeki\Tenkawa\BeberleiAssert;
 
-use Tsufeki\Tenkawa\Server\Plugin;
-use Tsufeki\HmContainer\Container;
-use PHPStan\Type\BeberleiAssert\AssertTypeSpecifyingExtension;
-use PHPStan\Type\BeberleiAssert\AssertThatFunctionDynamicReturnTypeExtension;
-use PHPStan\Type\BeberleiAssert\AssertThatDynamicMethodReturnTypeExtension;
-use PHPStan\Type\BeberleiAssert\AssertionChainTypeSpecifyingExtension;
 use PHPStan\Type\BeberleiAssert\AssertionChainDynamicReturnTypeExtension;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\MethodTypeSpecifyingExtension;
-use PHPStan\Type\DynamicStaticMethodReturnTypeExtension;
+use PHPStan\Type\BeberleiAssert\AssertionChainTypeSpecifyingExtension;
+use PHPStan\Type\BeberleiAssert\AssertThatDynamicMethodReturnTypeExtension;
+use PHPStan\Type\BeberleiAssert\AssertThatFunctionDynamicReturnTypeExtension;
+use PHPStan\Type\BeberleiAssert\AssertTypeSpecifyingExtension;
 use PHPStan\Type\DynamicFunctionReturnTypeExtension;
+use PHPStan\Type\DynamicMethodReturnTypeExtension;
+use PHPStan\Type\DynamicStaticMethodReturnTypeExtension;
+use PHPStan\Type\MethodTypeSpecifyingExtension;
 use PHPStan\Type\StaticMethodTypeSpecifyingExtension;
+use Tsufeki\HmContainer\Container;
+use Tsufeki\Tenkawa\Server\Plugin;
 
 class BeberleiAssertPlugin extends Plugin
 {
