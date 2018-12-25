@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "920f7ba3f0b9e3c2a7b99acdafe5362f",
+    "content-hash": "bacf99514af2ba3157bdfc712708f891",
     "packages": [
         {
             "name": "cogpowered/finediff",
@@ -100,6 +100,70 @@
                 "performance"
             ],
             "time": "2018-11-29T10:59:02+00:00"
+        },
+        {
+            "name": "eloquent/phpstan-phony",
+            "version": "0.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/eloquent/phpstan-phony.git",
+                "reference": "720b848869a464bb49827302ae84a1e7b1e8dd93"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/eloquent/phpstan-phony/zipball/720b848869a464bb49827302ae84a1e7b1e8dd93",
+                "reference": "720b848869a464bb49827302ae84a1e7b1e8dd93",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1",
+                "phpstan/phpstan": "^0.10"
+            },
+            "require-dev": {
+                "eloquent/phony": "^3",
+                "eloquent/phony-kahlan": "^2",
+                "eloquent/phony-phpunit": "^4",
+                "friendsofphp/php-cs-fixer": "^2.12",
+                "kahlan/kahlan": "^4.1"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Eloquent\\Phpstan\\Phony\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Erin Millard",
+                    "email": "ezzatron@gmail.com",
+                    "homepage": "http://ezzatron.com/"
+                }
+            ],
+            "description": "PHPStan configuration for Phony.",
+            "homepage": "http://eloquent-software.com/phony/",
+            "keywords": [
+                "Double",
+                "Dummy",
+                "analysis",
+                "fake",
+                "mock",
+                "mocking",
+                "spy",
+                "static",
+                "stub",
+                "stubbing",
+                "test"
+            ],
+            "time": "2018-07-11T05:37:23+00:00"
         },
         {
             "name": "evenement/evenement",

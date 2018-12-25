@@ -5,6 +5,7 @@ namespace Tests\Tsufeki\Tenkawa;
 use Psr\Log\LogLevel;
 use Tsufeki\BlancheJsonRpc\Dispatcher\SimpleMethodRegistry;
 use Tsufeki\BlancheJsonRpc\JsonRpc;
+use Tsufeki\Tenkawa\Phony\PhonyPlugin;
 use Tsufeki\Tenkawa\Php\PhpPlugin;
 use Tsufeki\Tenkawa\PhpUnit\PhpUnitPlugin;
 use Tsufeki\Tenkawa\Server\Logger\LevelFilteringLogger;
@@ -40,7 +41,12 @@ class FunctionalTest extends TestCase
             $this->tenkawa = new Tenkawa(
                 $this->kernel,
                 new LevelFilteringLogger(new StreamLogger(STDERR), LogLevel::NOTICE),
-                [new ServerPlugin(), new PhpPlugin(), new PhpUnitPlugin()]
+                [
+                    new ServerPlugin(),
+                    new PhpPlugin(),
+                    new PhpUnitPlugin(),
+                    new PhonyPlugin(),
+                ]
             );
 
             $transports = DummyTransportPair::create();

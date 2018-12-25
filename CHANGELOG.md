@@ -6,8 +6,11 @@ Changelog
 
 ### Added
 
-* PHPUnit integration.
+* Integrations for:
+  * PHPUnit
+  * Phony
 * Request cancellation.
+* Dynamic configuration (restart is no longer required).
 
 ### Changed
 
