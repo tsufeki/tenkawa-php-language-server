@@ -8,6 +8,7 @@ use Tsufeki\Tenkawa\Php\PhpPlugin;
 use Tsufeki\Tenkawa\PhpUnit\PhpUnitPlugin;
 use Tsufeki\Tenkawa\Prophecy\ProphecyPlugin;
 use Tsufeki\Tenkawa\WebMozartAssert\WebMozartAssertPlugin;
+use Tsufeki\Tenkawa\BeberleiAssert\BeberleiAssertPlugin;
 
 class PluginFinder
 {
@@ -24,6 +25,7 @@ class PluginFinder
             new ProphecyPlugin(),
             new MockeryPlugin(),
             new WebMozartAssertPlugin(),
+            new BeberleiAssertPlugin(),
         ];
     }
 }

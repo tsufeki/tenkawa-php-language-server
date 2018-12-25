@@ -15,6 +15,7 @@ use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
 use Tsufeki\Tenkawa\Server\ServerPlugin;
 use Tsufeki\Tenkawa\Server\Tenkawa;
 use Tsufeki\Tenkawa\WebMozartAssert\WebMozartAssertPlugin;
+use Tsufeki\Tenkawa\BeberleiAssert\BeberleiAssertPlugin;
 
 /**
  * @coversNothing
@@ -52,6 +53,7 @@ class FunctionalTest extends TestCase
                     new ProphecyPlugin(),
                     new MockeryPlugin(),
                     new WebMozartAssertPlugin(),
+                    new BeberleiAssertPlugin(),
                 ]
             );
 

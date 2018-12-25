@@ -12,6 +12,7 @@ Changelog
   * Prophecy
   * Mockery
   * webmozart/assert
+  * beberlei/assert
 * Request cancellation.
 * Dynamic configuration (restart is no longer required).
 
