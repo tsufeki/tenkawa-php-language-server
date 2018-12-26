@@ -28,6 +28,7 @@
         "phpstan/phpstan-doctrine": "0.10",
         "phpstan/phpstan-mockery": "0.10.2",
         "phpstan/phpstan-phpunit": "0.10",
+        "phpstan/phpstan-symfony": "0.10.2",
         "phpstan/phpstan-webmozart-assert": "0.10",
         "psr/log": "^1",
         "react/event-loop": "^1",

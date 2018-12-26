@@ -22,7 +22,7 @@ use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\InfiniteRecursionMarker;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
 
-class PhpDocResolver extends FileTypeMapper
+class PhpDocResolver extends FileTypeMapper implements AnalysedDocumentAware, AnalysedCacheAware
 {
     /**
      * @var Parser
@@ -66,12 +66,12 @@ class PhpDocResolver extends FileTypeMapper
         $this->syncAsync = $syncAsync;
     }
 
-    public function setDocument(?Document $document)
+    public function setDocument(?Document $document): void
     {
         $this->document = $document;
     }
 
-    public function setCache(?Cache $cache)
+    public function setCache(?Cache $cache): void
     {
         $this->cache = $cache;
     }

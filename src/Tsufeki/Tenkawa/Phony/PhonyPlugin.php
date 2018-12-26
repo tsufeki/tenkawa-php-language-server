@@ -24,10 +24,10 @@ class PhonyPlugin extends Plugin
         $container->setClass(PropertiesClassReflectionExtension::class, HandleProperties::class, true);
 
         foreach ([
-            'Eloquent\Phony',
-            'Eloquent\Phony\Kahlan',
-            'Eloquent\Phony\Phpunit',
-            'Eloquent\Phony\Pho',
+            'Eloquent\\Phony',
+            'Eloquent\\Phony\\Kahlan',
+            'Eloquent\\Phony\\Phpunit',
+            'Eloquent\\Phony\\Pho',
         ] as $namespace) {
             $container->setClass(MockBuilderReturnType::class, null, false, [new Value($namespace)]);
             $container->setAlias(DynamicFunctionReturnTypeExtension::class, MockBuilderReturnType::class, true);

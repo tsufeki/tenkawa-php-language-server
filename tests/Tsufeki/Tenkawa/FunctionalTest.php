@@ -16,6 +16,7 @@ use Tsufeki\Tenkawa\Server\Logger\LevelFilteringLogger;
 use Tsufeki\Tenkawa\Server\Logger\StreamLogger;
 use Tsufeki\Tenkawa\Server\ServerPlugin;
 use Tsufeki\Tenkawa\Server\Tenkawa;
+use Tsufeki\Tenkawa\Symfony\SymfonyPlugin;
 use Tsufeki\Tenkawa\WebMozartAssert\WebMozartAssertPlugin;
 
 /**
@@ -49,6 +50,7 @@ class FunctionalTest extends TestCase
                 [
                     new ServerPlugin(),
                     new PhpPlugin(),
+                    new SymfonyPlugin(),
                     new DoctrinePlugin(),
                     new PhpUnitPlugin(),
                     new PhonyPlugin(),

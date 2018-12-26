@@ -32,7 +32,7 @@ use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
 
-class IndexBroker extends Broker
+class IndexBroker extends Broker implements AnalysedDocumentAware, AnalysedCacheAware
 {
     /**
      * @var PropertiesClassReflectionExtension[]
@@ -155,12 +155,12 @@ class IndexBroker extends Broker
         self::registerInstance($this);
     }
 
-    public function setDocument(?Document $document)
+    public function setDocument(?Document $document): void
     {
         $this->document = $document;
     }
 
-    public function setCache(?Cache $cache)
+    public function setCache(?Cache $cache): void
     {
         $this->cache = $cache;
     }

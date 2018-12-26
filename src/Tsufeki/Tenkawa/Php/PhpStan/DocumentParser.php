@@ -10,7 +10,7 @@ use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
 
-class DocumentParser implements Parser
+class DocumentParser implements Parser, AnalysedDocumentAware
 {
     /**
      * @var TenkawaParser
@@ -33,7 +33,7 @@ class DocumentParser implements Parser
         $this->syncAsync = $syncAsync;
     }
 
-    public function setDocument(?Document $document)
+    public function setDocument(?Document $document): void
     {
         $this->document = $document;
     }

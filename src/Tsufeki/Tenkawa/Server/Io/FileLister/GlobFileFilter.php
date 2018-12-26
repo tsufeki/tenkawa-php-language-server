@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Server\Io\FileLister;
 
+use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 use Webmozart\Glob\Glob;
 use Webmozart\PathUtil\Path;
 
@@ -45,6 +46,11 @@ class GlobFileFilter implements FileFilter
 
     public function enterDirectory(string $uri, string $baseUri): int
     {
-        return self::ACCEPT;
+        $dir = Glob::getBasePath(Path::join($baseUri, $this->glob));
+        if ($dir === $uri || StringUtils::startsWith($uri, $dir . '/') || StringUtils::startsWith($dir, $uri . '/')) {
+            return self::ACCEPT;
+        }
+
+        return self::ABSTAIN;
     }
 }

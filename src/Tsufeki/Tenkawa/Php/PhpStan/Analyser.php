@@ -9,6 +9,7 @@ use PHPStan\Analyser\ScopeContext;
 use PHPStan\Analyser\ScopeFactory;
 use Psr\Log\LoggerInterface;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Exception\UriException;
 use Tsufeki\Tenkawa\Server\Utils\Cache;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsync;
@@ -46,10 +47,35 @@ class Analyser
     private $syncAsync;
 
     /**
+     * @var DocumentStore
+     */
+    private $documentStore;
+
+    /**
      * @var LoggerInterface
      */
     private $logger;
 
+    /**
+     * @var AnalysedDocumentAware[]
+     */
+    private $documentAware;
+
+    /**
+     * @var AnalysedProjectAware[]
+     */
+    private $projectAware;
+
+    /**
+     * @var AnalysedCacheAware[]
+     */
+    private $cacheAware;
+
+    /**
+     * @param AnalysedDocumentAware[] $documentAware
+     * @param AnalysedProjectAware[]  $projectAware
+     * @param AnalysedCacheAware[]    $cacheAware
+     */
     public function __construct(
         NodeScopeResolver $nodeScopeResolver,
         DocumentParser $parser,
@@ -57,7 +83,11 @@ class Analyser
         IndexBroker $broker,
         PhpDocResolver $phpDocResolver,
         SyncAsync $syncAsync,
-        LoggerInterface $logger
+        DocumentStore $documentStore,
+        LoggerInterface $logger,
+        array $documentAware,
+        array $projectAware,
+        array $cacheAware
     ) {
         $this->nodeScopeResolver = $nodeScopeResolver;
         $this->parser = $parser;
@@ -65,7 +95,11 @@ class Analyser
         $this->broker = $broker;
         $this->phpDocResolver = $phpDocResolver;
         $this->syncAsync = $syncAsync;
+        $this->documentStore = $documentStore;
         $this->logger = $logger;
+        $this->documentAware = $documentAware;
+        $this->projectAware = $projectAware;
+        $this->cacheAware = $cacheAware;
     }
 
     /**
@@ -89,6 +123,7 @@ class Analyser
         }
 
         $cache = $cache ?? new Cache();
+        $project = yield $this->documentStore->getProjectForDocument($document);
 
         $this->syncAsync->callSync(
             function () use ($path, $nodeCallback, $nodes) {
@@ -111,20 +146,28 @@ class Analyser
                 }
             },
             [],
-            function () use ($document, $cache, $path) {
-                $this->broker->setDocument($document);
-                $this->broker->setCache($cache);
-                $this->parser->setDocument($document);
-                $this->phpDocResolver->setDocument($document);
-                $this->phpDocResolver->setCache($cache);
+            function () use ($document, $project, $cache, $path) {
+                foreach ($this->documentAware as $aware) {
+                    $aware->setDocument($document);
+                }
+                foreach ($this->projectAware as $aware) {
+                    $aware->setProject($project);
+                }
+                foreach ($this->cacheAware as $aware) {
+                    $aware->setCache($cache);
+                }
                 $this->nodeScopeResolver->setAnalysedFiles([$path]);
             },
             function () {
-                $this->broker->setDocument(null);
-                $this->broker->setCache(null);
-                $this->parser->setDocument(null);
-                $this->phpDocResolver->setDocument(null);
-                $this->phpDocResolver->setCache(null);
+                foreach ($this->documentAware as $aware) {
+                    $aware->setDocument(null);
+                }
+                foreach ($this->projectAware as $aware) {
+                    $aware->setProject(null);
+                }
+                foreach ($this->cacheAware as $aware) {
+                    $aware->setCache(null);
+                }
                 $this->nodeScopeResolver->setAnalysedFiles([]);
             }
         );

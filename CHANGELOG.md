@@ -7,6 +7,7 @@ Changelog
 ### Added
 
 * Type information extensions for:
+  * Symfony
   * Doctrine
   * PHPUnit
   * Phony
