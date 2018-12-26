@@ -14,7 +14,6 @@ use PHPStan\Type\PHPUnit\Assert\AssertMethodTypeSpecifyingExtension;
 use PHPStan\Type\PHPUnit\Assert\AssertStaticMethodTypeSpecifyingExtension;
 use PHPStan\Type\PHPUnit\CreateMockDynamicReturnTypeExtension;
 use PHPStan\Type\PHPUnit\GetMockBuilderDynamicReturnTypeExtension;
-use PHPStan\Type\PHPUnit\MockBuilderDynamicReturnTypeExtension;
 use PHPStan\Type\StaticMethodTypeSpecifyingExtension;
 use Tsufeki\HmContainer\Container;
 use Tsufeki\Tenkawa\Server\Plugin;
