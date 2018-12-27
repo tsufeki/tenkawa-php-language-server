@@ -40,7 +40,7 @@ class ReflectionIndexDataProvider implements IndexDataProvider
     /**
      * @resolve IndexEntry[]
      */
-    public function getEntries(Document $document, ?string $origin): \Generator
+    public function getEntries(Document $document): \Generator
     {
         if ($document->getLanguage() !== 'php') {
             return [];
@@ -56,9 +56,9 @@ class ReflectionIndexDataProvider implements IndexDataProvider
         $classes = $visitor->getClasses();
 
         $entries = array_merge(
-            $this->makeEntries($classes, self::CATEGORY_CLASS, $document, $origin),
-            $this->makeEntries($visitor->getFunctions(), self::CATEGORY_FUNCTION, $document, $origin),
-            $this->makeEntries($visitor->getConsts(), self::CATEGORY_CONST, $document, $origin),
+            $this->makeEntries($classes, self::CATEGORY_CLASS, $document),
+            $this->makeEntries($visitor->getFunctions(), self::CATEGORY_FUNCTION, $document),
+            $this->makeEntries($visitor->getConsts(), self::CATEGORY_CONST, $document),
             $this->makeInheritEntries($classes, $document)
         );
 
@@ -74,11 +74,9 @@ class ReflectionIndexDataProvider implements IndexDataProvider
         array $elements,
         string $category,
         Document $document,
-        ?string $origin,
         bool $caseSensitive = true
     ): array {
-        return array_map(function (Element\Element $elem) use ($category, $document, $caseSensitive, $origin) {
-            $elem->origin = $origin;
+        return array_map(function (Element\Element $elem) use ($category, $document, $caseSensitive) {
             $entry = new IndexEntry();
             $entry->sourceUri = $document->getUri();
             $entry->category = $category;

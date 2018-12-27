@@ -25,4 +25,9 @@ class IndexEntry
      * @var mixed
      */
     public $data;
+
+    /**
+     * @var string|null
+     */
+    public $tag;
 }

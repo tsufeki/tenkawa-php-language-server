@@ -36,4 +36,9 @@ class Query
      * @var bool
      */
     public $includeData = true;
+
+    /**
+     * @var (string|null)[]|null
+     */
+    public $tag = null;
 }

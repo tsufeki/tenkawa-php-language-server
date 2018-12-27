@@ -16,7 +16,7 @@ use Webmozart\PathUtil\Path;
 class SqliteStorage implements WritableIndexStorage
 {
     const MEMORY = ':memory:';
-    private const SCHEMA_VERSION = 4;
+    private const SCHEMA_VERSION = 5;
 
     /**
      * @var string
@@ -115,6 +115,7 @@ class SqliteStorage implements WritableIndexStorage
             key text not null,
             data text not null,
             data_class text not null,
+            tag varchar(255) null,
             timestamp integer default null
         )')->execute();
 
@@ -126,6 +127,9 @@ class SqliteStorage implements WritableIndexStorage
 
         $this->getPdo()->prepare('create index if not exists tenkawa_index_key
             on tenkawa_index (key)')->execute();
+
+        $this->getPdo()->prepare('create index if not exists tenkawa_index_tag
+            on tenkawa_index (tag)')->execute();
     }
 
     public function search(Query $query): \Generator
@@ -158,7 +162,27 @@ class SqliteStorage implements WritableIndexStorage
             $params['uri'] = $this->uriMapper->stripPrefixNormalized($query->uri->getNormalized());
         }
 
-        $fields = ['source_uri', 'category', 'key'];
+        if ($query->tag !== null) {
+            $inList = [];
+            $orNull = false;
+
+            foreach ($query->tag as $i => $tag) {
+                if ($tag === null) {
+                    $orNull = true;
+                } else {
+                    $inList[] = ":tag$i";
+                    $params["tag$i"] = $tag;
+                }
+            }
+
+            $condition = 'tag in (' . implode(', ', $inList) . ')';
+            if ($orNull) {
+                $condition = "(tag is null or $condition)";
+            }
+            $conditions[] = $condition;
+        }
+
+        $fields = ['source_uri', 'category', 'key', 'tag'];
         if ($query->includeData) {
             $fields[] = 'data';
             $fields[] = 'data_class';
@@ -178,6 +202,7 @@ class SqliteStorage implements WritableIndexStorage
             $entry->sourceUri = Uri::fromString($this->uriMapper->restorePrefix($row['source_uri']));
             $entry->category = $row['category'];
             $entry->key = $row['key'];
+            $entry->tag = $row['tag'];
             if ($query->includeData) {
                 $entry->data = $this->mapper->load(
                     Json::decode($row['data']),
@@ -215,8 +240,8 @@ class SqliteStorage implements WritableIndexStorage
 
             $stmt = $this->getPdo()->prepare('
                 insert
-                    into tenkawa_index (source_uri, category, key, data, data_class, timestamp)
-                    values (:sourceUri, :category, :key, :data, :dataClass, :timestamp)
+                    into tenkawa_index (source_uri, category, key, data, data_class, tag, timestamp)
+                    values (:sourceUri, :category, :key, :data, :dataClass, :tag, :timestamp)
             ');
 
             foreach ($entries as $entry) {
@@ -226,6 +251,7 @@ class SqliteStorage implements WritableIndexStorage
                     'key' => $entry->key,
                     'data' => Json::encode($this->mapper->dump($entry->data)),
                     'dataClass' => is_object($entry->data) ? get_class($entry->data) : 'mixed',
+                    'tag' => $entry->tag,
                     'timestamp' => $timestamp,
                 ]);
             }

@@ -34,8 +34,17 @@ class ImportSymbolCompleter implements SymbolCompleter
      */
     private $configurationFeature;
 
-    public function __construct(Index $index, Importer $importer, ConfigurationFeature $configurationFeature)
+    /**
+     * @var string[]
+     */
+    private $defaultExtensions;
+
+    /**
+     * @param string[] $defaultExtensions
+     */
+    public function __construct(array $defaultExtensions, Index $index, Importer $importer, ConfigurationFeature $configurationFeature)
     {
+        $this->defaultExtensions = $defaultExtensions;
         $this->index = $index;
         $this->importer = $importer;
         $this->configurationFeature = $configurationFeature;
@@ -89,6 +98,7 @@ class ImportSymbolCompleter implements SymbolCompleter
         $query->key = '';
         $query->match = Query::PREFIX;
         $query->includeData = false;
+        $query->tag = yield $this->getTags($document);
 
         /** @var IndexEntry[] $entries */
         $entries = yield $this->index->search($document, $query);
@@ -102,6 +112,16 @@ class ImportSymbolCompleter implements SymbolCompleter
         }
 
         return $names;
+    }
+
+    private function getTags(Document $document): \Generator
+    {
+        $extensions = (yield $this->configurationFeature->get('completion.extensions', $document)) ?? [];
+        $extensions = array_values(array_unique(array_merge($this->defaultExtensions, $extensions)));
+        $extensions = array_map(function (string $ext) { return strtolower("ext:$ext"); }, $extensions);
+        $extensions[] = null;
+
+        return $extensions;
     }
 
     /**

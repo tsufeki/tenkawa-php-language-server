@@ -246,10 +246,81 @@ class PhpPlugin extends Plugin
 
         $container->setClass(CommandProvider::class, WorkspaceEditCommandProvider::class, true);
 
+        $container->setValue('completion.defaultExtensions', [
+            'apache',
+            'apc',
+            'apcu',
+            'bcmath',
+            'calendar',
+            'core',
+            'csprng',
+            'ctype',
+            'curl',
+            'date',
+            'dom',
+            'fileinfo',
+            'filter',
+            'fpm',
+            'gd',
+            'hash',
+            'iconv',
+            'imap',
+            'intl',
+            'json',
+            'ldap',
+            'libxml',
+            'mbstring',
+            'mcrypt',
+            'memcache',
+            'memcached',
+            'mongo',
+            'mongodb',
+            'mssql',
+            'mysql',
+            'mysqli',
+            'oci8',
+            'odbc',
+            'openssl',
+            'password',
+            'pcntl',
+            'pcre',
+            'pdo',
+            'pdo_mysql',
+            'pdo_pgsql',
+            'pdo_sqlite',
+            'pgsql',
+            'phar',
+            'posix',
+            'readline',
+            'redis',
+            'reflection',
+            'session',
+            'shmop',
+            'simplexml',
+            'snmp',
+            'soap',
+            'sockets',
+            'sodium',
+            'solr',
+            'spl',
+            'spltype',
+            'sqlite3',
+            'standard',
+            'tokenizer',
+            'xdebug',
+            'xml',
+            'xmlreader',
+            'xmlwriter',
+            'xsl',
+            'opcache',
+            'zip',
+            'zlib',
+        ]);
+
         $container->setClass(CompletionProvider::class, VariableCompletionProvider::class, true);
         $container->setClass(CompletionProvider::class, SymbolCompletionProvider::class, true);
-        $container->setClass(SymbolCompleter::class, GlobalSymbolCompleter::class, true);
-        $container->setClass(SymbolCompleter::class, ImportSymbolCompleter::class, true);
+        $container->setClass(SymbolCompleter::class, GlobalSymbolCompleter::class, true, ['completion.defaultExtensions']);
+        $container->setClass(SymbolCompleter::class, ImportSymbolCompleter::class, true, ['completion.defaultExtensions']);
         $container->setClass(SymbolCompleter::class, MemberSymbolCompleter::class, true);
 
         $container->setClass(CompletionProvider::class, WholeFileSnippetCompletionProvider::class, true, ['wholeFileSnippets']);

@@ -2,12 +2,15 @@
 
 namespace Tsufeki\Tenkawa\Php\Index;
 
+use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Server\Document\Project;
 use Tsufeki\Tenkawa\Server\Index\GlobalIndexer;
+use Tsufeki\Tenkawa\Server\Index\IndexEntry;
 use Tsufeki\Tenkawa\Server\Index\Indexer;
 use Tsufeki\Tenkawa\Server\Index\Storage\SqliteStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\WritableIndexStorage;
 use Tsufeki\Tenkawa\Server\Uri;
+use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 use Webmozart\PathUtil\Path;
 
 class StubsIndexer implements GlobalIndexer
@@ -59,7 +62,24 @@ class StubsIndexer implements GlobalIndexer
     {
         if ($this->stubsUri !== null) {
             $project = new Project($this->stubsUri);
-            yield $indexer->indexProject($project, yield $this->getIndex(), null, self::ORIGIN);
+            yield $indexer->indexProject($project, yield $this->getIndex(), null, function (IndexEntry $entry): void {
+                $this->transformEntry($entry);
+            });
+        }
+    }
+
+    private function transformEntry(IndexEntry $entry): void
+    {
+        if ($entry->data instanceof Element) {
+            $entry->data->origin = self::ORIGIN;
+        }
+
+        if (StringUtils::match('~/phpstorm-stubs/([^/]+)/~', $entry->sourceUri->getNormalized(), $match)) {
+            $tag = strtolower($match[1] ?? '');
+            if ($tag === 'zend%20opcache') {
+                $tag = 'opcache';
+            }
+            $entry->tag = "ext:$tag";
         }
     }
 }

@@ -14,6 +14,7 @@ use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItem;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItemKind;
+use Tsufeki\Tenkawa\Server\Feature\Configuration\ConfigurationFeature;
 use Tsufeki\Tenkawa\Server\Index\Index;
 use Tsufeki\Tenkawa\Server\Index\IndexEntry;
 use Tsufeki\Tenkawa\Server\Index\Query;
@@ -46,9 +47,24 @@ class GlobalSymbolCompleter implements SymbolCompleter
         GlobalSymbol::CONST_,
     ];
 
-    public function __construct(Index $index)
+    /**
+     * @var ConfigurationFeature
+     */
+    private $configurationFeature;
+
+    /**
+     * @var string[]
+     */
+    private $defaultExtensions;
+
+    /**
+     * @param string[] $defaultExtensions
+     */
+    public function __construct(array $defaultExtensions, Index $index, ConfigurationFeature $configurationFeature)
     {
+        $this->defaultExtensions = $defaultExtensions;
         $this->index = $index;
+        $this->configurationFeature = $configurationFeature;
     }
 
     public function getTriggerCharacters(): array
@@ -165,6 +181,7 @@ class GlobalSymbolCompleter implements SymbolCompleter
         $query->key = $namespace;
         $query->match = Query::PREFIX;
         $query->includeData = false;
+        $query->tag = yield $this->getTags($document);
 
         $withNamespaces = in_array(GlobalSymbol::NAMESPACE_, $kinds, true);
         $withElements = true;
@@ -202,6 +219,16 @@ class GlobalSymbolCompleter implements SymbolCompleter
                 }
             }
         }
+    }
+
+    private function getTags(Document $document): \Generator
+    {
+        $extensions = (yield $this->configurationFeature->get('completion.extensions', $document)) ?? [];
+        $extensions = array_values(array_unique(array_merge($this->defaultExtensions, $extensions)));
+        $extensions = array_map(function (string $ext) { return strtolower("ext:$ext"); }, $extensions);
+        $extensions[] = null;
+
+        return $extensions;
     }
 
     private function getAliases(NameContext $nameContext, array $kinds): \Generator

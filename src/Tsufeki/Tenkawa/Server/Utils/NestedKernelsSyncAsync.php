@@ -2,17 +2,17 @@
 
 namespace Tsufeki\Tenkawa\Server\Utils;
 
-use Recoil\Kernel;
+use Recoil\React\ReactKernel;
 
 class NestedKernelsSyncAsync implements SyncAsync
 {
     /**
-     * @var callable () -> Kernel
+     * @var callable (): ReactKernel
      */
     private $kernelFactory;
 
     /**
-     * @var Kernel|null Cached nested kernel.
+     * @var ReactKernel|null Cached nested kernel.
      */
     private $cachedKernel;
 

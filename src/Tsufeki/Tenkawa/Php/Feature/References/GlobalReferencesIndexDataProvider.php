@@ -38,7 +38,7 @@ class GlobalReferencesIndexDataProvider implements IndexDataProvider
     /**
      * @resolve IndexEntry[]
      */
-    public function getEntries(Document $document, ?string $origin): \Generator
+    public function getEntries(Document $document): \Generator
     {
         if ($document->getLanguage() !== 'php') {
             return [];

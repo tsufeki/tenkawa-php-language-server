@@ -64,6 +64,10 @@ class OpenDocumentsStorage implements WritableIndexStorage
                     }
                 }
 
+                if ($query->tag !== null && !in_array($entry->tag, $query->tag, true)) {
+                    continue;
+                }
+
                 $result[] = $entry;
             }
         }

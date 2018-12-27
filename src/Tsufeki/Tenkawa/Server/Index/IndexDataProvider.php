@@ -9,7 +9,7 @@ interface IndexDataProvider
     /**
      * @resolve IndexEntry[]
      */
-    public function getEntries(Document $document, ?string $origin): \Generator;
+    public function getEntries(Document $document): \Generator;
 
     public function getVersion(): int;
 }

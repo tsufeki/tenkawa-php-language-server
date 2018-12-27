@@ -137,11 +137,14 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         $this->indexDataVersion = implode(';', $versions);
     }
 
+    /**
+     * @param null|callable(IndexEntry $entry): void $transform
+     */
     private function indexDocument(
         Document $document,
         WritableIndexStorage $indexStorage,
         ?int $timestamp,
-        ?string $origin
+        ?callable $transform = null
     ): \Generator {
         $entries = [];
 
@@ -152,7 +155,13 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         $entries[] = $fileEntry;
 
         foreach ($this->indexDataProviders as $provider) {
-            $entries = array_merge($entries, yield $provider->getEntries($document, $origin));
+            $entries = array_merge($entries, yield $provider->getEntries($document));
+        }
+
+        if ($transform !== null) {
+            foreach ($entries as $entry) {
+                $transform($entry);
+            }
         }
 
         yield $indexStorage->replaceFile($document->getUri(), $entries, $timestamp);
@@ -163,16 +172,19 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         yield $indexStorage->replaceFile($uri, [], null);
     }
 
+    /**
+     * @param null|callable(IndexEntry $entry): void $transform
+     */
     public function indexProject(
         Project $project,
         WritableIndexStorage $indexStorage,
         ?Uri $subpath,
-        ?string $origin
+        ?callable $transform = null
     ): \Generator {
         $rootUri = $project->getRootUri();
         $subpath = $subpath ?? $rootUri;
         if ($rootUri->getScheme() !== 'file'
-            || empty($this->indexDataProviders)
+            || $this->indexDataProviders === []
             || (!$rootUri->equals($subpath) && !$rootUri->isParentOf($subpath))) {
             return;
         }
@@ -213,7 +225,7 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
                 $document = yield $this->documentStore->load($uri, $language, $text);
                 $processedFilesCount++;
 
-                yield $this->indexDocument($document, $indexStorage, $timestamp, $origin);
+                yield $this->indexDocument($document, $indexStorage, $timestamp, $transform);
             } catch (\Throwable $e) {
                 $this->logger->warning("Can't index $uriString", ['exception' => $e]);
             }
@@ -337,7 +349,7 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
                 $indexStorage = $project->get('index.project_files');
                 yield Recoil::execute(function () use ($project, $indexStorage, $uri) {
                     yield Priority::background();
-                    yield $this->indexProject($project, $indexStorage, $uri, null);
+                    yield $this->indexProject($project, $indexStorage, $uri);
                 });
             }
         }
