@@ -22,6 +22,8 @@ Changelog
 
 * Completions, go to (and other features) for union type now include members
   from all alternatives.
+* Only use most common PHP extensions for autocompletion. Add configuration
+  option to enable more.
 * Improve performance by not inferring types of whole file when possible.
 
 ### Fixed

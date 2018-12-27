@@ -409,12 +409,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "9bf10f78b2a43a492d55d1286b263a9039bbc768"
+                "reference": "c7b3106bc950044aa68a4d052e0d23adb3735b43"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/9bf10f78b2a43a492d55d1286b263a9039bbc768",
-                "reference": "9bf10f78b2a43a492d55d1286b263a9039bbc768",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/c7b3106bc950044aa68a4d052e0d23adb3735b43",
+                "reference": "c7b3106bc950044aa68a4d052e0d23adb3735b43",
                 "shasum": ""
             },
             "require-dev": {
@@ -440,7 +440,7 @@
                 "stubs",
                 "type"
             ],
-            "time": "2018-12-24T14:35:19+00:00"
+            "time": "2018-12-27T15:14:38+00:00"
         },
         {
             "name": "league/html-to-markdown",

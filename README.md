@@ -143,7 +143,10 @@ Recognized options:
     },
     "completion": {
       // Enable automatic import (use) of completed classes.
-      "autoImport": true
+      "autoImport": true,
+      // By default, only some PHP extensions are used for autocompletion.
+      // Additional ones can be enabled here.
+      "extensions": ["mysqli", "redis"]
     }
   }
 }
