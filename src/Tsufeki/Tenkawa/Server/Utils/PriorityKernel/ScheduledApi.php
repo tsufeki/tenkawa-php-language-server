@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Server\Utils\PriorityKernel;
 
 use Recoil\Kernel\Api;
+use Recoil\Kernel\Exception\RejectedException;
 use Recoil\Kernel\SystemStrand;
 
 class ScheduledApi implements Api
@@ -23,6 +24,59 @@ class ScheduledApi implements Api
         $this->scheduler = $scheduler;
     }
 
+    public function __dispatch(SystemStrand $strand, $key, $value)
+    {
+        if (null === $value) {
+            return $this->cooperate($strand);
+        }
+
+        if (\is_int($value) || \is_float($value)) {
+            return $this->sleep($strand, $value);
+        }
+
+        if (\is_array($value)) {
+            return $this->all($strand, ...$value);
+        }
+
+        if (\is_resource($value)) {
+            if (\is_string($key)) {
+                return $this->write($strand, $value, $key, PHP_INT_MAX);
+            }
+
+            return $this->read($strand, $value, 1, PHP_INT_MAX);
+        }
+
+        if (\method_exists($value, 'then')) {
+            $onFulfilled = static function ($result) use ($strand) {
+                $this->scheduler->scheduleSend($strand, 0.0, $result);
+            };
+
+            $onRejected = static function ($reason) use ($strand) {
+                if ($reason instanceof \Throwable) {
+                    $this->scheduler->scheduleThrow($strand, $reason);
+                } else {
+                    $this->scheduler->scheduleThrow($strand, new RejectedException($reason));
+                }
+            };
+
+            if (\method_exists($value, 'done')) {
+                $value->done($onFulfilled, $onRejected);
+            } else {
+                $value->then($onFulfilled, $onRejected);
+            }
+
+            if (\method_exists($value, 'cancel')) {
+                $strand->setTerminator(function () use ($value) {
+                    $value->cancel();
+                });
+            }
+
+            return null;
+        }
+
+        return $this->innerApi->__dispatch($strand, $key, $value);
+    }
+
     public function cooperate(SystemStrand $strand)
     {
         $this->scheduler->scheduleSend($strand);
@@ -31,11 +85,6 @@ class ScheduledApi implements Api
     public function sleep(SystemStrand $strand, float $interval)
     {
         $this->scheduler->scheduleSend($strand, $interval);
-    }
-
-    public function __dispatch(SystemStrand $strand, $key, $value)
-    {
-        return $this->innerApi->__dispatch($strand, $key, $value);
     }
 
     public function __call(string $name, array $arguments)

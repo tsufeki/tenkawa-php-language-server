@@ -48,6 +48,15 @@ class ReactScheduler implements Scheduler
         });
     }
 
+    public function scheduleThrow(SystemStrand $strand, \Throwable $exception): void
+    {
+        $this->schedule($strand, 0.0, function () use ($strand, $exception) {
+            if (!$strand->hasExited()) {
+                $strand->throw($exception);
+            }
+        });
+    }
+
     private function schedule(SystemStrand $strand, float $delay, callable $callback): void
     {
         $priority = $this->getPriority($strand);

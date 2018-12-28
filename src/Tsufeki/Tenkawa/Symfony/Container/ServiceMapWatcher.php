@@ -92,7 +92,7 @@ class ServiceMapWatcher implements OnFileChange, OnProjectOpen
     private function loadServiceMap(Project $project): \Generator
     {
         $time = new Stopwatch();
-        if (!function_exists('simplexml_load_file') || $project->getRootUri()->getScheme() !== 'file') {
+        if ($project->getRootUri()->getScheme() !== 'file') {
             return;
         }
 
@@ -100,6 +100,12 @@ class ServiceMapWatcher implements OnFileChange, OnProjectOpen
             /** @var string $uriString */
             foreach (yield $this->fileLister->list($project->getRootUri(), [$filter]) as $uriString => $_) {
                 try {
+                    if (!function_exists('simplexml_load_file')) {
+                        $this->logger->warning('Symfony plugin disabled: simplexml extension not found.');
+
+                        return;
+                    }
+
                     $uri = Uri::fromString($uriString);
                     $factory = new XmlServiceMapFactory($uri->getFilesystemPath());
                     $serviceMap = $factory->create();

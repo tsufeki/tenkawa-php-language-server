@@ -33,6 +33,7 @@ Changelog
 
 * Member completions are deduplicated.
 * Make `completion.autoImport` configuration key work again.
+* Fix bug with completions being based on old document content.
 
 0.3.3 - 2018-11-02
 ------------------
