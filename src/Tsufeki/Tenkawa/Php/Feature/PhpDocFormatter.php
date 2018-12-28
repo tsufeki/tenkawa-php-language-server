@@ -15,6 +15,7 @@ use phpDocumentor\Reflection\Types\Compound;
 use phpDocumentor\Reflection\Types\Context;
 use phpDocumentor\Reflection\Types\Nullable;
 use phpDocumentor\Reflection\Types\Object_;
+use PhpParser\Comment;
 use Tsufeki\Tenkawa\Php\Reflection\NameContext;
 use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 
@@ -36,8 +37,10 @@ class PhpDocFormatter
 
         try {
             $phpDoc = $this->docBlockFactory->create($docComment, $context);
-        } catch (\InvalidArgumentException $e) {
-            return '';
+        } catch (\Throwable $e) {
+            $docComment = (new Comment($docComment))->getReformattedText();
+
+            return "```\n$docComment\n```";
         }
 
         $paragraphs = [];
