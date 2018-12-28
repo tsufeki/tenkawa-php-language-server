@@ -532,7 +532,7 @@ class PhpPlugin extends Plugin
         $container->setClass(Rule::class, Rules\Comparison\StrictComparisonOfDifferentTypesRule::class, true, ['checkAlwaysTrueStrictComparison']);
         $container->setClass(Rule::class, Rules\Comparison\TernaryOperatorConstantConditionRule::class, true);
         $container->setClass(Rule::class, Rules\Constants\ConstantRule::class, true);
-        // $container->setClass(Rule::class, Rules\Exceptions\CaughtExceptionExistenceRule::class, true, [null, null, 'checkClassCaseSensitivity']);
+        $container->setClass(Rule::class, Rules\Exceptions\CaughtExceptionExistenceRule::class, true, [null, null, 'checkClassCaseSensitivity']);
         $container->setClass(Rule::class, Rules\Functions\CallCallablesRule::class, true, [null, null, 'reportMaybes']);
         $container->setClass(Rule::class, Rules\Functions\CallToFunctionParametersRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\CallToNonExistentFunctionRule::class, true, [null, 'checkFunctionNameCase']);
