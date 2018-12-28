@@ -105,8 +105,6 @@ Known issues
 
 * Many features don't work inside traits. This is caused by PHPStan's design.
 * Refactors are not 100% bullet-proof.
-* Filtering of big lists (i.e. completions) is left entirely to the client,
-  which must be able to withstand it performance-wise.
 * Performance & long indexing times.
 
 Command line options
