@@ -21,6 +21,7 @@ use Tsufeki\Tenkawa\Server\Feature\Common\Range;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextEdit;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItem;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItemKind;
+use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionList;
 
 class MemberSymbolCompleter implements SymbolCompleter
 {
@@ -52,12 +53,13 @@ class MemberSymbolCompleter implements SymbolCompleter
     }
 
     /**
-     * @resolve CompletionItem[]
+     * @resolve CompletionList
      */
     public function getCompletions(Symbol $symbol, Position $position): \Generator
     {
+        $completions = new CompletionList();
         if (!($symbol instanceof MemberSymbol)) {
-            return [];
+            return $completions;
         }
 
         $kind = $symbol->kind;
@@ -116,9 +118,11 @@ class MemberSymbolCompleter implements SymbolCompleter
             }));
         }
 
-        return array_map(function (Element $element) use ($symbol, $kind, $position) {
+        $completions->items = array_map(function (Element $element) use ($symbol, $kind, $position) {
             return $this->makeItem($element, $position, $symbol->range, $kind !== MemberSymbol::METHOD);
         }, $elements);
+
+        return $completions;
     }
 
     /**

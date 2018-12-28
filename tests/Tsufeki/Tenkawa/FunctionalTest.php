@@ -244,7 +244,7 @@ class FunctionalTest extends TestCase
 
             usort($resp->items, function ($a, $b) { return strcmp($a->label, $b->label); });
             $this->assertJsonEquivalent([
-                'isIncomplete' => false,
+                'isIncomplete' => true,
                 'items' => [
                     [
                         'label' => 'Foo',
@@ -271,7 +271,7 @@ class FunctionalTest extends TestCase
 
             usort($resp->items, function ($a, $b) { return strcmp($a->label, $b->label); });
             $this->assertJsonEquivalent([
-                'isIncomplete' => false,
+                'isIncomplete' => true,
                 'items' => [
                     [
                         'label' => 'Foo',
@@ -292,7 +292,7 @@ class FunctionalTest extends TestCase
 
             usort($resp->items, function ($a, $b) { return strcmp($a->label, $b->label); });
             $this->assertJsonEquivalent([
-                'isIncomplete' => false,
+                'isIncomplete' => true,
                 'items' => [
                     [
                         'label' => 'SelfCompletion',
@@ -316,7 +316,7 @@ new S#');
 
             usort($resp->items, function ($a, $b) { return strcmp($a->label, $b->label); });
             $this->assertJsonEquivalent([
-                'isIncomplete' => false,
+                'isIncomplete' => true,
                 'items' => [
                     [
                         'label' => 'SelfCompletion',

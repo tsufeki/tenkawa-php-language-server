@@ -8,3 +8,4 @@ parameters:
     ignoreErrors:
         - '#Call to an undefined static method Recoil\\Recoil::eventLoop\(\)#'
         - '#(Tsufeki\\Tenkawa\\Php\\PhpStan\\.*|Anonymous.*)::__construct\(\) does not call parent constructor from (PHPStan\\.*|Reflection(Class|Property)|PhpParser\\PrettyPrinterAbstract|Tsufeki\\Tenkawa\\Php\\PhpStan\\DocumentParser)#'
+        - '#Call to an undefined method PDO::sqliteCreateFunction\(\)#'

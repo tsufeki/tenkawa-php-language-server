@@ -26,6 +26,18 @@ class Query
     public $match = self::FULL;
 
     /**
+     * Fuzzy filter part of the key, split by $fuzzyLastPartSeparator.
+     *
+     * @var string|null
+     */
+    public $fuzzy = null;
+
+    /**
+     * @var string|null
+     */
+    public $fuzzySeparator = null;
+
+    /**
      * @var Uri|null
      */
     public $uri = null;
@@ -41,4 +53,9 @@ class Query
      * @var (string|null)[]|null
      */
     public $tag = null;
+
+    /**
+     * @var int|null
+     */
+    public $limit = null;
 }

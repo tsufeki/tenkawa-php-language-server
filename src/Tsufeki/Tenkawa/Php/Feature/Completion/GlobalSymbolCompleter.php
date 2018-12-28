@@ -14,6 +14,7 @@ use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItem;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItemKind;
+use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionList;
 use Tsufeki\Tenkawa\Server\Feature\Configuration\ConfigurationFeature;
 use Tsufeki\Tenkawa\Server\Index\Index;
 use Tsufeki\Tenkawa\Server\Index\IndexEntry;
@@ -57,6 +58,8 @@ class GlobalSymbolCompleter implements SymbolCompleter
      */
     private $defaultExtensions;
 
+    const ITEM_LIMIT = 100;
+
     /**
      * @param string[] $defaultExtensions
      */
@@ -73,12 +76,13 @@ class GlobalSymbolCompleter implements SymbolCompleter
     }
 
     /**
-     * @resolve CompletionItem[]
+     * @resolve CompletionList
      */
     public function getCompletions(Symbol $symbol, Position $position): \Generator
     {
+        $completions = new CompletionList();
         if (!($symbol instanceof GlobalSymbol)) {
-            return [];
+            return $completions;
         }
 
         [$before, $after] = $this->splitName($symbol, $position);
@@ -109,21 +113,21 @@ class GlobalSymbolCompleter implements SymbolCompleter
             $namespace = $symbol->nameContext->namespace;
         }
 
-        yield $this->query($namespace, $kinds, $symbol->document, $result);
+        yield $this->query($namespace, $kinds, $after[0] ?? null, $symbol->document, $result);
 
         if ($unqualified) {
             $kinds = array_diff($kinds, [GlobalSymbol::CLASS_, GlobalSymbol::NAMESPACE_]);
-            yield $this->query('\\', $kinds, $symbol->document, $result);
+            yield $this->query('\\', $kinds, $after[0] ?? null, $symbol->document, $result);
         }
 
-        $items = [];
+        $completions->isIncomplete = true;
         foreach ($result as $kind => $kindResult) {
             foreach ($kindResult as $shortName => $fullName) {
-                $items[] = $this->makeItem($fullName, $kind, $shortName, $addTrailingBackslash, $addTrailingParen);
+                $completions->items[] = $this->makeItem($fullName, $kind, $shortName, $addTrailingBackslash, $addTrailingParen);
             }
         }
 
-        return $items;
+        return $completions;
     }
 
     private function splitName(GlobalSymbol $symbol, Position $position): array
@@ -168,6 +172,7 @@ class GlobalSymbolCompleter implements SymbolCompleter
     private function query(
         string $namespace,
         array $kinds,
+        ?string $fuzzyQuery,
         Document $document,
         array &$result
     ): \Generator {
@@ -180,6 +185,9 @@ class GlobalSymbolCompleter implements SymbolCompleter
         $query = new Query();
         $query->key = $namespace;
         $query->match = Query::PREFIX;
+        $query->fuzzy = $fuzzyQuery;
+        $query->fuzzySeparator = '\\';
+        $query->limit = self::ITEM_LIMIT;
         $query->includeData = false;
         $query->tag = yield $this->getTags($document);
 

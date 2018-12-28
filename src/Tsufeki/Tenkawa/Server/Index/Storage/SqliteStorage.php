@@ -130,6 +130,10 @@ class SqliteStorage implements WritableIndexStorage
 
         $this->getPdo()->prepare('create index if not exists tenkawa_index_tag
             on tenkawa_index (tag)')->execute();
+
+        $this->getPdo()->sqliteCreateFunction('regexp', static function ($pattern, $string) {
+            return \preg_match($pattern, $string) === 1;
+        }, 2);
     }
 
     public function search(Query $query): \Generator
@@ -138,14 +142,24 @@ class SqliteStorage implements WritableIndexStorage
         $params = [];
 
         if ($query->key !== null) {
+            $params['key'] = $query->key;
             if ($query->match === Query::FULL) {
                 $conditions[] = 'key = :key';
             } elseif ($query->match === Query::PREFIX) {
                 $conditions[] = "key glob :key||'*'";
+
+                if ($query->fuzzy !== null) {
+                    $conditions[] = 'substr(key, 1 + length(:key)) regexp :fuzzy';
+                    $params['fuzzy'] = $this->makeFuzzyPatternPrefix($query->fuzzy, $query->fuzzySeparator ?? '\\');
+                }
             } elseif ($query->match === Query::SUFFIX) {
                 $conditions[] = "key glob '*'||:key";
+
+                if ($query->fuzzy !== null) {
+                    $conditions[] = 'substr(key, 1, length(key) - length(:key)) regexp :fuzzy';
+                    $params['fuzzy'] = $this->makeFuzzyPatternSuffix($query->fuzzy, $query->fuzzySeparator ?? '\\');
+                }
             }
-            $params['key'] = $query->key;
         }
 
         if ($query->category !== null) {
@@ -191,7 +205,8 @@ class SqliteStorage implements WritableIndexStorage
         $stmt = $this->getPdo()->prepare('
             select ' . implode(', ', $fields) . '
                 from tenkawa_index
-                where ' . implode(' and ', $conditions)
+                where ' . implode(' and ', $conditions) . '
+                limit ' . ($query->limit ?? -1)
         );
 
         $stmt->execute($params);
@@ -218,6 +233,23 @@ class SqliteStorage implements WritableIndexStorage
 
         return $result;
         yield;
+    }
+
+    private function makeFuzzyPattern(string $fuzzy, string $separator): string
+    {
+        $wildcard = '[^' . preg_quote($separator, '~') . ']*';
+
+        return $wildcard . implode($wildcard, str_split($fuzzy)) . $wildcard;
+    }
+
+    private function makeFuzzyPatternPrefix(string $fuzzy, string $separator): string
+    {
+        return '~^' . $this->makeFuzzyPattern($fuzzy, $separator) . '~i';
+    }
+
+    private function makeFuzzyPatternSuffix(string $fuzzy, string $separator): string
+    {
+        return '~' . $this->makeFuzzyPattern($fuzzy, $separator) . '$~i';
     }
 
     public function replaceFile(Uri $uri, array $entries, ?int $timestamp): \Generator

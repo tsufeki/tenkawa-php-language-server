@@ -113,15 +113,7 @@ class CompletionFeature implements Feature, MethodProvider
             return $provider->getCompletions($document, $position, $context);
         }, $this->providers);
 
-        $completions->items = array_merge(...array_map(function (CompletionList $list) {
-            return $list->items;
-        }, $completionsLists));
-
-        $completions->isIncomplete = 0 !== array_sum(array_map(function (CompletionList $list) {
-            return $list->isIncomplete;
-        }, $completionsLists));
-
-        return $completions;
+        return CompletionList::merge($completionsLists);
     }
 
     /**

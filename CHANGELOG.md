@@ -24,6 +24,7 @@ Changelog
   from all alternatives.
 * Only use most common PHP extensions for autocompletion. Add configuration
   option to enable more.
+* Filter autocompletion of classes and functions server-side for performance.
 * Improve performance by not inferring types of whole file when possible.
 
 ### Fixed

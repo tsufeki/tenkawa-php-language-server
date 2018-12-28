@@ -11,6 +11,7 @@ use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextEdit;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItem;
+use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionList;
 use Tsufeki\Tenkawa\Server\Feature\Configuration\ConfigurationFeature;
 use Tsufeki\Tenkawa\Server\Index\Index;
 use Tsufeki\Tenkawa\Server\Index\IndexEntry;
@@ -56,34 +57,34 @@ class ImportSymbolCompleter implements SymbolCompleter
     }
 
     /**
-     * @resolve CompletionItem[]
+     * @resolve CompletionList
      */
     public function getCompletions(Symbol $symbol, Position $position): \Generator
     {
+        $completions = new CompletionList();
         if (!($symbol instanceof GlobalSymbol) ||
             strpos($symbol->originalName, '\\') !== false ||
             $symbol->isImport ||
             $symbol->kind === GlobalSymbol::NAMESPACE_ ||
             (yield $this->configurationFeature->get('completion.autoImport', $symbol->document)) === false
         ) {
-            return [];
+            return $completions;
         }
 
-        /** @var CompletionItem[] $items */
-        $items = [];
+        $completions->isIncomplete = true;
         $importData = yield $this->importer->getImportEditData($symbol);
         foreach (GlobalSymbolCompleter::SEARCH_KINDS as $kind) {
-            $names = yield $this->query($kind, $symbol->document);
+            $names = yield $this->query($kind, $symbol->originalName, $symbol->document);
 
             foreach ($names as $name) {
                 $textEdits = yield $this->importer->getImportEditWithData($symbol, $importData, $name, $kind);
                 if ($textEdits !== null) {
-                    $items[] = $this->makeItem($name, $kind, $textEdits, $symbol->kind !== GlobalSymbol::FUNCTION_);
+                    $completions->items[] = $this->makeItem($name, $kind, $textEdits, $symbol->kind !== GlobalSymbol::FUNCTION_);
                 }
             }
         }
 
-        return $items;
+        return $completions;
     }
 
     /**
@@ -91,12 +92,16 @@ class ImportSymbolCompleter implements SymbolCompleter
      */
     private function query(
         string $kind,
+        string $fuzzyQuery,
         Document $document
     ): \Generator {
         $query = new Query();
         $query->category = GlobalSymbolCompleter::INDEX_CATEGORIES[$kind];
         $query->key = '';
-        $query->match = Query::PREFIX;
+        $query->match = Query::SUFFIX;
+        $query->fuzzy = $fuzzyQuery;
+        $query->fuzzySeparator = '\\';
+        $query->limit = GlobalSymbolCompleter::ITEM_LIMIT;
         $query->includeData = false;
         $query->tag = yield $this->getTags($document);
 

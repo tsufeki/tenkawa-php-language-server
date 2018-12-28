@@ -7,7 +7,6 @@ use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionContext;
-use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionItem;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionList;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionProvider;
 
@@ -56,14 +55,8 @@ class SymbolCompletionProvider implements CompletionProvider
             return new CompletionList();
         }
 
-        /** @var CompletionItem[] $items */
-        $items = array_merge(...yield array_map(function (SymbolCompleter $completer) use ($symbol, $position) {
+        return CompletionList::merge(yield array_map(function (SymbolCompleter $completer) use ($symbol, $position) {
             return $completer->getCompletions($symbol, $position);
         }, $this->symbolCompleters));
-
-        $completions = new CompletionList();
-        $completions->items = $items;
-
-        return $completions;
     }
 }
