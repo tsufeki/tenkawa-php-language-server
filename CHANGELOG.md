@@ -19,6 +19,7 @@ Changelog
 * Go to class member's parent.
 * Request cancellation.
 * Dynamic configuration (restart is no longer required).
+* Enabled some of missing phpstan rules.
 
 ### Changed
 

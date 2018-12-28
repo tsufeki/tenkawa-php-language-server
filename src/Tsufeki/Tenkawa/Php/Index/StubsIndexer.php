@@ -62,9 +62,12 @@ class StubsIndexer implements GlobalIndexer
     {
         if ($this->stubsUri !== null) {
             $project = new Project($this->stubsUri);
-            yield $indexer->indexProject($project, yield $this->getIndex(), null, function (IndexEntry $entry): void {
+            $index = yield $this->getIndex();
+            $transform = function (IndexEntry $entry): void {
                 $this->transformEntry($entry);
-            });
+            };
+
+            yield $indexer->indexProject($project, $index, null, $transform);
         }
     }
 

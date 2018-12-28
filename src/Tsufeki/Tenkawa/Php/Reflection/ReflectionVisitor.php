@@ -413,6 +413,15 @@ class ReflectionVisitor extends NameContextVisitor
                 return null;
             }
         }
+
+        if ($node instanceof Expr\Yield_ || $node instanceof Expr\YieldFrom) {
+            $function = $this->functionStack[count($this->functionStack) - 1] ?? null;
+            if ($function !== null) {
+                $function->isGenerator = true;
+            }
+
+            return null;
+        }
     }
 
     public function leaveNode(Node $node)

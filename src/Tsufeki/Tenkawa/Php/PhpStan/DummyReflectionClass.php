@@ -56,6 +56,23 @@ class DummyReflectionClass extends \ReflectionClass
         return $properties;
     }
 
+    public function hasMethod($name)
+    {
+        return $this->classReflection->hasNativeMethod($name);
+    }
+
+    public function getMethod($name)
+    {
+        if (!$this->hasMethod($name)) {
+            throw new \ReflectionException();
+        }
+
+        /** @var IndexMethodReflection $methodReflection */
+        $methodReflection = $this->classReflection->getNativeMethod($name);
+
+        return new DummyReflectionMethod($methodReflection);
+    }
+
     public function isUserDefined()
     {
         return $this->classReflection->isUserDefined();

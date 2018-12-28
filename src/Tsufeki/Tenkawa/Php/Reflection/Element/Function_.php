@@ -23,4 +23,9 @@ class Function_ extends Element
      * @var bool
      */
     public $callsFuncGetArgs = false;
+
+    /**
+     * @var bool
+     */
+    public $isGenerator = false;
 }

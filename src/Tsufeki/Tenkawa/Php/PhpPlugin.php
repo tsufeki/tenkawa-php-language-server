@@ -547,7 +547,7 @@ class PhpPlugin extends Plugin
         $container->setClass(Rule::class, Rules\Methods\CallMethodsRule::class, true, [null, null, null, 'checkFunctionNameCase', 'reportMagicMethods']);
         $container->setClass(Rule::class, Rules\Methods\CallStaticMethodsRule::class, true, [null, null, null, null, 'checkFunctionNameCase', 'reportMagicMethods']);
         $container->setClass(Rule::class, Rules\Methods\ExistingClassesInTypehintsRule::class, true);
-        // $container->setClass(Rule::class, Rules\Methods\ReturnTypeRule::class, true);
+        $container->setClass(Rule::class, Rules\Methods\ReturnTypeRule::class, true);
         $container->setClass(Rule::class, Rules\Namespaces\ExistingNamesInGroupUseRule::class, true, [null, null, 'checkFunctionNameCase']);
         $container->setClass(Rule::class, Rules\Namespaces\ExistingNamesInUseRule::class, true, [null, null, 'checkFunctionNameCase']);
         $container->setClass(Rule::class, Rules\Operators\InvalidBinaryOperationRule::class, true);

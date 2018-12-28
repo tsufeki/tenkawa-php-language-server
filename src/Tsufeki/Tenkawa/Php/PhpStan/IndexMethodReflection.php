@@ -182,4 +182,9 @@ class IndexMethodReflection extends PhpMethodReflection
     {
         return $this->throwType;
     }
+
+    public function isGenerator(): bool
+    {
+        return $this->method->isGenerator;
+    }
 }

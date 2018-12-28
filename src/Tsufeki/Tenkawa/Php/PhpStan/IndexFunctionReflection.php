@@ -90,4 +90,9 @@ class IndexFunctionReflection extends PhpFunctionReflection
     {
         return $this->throwType;
     }
+
+    public function isGenerator(): bool
+    {
+        return $this->function->isGenerator;
+    }
 }
