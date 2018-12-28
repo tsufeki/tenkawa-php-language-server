@@ -111,7 +111,11 @@ class Tenkawa
         $logger = new CompositeLogger();
         self::setupErrorHandlers($logger, $kernel);
         self::setupLoggers($logger, $options);
+
         $logger->debug('PHP ' . PHP_VERSION . ' ' . PHP_OS);
+        if (extension_loaded('xdebug')) {
+            $logger->warning('Xdebug extension detected. This may negatively affect performance.');
+        }
 
         $plugins = (new PluginFinder())->findPlugins();
         $app = new self($kernel, $logger, $plugins);
