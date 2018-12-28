@@ -2,6 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Server\Io\FileWatcher;
 
+use Recoil\Recoil;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Event\Document\OnClose;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
@@ -22,6 +23,7 @@ class ClosedDocumentFileWatcher implements FileWatcher, OnClose
 
     public function onClose(Document $document): \Generator
     {
+        yield Recoil::sleep(2.0);
         yield $this->eventDispatcher->dispatch(OnFileChange::class, [$document->getUri()]);
     }
 

@@ -117,7 +117,9 @@ use Tsufeki\Tenkawa\Php\Feature\DefinitionSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\DocCommentSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\DocumentSymbols\SymbolDocumentSymbolsProvider;
 use Tsufeki\Tenkawa\Php\Feature\GlobalSymbolExtractor;
+use Tsufeki\Tenkawa\Php\Feature\GoToDefinition\ParentMemberGoToDefinitionProvider;
 use Tsufeki\Tenkawa\Php\Feature\GoToDefinition\SymbolGoToDefinitionProvider;
+use Tsufeki\Tenkawa\Php\Feature\GoToImplementation\SymbolGoToImplementationProvider;
 use Tsufeki\Tenkawa\Php\Feature\Hover\ExpressionTypeHoverProvider;
 use Tsufeki\Tenkawa\Php\Feature\Hover\HoverFormatter;
 use Tsufeki\Tenkawa\Php\Feature\Hover\SymbolHoverProvider;
@@ -180,6 +182,7 @@ use Tsufeki\Tenkawa\Server\Feature\Diagnostics\DiagnosticsProvider;
 use Tsufeki\Tenkawa\Server\Feature\Diagnostics\WorkspaceDiagnosticsProvider;
 use Tsufeki\Tenkawa\Server\Feature\DocumentSymbols\DocumentSymbolsProvider;
 use Tsufeki\Tenkawa\Server\Feature\GoToDefinition\GoToDefinitionProvider;
+use Tsufeki\Tenkawa\Server\Feature\GoToImplementation\GoToImplementationProvider;
 use Tsufeki\Tenkawa\Server\Feature\Hover\HoverProvider;
 use Tsufeki\Tenkawa\Server\Feature\References\ReferencesProvider;
 use Tsufeki\Tenkawa\Server\Feature\SignatureHelp\SignatureHelpProvider;
@@ -317,6 +320,9 @@ class PhpPlugin extends Plugin
         $container->setClass(DocumentSymbolsProvider::class, SymbolDocumentSymbolsProvider::class, true);
 
         $container->setClass(GoToDefinitionProvider::class, SymbolGoToDefinitionProvider::class, true);
+        $container->setClass(GoToDefinitionProvider::class, ParentMemberGoToDefinitionProvider::class, true);
+
+        $container->setClass(GoToImplementationProvider::class, SymbolGoToImplementationProvider::class, true);
 
         $container->setClass(HoverProvider::class, SymbolHoverProvider::class, true);
         $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);

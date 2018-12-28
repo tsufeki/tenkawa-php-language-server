@@ -40,6 +40,13 @@ class ServerCapabilities
     public $definitionProvider = false;
 
     /**
+     * The server provides Goto Implementation support.
+     *
+     * @var bool
+     */
+    public $implementationProvider = false;
+
+    /**
      * The server provides find references support.
      *
      * @var bool

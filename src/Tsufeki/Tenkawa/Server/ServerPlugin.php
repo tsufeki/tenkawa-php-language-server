@@ -35,6 +35,7 @@ use Tsufeki\Tenkawa\Server\Feature\DocumentSymbols\DocumentSymbolsFeature;
 use Tsufeki\Tenkawa\Server\Feature\Feature;
 use Tsufeki\Tenkawa\Server\Feature\FileWatcher\FileWatcherFeature;
 use Tsufeki\Tenkawa\Server\Feature\GoToDefinition\GoToDefinitionFeature;
+use Tsufeki\Tenkawa\Server\Feature\GoToImplementation\GoToImplementationFeature;
 use Tsufeki\Tenkawa\Server\Feature\Hover\HoverFeature;
 use Tsufeki\Tenkawa\Server\Feature\LanguageServer;
 use Tsufeki\Tenkawa\Server\Feature\Message\MessageFeature;
@@ -163,6 +164,10 @@ class ServerPlugin extends Plugin
         $container->setClass(GoToDefinitionFeature::class);
         $container->setAlias(Feature::class, GoToDefinitionFeature::class, true);
         $container->setAlias(MethodProvider::class, GoToDefinitionFeature::class, true);
+
+        $container->setClass(GoToImplementationFeature::class);
+        $container->setAlias(Feature::class, GoToImplementationFeature::class, true);
+        $container->setAlias(MethodProvider::class, GoToImplementationFeature::class, true);
 
         $container->setClass(HoverFeature::class);
         $container->setAlias(Feature::class, HoverFeature::class, true);

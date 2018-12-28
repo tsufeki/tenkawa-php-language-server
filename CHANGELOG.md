@@ -15,6 +15,8 @@ Changelog
   * Mockery
   * webmozart/assert
   * beberlei/assert
+* Go to implementation.
+* Go to class member's parent.
 * Request cancellation.
 * Dynamic configuration (restart is no longer required).
 

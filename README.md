@@ -72,6 +72,7 @@ Features
   * ✔ Static analysis with [PHPStan][phpstan]
       (see [Known issues](#known-issues))
 * ✔ Go to definition
+* ✔ Go to implementation
 * ✔ Hover info
 * ✔ Signature help
 * ✔ References
@@ -90,7 +91,6 @@ Features
 
 Unimplemented (yet?):
 
-* ✘ Go to implementation
 * ✘ Go to type definition
 * ✘ Document highlight
 * ✘ Code lens
