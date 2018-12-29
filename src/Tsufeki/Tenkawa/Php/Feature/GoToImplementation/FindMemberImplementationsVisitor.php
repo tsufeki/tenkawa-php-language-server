@@ -8,7 +8,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedMethod;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedProperty;
 
-class FindImplementationsVisitor implements InheritanceTreeVisitor
+class FindMemberImplementationsVisitor implements InheritanceTreeVisitor
 {
     /**
      * @var (ResolvedMethod|ResolvedProperty|ResolvedClassConst)[]

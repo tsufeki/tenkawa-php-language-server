@@ -15,7 +15,7 @@ use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\GoToImplementation\GoToImplementationProvider;
 
-class SymbolGoToImplementationProvider implements GoToImplementationProvider
+class MemberGoToImplementationProvider implements GoToImplementationProvider
 {
     /**
      * @var SymbolExtractor
@@ -42,6 +42,9 @@ class SymbolGoToImplementationProvider implements GoToImplementationProvider
         $this->inheritanceTreeTraverser = $inheritanceTreeTraverser;
     }
 
+    /**
+     * @resolve Location[]
+     */
     public function getLocations(Document $document, Position $position): \Generator
     {
         if ($document->getLanguage() !== 'php') {
@@ -60,7 +63,7 @@ class SymbolGoToImplementationProvider implements GoToImplementationProvider
             return [];
         }
 
-        $visitor = new FindImplementationsVisitor([$elements[0]]);
+        $visitor = new FindMemberImplementationsVisitor([$elements[0]]);
         yield $this->inheritanceTreeTraverser->traverse($elements[0]->nameContext->class ?? '', [$visitor], $symbol->document);
 
         return array_values(array_filter(array_map(function (Element $element) {

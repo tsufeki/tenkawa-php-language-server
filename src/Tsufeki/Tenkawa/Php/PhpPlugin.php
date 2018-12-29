@@ -119,7 +119,8 @@ use Tsufeki\Tenkawa\Php\Feature\DocumentSymbols\SymbolDocumentSymbolsProvider;
 use Tsufeki\Tenkawa\Php\Feature\GlobalSymbolExtractor;
 use Tsufeki\Tenkawa\Php\Feature\GoToDefinition\ParentMemberGoToDefinitionProvider;
 use Tsufeki\Tenkawa\Php\Feature\GoToDefinition\SymbolGoToDefinitionProvider;
-use Tsufeki\Tenkawa\Php\Feature\GoToImplementation\SymbolGoToImplementationProvider;
+use Tsufeki\Tenkawa\Php\Feature\GoToImplementation\ClassLikeGoToImplementationProvider;
+use Tsufeki\Tenkawa\Php\Feature\GoToImplementation\MemberGoToImplementationProvider;
 use Tsufeki\Tenkawa\Php\Feature\Hover\ExpressionTypeHoverProvider;
 use Tsufeki\Tenkawa\Php\Feature\Hover\HoverFormatter;
 use Tsufeki\Tenkawa\Php\Feature\Hover\SymbolHoverProvider;
@@ -322,7 +323,8 @@ class PhpPlugin extends Plugin
         $container->setClass(GoToDefinitionProvider::class, SymbolGoToDefinitionProvider::class, true);
         $container->setClass(GoToDefinitionProvider::class, ParentMemberGoToDefinitionProvider::class, true);
 
-        $container->setClass(GoToImplementationProvider::class, SymbolGoToImplementationProvider::class, true);
+        $container->setClass(GoToImplementationProvider::class, MemberGoToImplementationProvider::class, true);
+        $container->setClass(GoToImplementationProvider::class, ClassLikeGoToImplementationProvider::class, true);
 
         $container->setClass(HoverProvider::class, SymbolHoverProvider::class, true);
         $container->setClass(HoverProvider::class, ExpressionTypeHoverProvider::class, true);
