@@ -13,4 +13,18 @@ class TextDocumentClientCapabilities
      * @var DocumentSymbolClientCapabilities|null
      */
     public $documentSymbol;
+
+    /**
+     * Capabilities specific to the `textDocument/definition`.
+     *
+     * @var GoToClientCapabilities|null
+     */
+    public $definition;
+
+    /**
+     * Capabilities specific to the `textDocument/implementation`.
+     *
+     * @var GoToClientCapabilities|null
+     */
+    public $implementation;
 }

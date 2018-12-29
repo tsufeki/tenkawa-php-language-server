@@ -149,6 +149,15 @@ class ReflectionVisitor extends NameContextVisitor
         } else {
             $element->name = $node->name instanceof Identifier ? $node->name->name : '';
         }
+
+        if ($node->name instanceof Node) {
+            $this->setNameRange($element, $node->name);
+        }
+    }
+
+    private function setNameRange(Element $element, Node $nameNode): void
+    {
+        $element->nameRange = PositionUtils::rangeFromNodeAttrs($nameNode->getAttributes(), $this->document);
     }
 
     private function setCommonInfo(Element $element, Node $node, ?Node $docCommentFallback = null): void

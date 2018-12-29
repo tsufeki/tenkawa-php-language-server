@@ -10,6 +10,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\InheritanceTreeTraverser;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Feature\Common\LocationLink;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\GoToImplementation\GoToImplementationProvider;
 
@@ -41,7 +42,7 @@ class ClassLikeGoToImplementationProvider implements GoToImplementationProvider
     }
 
     /**
-     * @resolve Location[]
+     * @resolve LocationLink[]
      */
     public function getLocations(Document $document, Position $position): \Generator
     {
@@ -64,8 +65,8 @@ class ClassLikeGoToImplementationProvider implements GoToImplementationProvider
         $visitor = new FindClassLikeImplementationsVisitor($elements[0]);
         yield $this->inheritanceTreeTraverser->traverse($elements[0]->name, [$visitor], $symbol->document);
 
-        return array_values(array_filter(array_map(function (ResolvedClassLike $element) {
-            return $element->location;
+        return array_values(array_filter(array_map(function (ResolvedClassLike $element) use ($symbol) {
+            return $element->toLocationLink($symbol->range);
         }, $visitor->getImplementations())));
     }
 }

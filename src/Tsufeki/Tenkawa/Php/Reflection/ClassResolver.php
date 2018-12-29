@@ -92,6 +92,7 @@ class ClassResolver
     {
         $resolved->name = $class->name;
         $resolved->location = $class->location;
+        $resolved->nameRange = $class->nameRange;
         $resolved->docComment = $class->docComment;
         $resolved->nameContext = $class->nameContext;
         $resolved->isClass = $class->isClass;

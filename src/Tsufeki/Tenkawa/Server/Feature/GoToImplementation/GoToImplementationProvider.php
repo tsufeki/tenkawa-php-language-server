@@ -3,13 +3,13 @@
 namespace Tsufeki\Tenkawa\Server\Feature\GoToImplementation;
 
 use Tsufeki\Tenkawa\Server\Document\Document;
-use Tsufeki\Tenkawa\Server\Feature\Common\Location;
+use Tsufeki\Tenkawa\Server\Feature\Common\LocationLink;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 
 interface GoToImplementationProvider
 {
     /**
-     * @resolve Location[]
+     * @resolve LocationLink[]
      */
     public function getLocations(Document $document, Position $position): \Generator;
 }

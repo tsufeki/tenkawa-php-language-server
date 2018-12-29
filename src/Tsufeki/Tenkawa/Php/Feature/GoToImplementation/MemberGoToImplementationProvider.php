@@ -12,6 +12,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedMethod;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedProperty;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Feature\Common\LocationLink;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\GoToImplementation\GoToImplementationProvider;
 
@@ -43,7 +44,7 @@ class MemberGoToImplementationProvider implements GoToImplementationProvider
     }
 
     /**
-     * @resolve Location[]
+     * @resolve LocationLink[]
      */
     public function getLocations(Document $document, Position $position): \Generator
     {
@@ -66,8 +67,8 @@ class MemberGoToImplementationProvider implements GoToImplementationProvider
         $visitor = new FindMemberImplementationsVisitor([$elements[0]]);
         yield $this->inheritanceTreeTraverser->traverse($elements[0]->nameContext->class ?? '', [$visitor], $symbol->document);
 
-        return array_values(array_filter(array_map(function (Element $element) {
-            return $element->location;
+        return array_values(array_filter(array_map(function (Element $element) use ($symbol) {
+            return $element->toLocationLink($symbol->range);
         }, $visitor->getImplementations())));
     }
 }

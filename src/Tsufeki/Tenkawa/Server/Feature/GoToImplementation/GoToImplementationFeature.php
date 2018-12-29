@@ -8,6 +8,8 @@ use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
+use Tsufeki\Tenkawa\Server\Feature\Common\Location;
+use Tsufeki\Tenkawa\Server\Feature\Common\LocationLink;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\TextDocumentIdentifier;
 use Tsufeki\Tenkawa\Server\Feature\Feature;
@@ -32,6 +34,11 @@ class GoToImplementationFeature implements Feature, MethodProvider
     private $logger;
 
     /**
+     * @var bool
+     */
+    private $locationLinkSupported = false;
+
+    /**
      * @param GoToImplementationProvider[] $providers
      */
     public function __construct(array $providers, DocumentStore $documentStore, LoggerInterface $logger)
@@ -44,6 +51,9 @@ class GoToImplementationFeature implements Feature, MethodProvider
     public function initialize(ClientCapabilities $clientCapabilities, ServerCapabilities $serverCapabilities): \Generator
     {
         $serverCapabilities->implementationProvider = $this->providers !== [];
+        $this->locationLinkSupported = $clientCapabilities->textDocument
+            && $clientCapabilities->textDocument->implementation
+            && $clientCapabilities->textDocument->implementation->linkSupport === true;
 
         return;
         yield;
@@ -69,7 +79,7 @@ class GoToImplementationFeature implements Feature, MethodProvider
      * @param TextDocumentIdentifier $textDocument The text document.
      * @param Position               $position     The position inside the text document.
      *
-     * @resolve Location|Location[]|null
+     * @resolve Location|Location[]|LocationLink[]|null
      */
     public function implementation(TextDocumentIdentifier $textDocument, Position $position): \Generator
     {
@@ -77,21 +87,25 @@ class GoToImplementationFeature implements Feature, MethodProvider
         yield Priority::interactive();
 
         $document = $this->documentStore->get($textDocument->uri);
+
+        /** @var LocationLink[]|Location[] $locations */
         $locations = array_merge(
             ...yield array_map(function (GoToImplementationProvider $provider) use ($document, $position) {
                 return $provider->getLocations($document, $position);
             }, $this->providers)
         );
 
+        if (!$this->locationLinkSupported) {
+            $locations = array_map(function (LocationLink $location) {
+                return $location->toLocation();
+            }, $locations);
+        }
+
         $count = count($locations);
         $this->logger->debug(__FUNCTION__ . " $textDocument->uri$position [$time, $count items]");
 
         if ($count === 0) {
             return null;
-        }
-
-        if ($count === 1) {
-            return $locations[0];
         }
 
         return $locations;

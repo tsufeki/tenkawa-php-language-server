@@ -12,6 +12,7 @@ use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedMethod;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedProperty;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Feature\Common\LocationLink;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\GoToDefinition\GoToDefinitionProvider;
 
@@ -35,6 +36,9 @@ class ParentMemberGoToDefinitionProvider implements GoToDefinitionProvider
         $this->symbolReflection = $symbolReflection;
     }
 
+    /**
+     * @resolve LocationLink[]
+     */
     public function getLocations(Document $document, Position $position): \Generator
     {
         if ($document->getLanguage() !== 'php') {
@@ -53,8 +57,8 @@ class ParentMemberGoToDefinitionProvider implements GoToDefinitionProvider
             return [];
         }
 
-        return array_values(array_filter(array_map(function (Element $element) {
-            return $element->location;
+        return array_values(array_filter(array_map(function (Element $element) use ($symbol) {
+            return $element->toLocationLink($symbol->range);
         }, $elements[0]->inheritsFrom)));
     }
 }
