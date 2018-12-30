@@ -220,6 +220,7 @@ class ServerPlugin extends Plugin
             ->setDumpNullProperties(false)
             ->throwOnMissingProperty(true)
             ->throwOnUnknownProperty(false)
+            ->throwOnUnknownArgument(false)
             ->throwOnInfiniteRecursion(true)
             ->acceptStdClassAsArray(true)
             ->setStrictNulls(true)
