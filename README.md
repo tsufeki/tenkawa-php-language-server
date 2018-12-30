@@ -92,13 +92,16 @@ Features
 Unimplemented (yet?):
 
 * ✘ Go to type definition
+* ✘ Go to declaration
 * ✘ Document highlight
+* ✘ Document link
 * ✘ Code lens
 * ✘ Formatting
   * ✘ document
   * ✘ range
   * ✘ on type
 * ✘ Rename
+* ✘ Folding range
 
 Known issues
 ------------
