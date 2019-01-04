@@ -122,7 +122,7 @@ class Tenkawa
 
         switch ($options['cmd']) {
             case 'run':
-                $transport = self::createTransport($options);
+                $transport = self::createTransport($options, $logger);
                 $kernel->execute($app->run($transport, $options));
                 break;
             case 'build_index':
@@ -229,9 +229,10 @@ class Tenkawa
         }
     }
 
-    private static function createTransport(array $options): RunnableTransport
+    private static function createTransport(array $options, LoggerInterface $logger): RunnableTransport
     {
         if ($options['transport.socket'] ?? false) {
+            $logger->debug('Connecting to socket ' . $options['transport.socket']);
             $socket = stream_socket_client($options['transport.socket']);
             if ($socket === false) {
                 throw new IoException("Can't open a connection to client");
@@ -239,6 +240,7 @@ class Tenkawa
             stream_set_blocking($socket, false);
             $transport = new StreamTransport($socket, $socket);
         } else {
+            $logger->debug('Connecting through stdio.');
             stream_set_blocking(STDIN, false);
             stream_set_blocking(STDOUT, false);
             $transport = new StreamTransport(STDIN, STDOUT);
