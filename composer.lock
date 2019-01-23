@@ -409,12 +409,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "c7b3106bc950044aa68a4d052e0d23adb3735b43"
+                "reference": "f0b20eff2715d4c423f7f9baff922836342b2a76"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/c7b3106bc950044aa68a4d052e0d23adb3735b43",
-                "reference": "c7b3106bc950044aa68a4d052e0d23adb3735b43",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/f0b20eff2715d4c423f7f9baff922836342b2a76",
+                "reference": "f0b20eff2715d4c423f7f9baff922836342b2a76",
                 "shasum": ""
             },
             "require-dev": {
@@ -440,7 +440,7 @@
                 "stubs",
                 "type"
             ],
-            "time": "2018-12-27T15:14:38+00:00"
+            "time": "2019-01-22T15:26:43+00:00"
         },
         {
             "name": "league/html-to-markdown",
@@ -2309,16 +2309,16 @@
         },
         {
             "name": "react/child-process",
-            "version": "v0.5.2",
+            "version": "v0.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/child-process.git",
-                "reference": "aae49d7f1340bafb695b9af3ce4421ea41a39620"
+                "reference": "1106c24fb121683d0aedffc85fa1c9f3a46dce56"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/child-process/zipball/aae49d7f1340bafb695b9af3ce4421ea41a39620",
-                "reference": "aae49d7f1340bafb695b9af3ce4421ea41a39620",
+                "url": "https://api.github.com/repos/reactphp/child-process/zipball/1106c24fb121683d0aedffc85fa1c9f3a46dce56",
+                "reference": "1106c24fb121683d0aedffc85fa1c9f3a46dce56",
                 "shasum": ""
             },
             "require": {
@@ -2328,7 +2328,8 @@
                 "react/stream": "^1.0 || ^0.7.6"
             },
             "require-dev": {
-                "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35",
+                "phpunit/phpunit": "^7.0 || ^6.4 || ^5.7 || ^4.8.35",
+                "react/socket": "^1.0",
                 "sebastian/environment": "^3.0 || ^2.0 || ^1.0"
             },
             "type": "library",
@@ -2347,7 +2348,7 @@
                 "process",
                 "reactphp"
             ],
-            "time": "2018-01-18T14:53:06+00:00"
+            "time": "2019-01-14T15:54:50+00:00"
         },
         {
             "name": "react/event-loop",
@@ -2438,16 +2439,16 @@
         },
         {
             "name": "react/stream",
-            "version": "v1.0.0",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/stream.git",
-                "reference": "fdd0140f42805d65bf9687636503db0b326d2244"
+                "reference": "50426855f7a77ddf43b9266c22320df5bf6c6ce6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/stream/zipball/fdd0140f42805d65bf9687636503db0b326d2244",
-                "reference": "fdd0140f42805d65bf9687636503db0b326d2244",
+                "url": "https://api.github.com/repos/reactphp/stream/zipball/50426855f7a77ddf43b9266c22320df5bf6c6ce6",
+                "reference": "50426855f7a77ddf43b9266c22320df5bf6c6ce6",
                 "shasum": ""
             },
             "require": {
@@ -2480,7 +2481,7 @@
                 "stream",
                 "writable"
             ],
-            "time": "2018-07-11T14:38:16+00:00"
+            "time": "2019-01-01T16:15:09+00:00"
         },
         {
             "name": "recoil/api",
@@ -3457,7 +3458,7 @@
                 },
                 {
                     "name": "Gert de Pagter",
-                    "email": "BackEndTea@gmail.com"
+                    "email": "backendtea@gmail.com"
                 }
             ],
             "description": "Symfony polyfill for ctype functions",
@@ -3752,22 +3753,22 @@
         },
         {
             "name": "tsufeki/react-filesystem-monitor",
-            "version": "0.4.0",
+            "version": "0.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsufeki/react-filesystem-monitor.git",
-                "reference": "4177c0b227769cfc55740f8fae2f26c3b38723c1"
+                "reference": "5f63f08edf0e051d4c48f8f7b09ca7463ac296e7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsufeki/react-filesystem-monitor/zipball/4177c0b227769cfc55740f8fae2f26c3b38723c1",
-                "reference": "4177c0b227769cfc55740f8fae2f26c3b38723c1",
+                "url": "https://api.github.com/repos/tsufeki/react-filesystem-monitor/zipball/5f63f08edf0e051d4c48f8f7b09ca7463ac296e7",
+                "reference": "5f63f08edf0e051d4c48f8f7b09ca7463ac296e7",
                 "shasum": ""
             },
             "require": {
                 "evenement/evenement": "^3.0 || ^2.0",
                 "php": ">=7.0",
-                "react/child-process": "^0.5.2",
+                "react/child-process": "^0.6 || ^0.5.2",
                 "react/event-loop": "^1.0 || ^0.5 || ^0.4.3",
                 "react/stream": "^1.0 || ^0.7",
                 "tsufeki/react-line-stream": "^0.2.0"
@@ -3789,7 +3790,7 @@
                 }
             ],
             "description": "Asynchronous filesystem monitor based on React PHP",
-            "time": "2018-04-30T10:54:06+00:00"
+            "time": "2019-01-22T19:22:52+00:00"
         },
         {
             "name": "tsufeki/react-line-stream",
