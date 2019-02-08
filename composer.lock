@@ -362,12 +362,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "f0b20eff2715d4c423f7f9baff922836342b2a76"
+                "reference": "d1ecf6422d5b5717efacd6bc45af65a8f83bb668"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/f0b20eff2715d4c423f7f9baff922836342b2a76",
-                "reference": "f0b20eff2715d4c423f7f9baff922836342b2a76",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/d1ecf6422d5b5717efacd6bc45af65a8f83bb668",
+                "reference": "d1ecf6422d5b5717efacd6bc45af65a8f83bb668",
                 "shasum": ""
             },
             "require-dev": {
@@ -393,7 +393,7 @@
                 "stubs",
                 "type"
             ],
-            "time": "2019-01-22T15:26:43+00:00"
+            "time": "2019-01-31T11:23:32+00:00"
         },
         {
             "name": "league/html-to-markdown",
@@ -1756,27 +1756,28 @@
         },
         {
             "name": "react/event-loop",
-            "version": "v1.0.0",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/event-loop.git",
-                "reference": "0266aff7aa7b0613b1f38a723e14a0ebc55cfca3"
+                "reference": "a0ecac955c67b57c40fe4a1b88a7cca1b58c982d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/event-loop/zipball/0266aff7aa7b0613b1f38a723e14a0ebc55cfca3",
-                "reference": "0266aff7aa7b0613b1f38a723e14a0ebc55cfca3",
+                "url": "https://api.github.com/repos/reactphp/event-loop/zipball/a0ecac955c67b57c40fe4a1b88a7cca1b58c982d",
+                "reference": "a0ecac955c67b57c40fe4a1b88a7cca1b58c982d",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "~4.8.35 || ^5.7 || ^6.4"
+                "phpunit/phpunit": "^7.0 || ^6.4 || ^5.7 || ^4.8.35"
             },
             "suggest": {
                 "ext-event": "~1.0 for ExtEventLoop",
-                "ext-pcntl": "For signal handling support when using the StreamSelectLoop"
+                "ext-pcntl": "For signal handling support when using the StreamSelectLoop",
+                "ext-uv": "* for ExtUvLoop"
             },
             "type": "library",
             "autoload": {
@@ -1793,7 +1794,7 @@
                 "asynchronous",
                 "event-loop"
             ],
-            "time": "2018-07-11T14:37:46+00:00"
+            "time": "2019-02-07T16:19:49+00:00"
         },
         {
             "name": "react/promise",
@@ -2299,7 +2300,7 @@
                 },
                 {
                     "name": "Gert de Pagter",
-                    "email": "backendtea@gmail.com"
+                    "email": "BackEndTea@gmail.com"
                 }
             ],
             "description": "Symfony polyfill for ctype functions",
