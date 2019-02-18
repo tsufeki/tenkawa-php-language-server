@@ -211,6 +211,20 @@ class PhpPlugin extends Plugin
 
         $container->setValue(FileFilter::class, new GlobFileFilter('**/*.php', 'php'), true);
         $container->setValue(FileFilter::class, new GlobRejectDirectoryFilter('{var,app/cache,cache,.git}'), true);
+
+        if (!empty($options['additional.stubs'])) {
+            $stubs = $options['additional.stubs'];
+            if (is_string($stubs)) {
+                $stubs = (array) $options['additional.stubs'];
+            }
+
+            foreach ($stubs as $path) {
+                $path = rtrim($path, '/') . '/';
+            }
+
+            $container->setValue(FileFilter::class, new GlobFileFilter("{$path}**/*.php", 'php'), true);
+        }
+
         $container->setClass(IndexDataProvider::class, ReflectionIndexDataProvider::class, true);
         $container->setClass(ReflectionTransformer::class, StubsReflectionTransformer::class, true);
         $container->setClass(ReflectionProvider::class, IndexReflectionProvider::class);

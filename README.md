@@ -88,6 +88,7 @@ Features
 * ✔ Snippets
   * ✔ Class/interface/trait
 * ✔ Dynamic configuration
+* ✔ Index additional stubs
 
 Unimplemented (yet?):
 
@@ -122,6 +123,7 @@ Command line options
   `<level>` can be one of `emergency`, `alert`, `critical`, `error`,
   `warning`, `notice`, `info`, `debug`. Defaults to `info`.
 * `--build-index` - build standard library index instead of starting the server.
+* `--additional-stubs=<file>, ...` - Specify files containing additional stubs to index.
 
 Configuration
 -------------

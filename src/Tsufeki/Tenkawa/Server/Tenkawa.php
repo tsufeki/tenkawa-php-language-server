@@ -144,6 +144,7 @@ class Tenkawa
             'log.client' => false,
             'log.level' => LogLevel::INFO,
             'transport.socket' => false,
+            'additional.stubs' => [],
         ];
 
         foreach ($cmdLineArgs as $arg) {
@@ -171,6 +172,9 @@ class Tenkawa
                         continue 2;
                     case '--socket':
                         $options['transport.socket'] = $value;
+                        continue 2;
+                    case '--additional-stubs':
+                        $options['additional.stubs'][] = $value;
                         continue 2;
                 }
             }
