@@ -8,8 +8,8 @@ namespace PHPStan\Analyser
 
     function constant(string $name)
     {
-        $broker = \Tsufeki\Tenkawa\Php\PhpStan\IndexBroker::getInstance();
-        if ($broker instanceof \Tsufeki\Tenkawa\Php\PhpStan\IndexBroker) {
+        $broker = \Tsufeki\Tenkawa\Php\PhpStan\IndexReflection\IndexBroker::getInstance();
+        if ($broker instanceof \Tsufeki\Tenkawa\Php\PhpStan\IndexReflection\IndexBroker) {
             return $broker->getConstantValue($name);
         }
 

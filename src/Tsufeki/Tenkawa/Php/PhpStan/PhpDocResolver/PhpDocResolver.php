@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\PhpStan;
+namespace Tsufeki\Tenkawa\Php\PhpStan\PhpDocResolver;
 
 use PhpParser\NodeTraverser;
 use PHPStan\Analyser\NameScope;
@@ -9,6 +9,8 @@ use PHPStan\PhpDoc\PhpDocStringResolver;
 use PHPStan\PhpDoc\ResolvedPhpDocBlock;
 use PHPStan\ShouldNotHappenException;
 use PHPStan\Type\FileTypeMapper;
+use Tsufeki\Tenkawa\Php\PhpStan\Analyser\AnalysedCacheAware;
+use Tsufeki\Tenkawa\Php\PhpStan\Analyser\AnalysedDocumentAware;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;

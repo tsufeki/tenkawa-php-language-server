@@ -1,11 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\PhpStan;
+namespace Tsufeki\Tenkawa\Php\PhpStan\Utils;
 
 use PHPStan\Parser\Parser;
 use PHPStan\ShouldNotHappenException;
 use Tsufeki\Tenkawa\Php\Parser\Ast;
 use Tsufeki\Tenkawa\Php\Parser\Parser as TenkawaParser;
+use Tsufeki\Tenkawa\Php\PhpStan\Analyser\AnalysedDocumentAware;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\SyncAsync;

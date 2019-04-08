@@ -5,6 +5,7 @@ namespace Tsufeki\Tenkawa\Php\PhpStan;
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Registry;
+use Tsufeki\Tenkawa\Php\PhpStan\Analyser\Analyser;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Exception\DocumentNotOpenException;

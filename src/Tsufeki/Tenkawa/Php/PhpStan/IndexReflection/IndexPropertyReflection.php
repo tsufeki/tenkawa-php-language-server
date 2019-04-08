@@ -1,11 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\PhpStan;
+namespace Tsufeki\Tenkawa\Php\PhpStan\IndexReflection;
 
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\Php\PhpPropertyReflection;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\Type;
+use Tsufeki\Tenkawa\Php\PhpStan\PhpDocResolver\PhpDocResolver;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
 

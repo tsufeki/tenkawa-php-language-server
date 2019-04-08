@@ -1,11 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\PhpStan;
+namespace Tsufeki\Tenkawa\Php\PhpStan\IndexReflection;
 
 use PHPStan\Reflection\FunctionVariant;
 use PHPStan\Reflection\ParametersAcceptor;
 use PHPStan\Reflection\Php\PhpFunctionReflection;
 use PHPStan\Type\Type;
+use Tsufeki\Tenkawa\Php\PhpStan\PhpDocResolver\PhpDocResolver;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 
 class IndexFunctionReflection extends PhpFunctionReflection

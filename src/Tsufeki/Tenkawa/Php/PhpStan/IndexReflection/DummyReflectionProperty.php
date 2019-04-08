@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\PhpStan;
+namespace Tsufeki\Tenkawa\Php\PhpStan\IndexReflection;
 
 use PHPStan\Reflection\Php\PhpPropertyReflection;
 

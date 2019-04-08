@@ -13,7 +13,7 @@ use PHPStan\Type\Symfony\ServiceDynamicReturnTypeExtension;
 use PHPStan\Type\Symfony\ServiceTypeSpecifyingExtension;
 use Tsufeki\HmContainer\Container;
 use Tsufeki\HmContainer\Definition\Value;
-use Tsufeki\Tenkawa\Php\PhpStan\AnalysedProjectAware;
+use Tsufeki\Tenkawa\Php\PhpStan\Analyser\AnalysedProjectAware;
 use Tsufeki\Tenkawa\Server\Event\Document\OnProjectOpen;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Plugin;

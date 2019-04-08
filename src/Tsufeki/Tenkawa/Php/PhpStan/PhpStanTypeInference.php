@@ -14,6 +14,8 @@ use PHPStan\Type\UnionType as PhpStanUnionType;
 use PHPStan\Type\VerbosityLevel;
 use Tsufeki\Tenkawa\Php\Parser\Ast;
 use Tsufeki\Tenkawa\Php\Parser\Parser;
+use Tsufeki\Tenkawa\Php\PhpStan\Analyser\Analyser;
+use Tsufeki\Tenkawa\Php\PhpStan\Utils\AstPruner;
 use Tsufeki\Tenkawa\Php\TypeInference\BasicType;
 use Tsufeki\Tenkawa\Php\TypeInference\IntersectionType;
 use Tsufeki\Tenkawa\Php\TypeInference\ObjectType;

@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\PhpStan;
+namespace Tsufeki\Tenkawa\Php\PhpStan\Analyser;
 
 use PhpParser\Node;
 use PHPStan\Analyser\NodeScopeResolver;
@@ -8,6 +8,9 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Analyser\ScopeContext;
 use PHPStan\Analyser\ScopeFactory;
 use Psr\Log\LoggerInterface;
+use Tsufeki\Tenkawa\Php\PhpStan\IndexReflection\IndexBroker;
+use Tsufeki\Tenkawa\Php\PhpStan\PhpDocResolver\PhpDocResolver;
+use Tsufeki\Tenkawa\Php\PhpStan\Utils\DocumentParser;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
 use Tsufeki\Tenkawa\Server\Exception\UriException;

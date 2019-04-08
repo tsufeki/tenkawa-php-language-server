@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\PhpStan;
+namespace Tsufeki\Tenkawa\Php\PhpStan\IndexReflection;
 
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Name;
@@ -22,6 +22,10 @@ use PHPStan\ShouldNotHappenException;
 use PHPStan\Type\DynamicFunctionReturnTypeExtension;
 use PHPStan\Type\DynamicMethodReturnTypeExtension;
 use PHPStan\Type\DynamicStaticMethodReturnTypeExtension;
+use Tsufeki\Tenkawa\Php\PhpStan\Analyser\AnalysedCacheAware;
+use Tsufeki\Tenkawa\Php\PhpStan\Analyser\AnalysedDocumentAware;
+use Tsufeki\Tenkawa\Php\PhpStan\PhpDocResolver\PhpDocResolver;
+use Tsufeki\Tenkawa\Php\PhpStan\Utils\DocumentParser;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\ConstExprEvaluator;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;

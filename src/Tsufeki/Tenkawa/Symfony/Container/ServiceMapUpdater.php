@@ -3,7 +3,7 @@
 namespace Tsufeki\Tenkawa\Symfony\Container;
 
 use PHPStan\Symfony\ServiceMap;
-use Tsufeki\Tenkawa\Php\PhpStan\AnalysedProjectAware;
+use Tsufeki\Tenkawa\Php\PhpStan\Analyser\AnalysedProjectAware;
 use Tsufeki\Tenkawa\Server\Document\Project;
 
 class ServiceMapUpdater implements AnalysedProjectAware

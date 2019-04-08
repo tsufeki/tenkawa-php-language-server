@@ -13,6 +13,8 @@ use PHPStan\Type\VerbosityLevel;
 use Tsufeki\Tenkawa\Php\Feature\SignatureHelp\SignatureFinder;
 use Tsufeki\Tenkawa\Php\Feature\Symbol;
 use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
+use Tsufeki\Tenkawa\Php\PhpStan\IndexReflection\IndexBroker;
+use Tsufeki\Tenkawa\Php\PhpStan\PhpDocResolver\PhpDocResolver;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
