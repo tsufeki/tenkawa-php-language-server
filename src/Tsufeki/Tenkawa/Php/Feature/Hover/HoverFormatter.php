@@ -2,7 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\Hover;
 
-use Tsufeki\Tenkawa\Php\Feature\PhpDocFormatter;
+use Tsufeki\Tenkawa\Php\PhpDoc\PhpDocFormatter;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;

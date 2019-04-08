@@ -2,15 +2,15 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\GoToImplementation;
 
-use Tsufeki\Tenkawa\Php\Feature\MemberSymbol;
-use Tsufeki\Tenkawa\Php\Feature\Symbol;
-use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
-use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\InheritanceTreeTraverser;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassConst;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedMethod;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedProperty;
+use Tsufeki\Tenkawa\Php\Symbol\MemberSymbol;
+use Tsufeki\Tenkawa\Php\Symbol\Symbol;
+use Tsufeki\Tenkawa\Php\Symbol\SymbolExtractor;
+use Tsufeki\Tenkawa\Php\Symbol\SymbolReflection;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\LocationLink;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;

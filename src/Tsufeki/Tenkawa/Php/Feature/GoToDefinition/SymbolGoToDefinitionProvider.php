@@ -2,12 +2,12 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\GoToDefinition;
 
-use Tsufeki\Tenkawa\Php\Feature\DefinitionSymbol;
-use Tsufeki\Tenkawa\Php\Feature\Symbol;
-use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
-use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
+use Tsufeki\Tenkawa\Php\Symbol\DefinitionSymbol;
+use Tsufeki\Tenkawa\Php\Symbol\Symbol;
+use Tsufeki\Tenkawa\Php\Symbol\SymbolExtractor;
+use Tsufeki\Tenkawa\Php\Symbol\SymbolReflection;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\LocationLink;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;

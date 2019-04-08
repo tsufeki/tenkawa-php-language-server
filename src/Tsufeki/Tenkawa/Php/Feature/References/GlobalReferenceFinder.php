@@ -2,10 +2,10 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\References;
 
-use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
-use Tsufeki\Tenkawa\Php\Feature\Symbol;
-use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
+use Tsufeki\Tenkawa\Php\Symbol\GlobalSymbol;
+use Tsufeki\Tenkawa\Php\Symbol\Symbol;
+use Tsufeki\Tenkawa\Php\Symbol\SymbolReflection;
 use Tsufeki\Tenkawa\Server\Index\Index;
 use Tsufeki\Tenkawa\Server\Index\IndexEntry;
 use Tsufeki\Tenkawa\Server\Index\Query;

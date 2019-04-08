@@ -2,7 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\References;
 
-use Tsufeki\Tenkawa\Php\Feature\Symbol;
+use Tsufeki\Tenkawa\Php\Symbol\Symbol;
 
 interface ReferenceFinder
 {

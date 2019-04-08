@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\Feature;
+namespace Tsufeki\Tenkawa\Php\NodeFinder;
 
 use PhpParser\Node;
 use Tsufeki\Tenkawa\Php\Reflection\NameContextVisitor;

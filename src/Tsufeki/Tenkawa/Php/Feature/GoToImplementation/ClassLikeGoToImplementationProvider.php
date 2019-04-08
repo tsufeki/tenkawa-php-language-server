@@ -2,13 +2,13 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\GoToImplementation;
 
-use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
-use Tsufeki\Tenkawa\Php\Feature\Symbol;
-use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
-use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Reflection\Element\ClassLike;
 use Tsufeki\Tenkawa\Php\Reflection\InheritanceTreeTraverser;
 use Tsufeki\Tenkawa\Php\Reflection\Resolved\ResolvedClassLike;
+use Tsufeki\Tenkawa\Php\Symbol\GlobalSymbol;
+use Tsufeki\Tenkawa\Php\Symbol\Symbol;
+use Tsufeki\Tenkawa\Php\Symbol\SymbolExtractor;
+use Tsufeki\Tenkawa\Php\Symbol\SymbolReflection;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\LocationLink;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;

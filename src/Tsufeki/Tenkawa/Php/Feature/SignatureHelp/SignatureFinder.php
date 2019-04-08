@@ -4,7 +4,7 @@ namespace Tsufeki\Tenkawa\Php\Feature\SignatureHelp;
 
 use PhpParser\Comment;
 use PhpParser\Node;
-use Tsufeki\Tenkawa\Php\Feature\Symbol;
+use Tsufeki\Tenkawa\Php\Symbol\Symbol;
 use Tsufeki\Tenkawa\Server\Feature\SignatureHelp\SignatureHelp;
 
 interface SignatureFinder

@@ -2,12 +2,12 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\Refactoring;
 
-use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
-use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
-use Tsufeki\Tenkawa\Php\Feature\SymbolReflection;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Element;
 use Tsufeki\Tenkawa\Php\Reflection\NameHelper;
 use Tsufeki\Tenkawa\Php\Reflection\ReflectionProvider;
+use Tsufeki\Tenkawa\Php\Symbol\GlobalSymbol;
+use Tsufeki\Tenkawa\Php\Symbol\SymbolExtractor;
+use Tsufeki\Tenkawa\Php\Symbol\SymbolReflection;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionContext;
 use Tsufeki\Tenkawa\Server\Feature\CodeAction\CodeActionProvider;

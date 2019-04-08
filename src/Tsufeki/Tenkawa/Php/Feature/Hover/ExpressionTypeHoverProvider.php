@@ -4,7 +4,7 @@ namespace Tsufeki\Tenkawa\Php\Feature\Hover;
 
 use PhpParser\Comment;
 use PhpParser\Node;
-use Tsufeki\Tenkawa\Php\Feature\NodeFinder;
+use Tsufeki\Tenkawa\Php\NodeFinder\NodeFinder;
 use Tsufeki\Tenkawa\Php\TypeInference\TypeInference;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;

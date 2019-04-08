@@ -1,10 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace Tsufeki\Tenkawa\Php\Feature;
+namespace Tsufeki\Tenkawa\Php\Symbol;
 
 use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use Tsufeki\Tenkawa\Php\NodeFinder\NodeFinder;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Common\Range;

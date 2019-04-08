@@ -2,8 +2,8 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\References;
 
-use Tsufeki\Tenkawa\Php\Feature\Symbol;
-use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
+use Tsufeki\Tenkawa\Php\Symbol\Symbol;
+use Tsufeki\Tenkawa\Php\Symbol\SymbolExtractor;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Common\Location;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;

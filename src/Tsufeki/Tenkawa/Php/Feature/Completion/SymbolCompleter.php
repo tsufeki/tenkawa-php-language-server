@@ -2,7 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\Completion;
 
-use Tsufeki\Tenkawa\Php\Feature\Symbol;
+use Tsufeki\Tenkawa\Php\Symbol\Symbol;
 use Tsufeki\Tenkawa\Server\Feature\Common\Position;
 use Tsufeki\Tenkawa\Server\Feature\Completion\CompletionList;
 

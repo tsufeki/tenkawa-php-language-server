@@ -2,14 +2,14 @@
 
 namespace Tsufeki\Tenkawa\Php\Feature\DocumentSymbols;
 
-use Tsufeki\Tenkawa\Php\Feature\DefinitionSymbol;
-use Tsufeki\Tenkawa\Php\Feature\GlobalSymbol;
-use Tsufeki\Tenkawa\Php\Feature\MemberSymbol;
-use Tsufeki\Tenkawa\Php\Feature\SymbolExtractor;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Const_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Function_;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Method;
 use Tsufeki\Tenkawa\Php\Reflection\Element\Property;
+use Tsufeki\Tenkawa\Php\Symbol\DefinitionSymbol;
+use Tsufeki\Tenkawa\Php\Symbol\GlobalSymbol;
+use Tsufeki\Tenkawa\Php\Symbol\MemberSymbol;
+use Tsufeki\Tenkawa\Php\Symbol\SymbolExtractor;
 use Tsufeki\Tenkawa\Server\Document\Document;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\DocumentSymbolClientCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Common\Location;
