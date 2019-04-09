@@ -143,7 +143,7 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
     private function indexDocument(
         Document $document,
         WritableIndexStorage $indexStorage,
-        ?int $timestamp,
+        ?string $stamp,
         ?callable $transform = null
     ): \Generator {
         $entries = [];
@@ -164,7 +164,7 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
             }
         }
 
-        yield $indexStorage->replaceFile($document->getUri(), $entries, $timestamp);
+        yield $indexStorage->replaceFile($document->getUri(), $entries, $stamp);
     }
 
     private function clearDocument(Uri $uri, WritableIndexStorage $indexStorage): \Generator
@@ -204,12 +204,12 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         // $this->logger->debug("Indexing started: $subpath");
         $progress = $this->progress->get();
 
-        $indexedFiles = yield $indexStorage->getFileTimestamps($subpath);
+        $indexedFiles = yield $indexStorage->getFileStamps($subpath);
         $processedFilesCount = 0;
 
-        foreach (yield $this->fileLister->list($subpath, $fileFilters, $rootUri) as $uriString => [$language, $timestamp]) {
+        foreach (yield $this->fileLister->list($subpath, $fileFilters, $rootUri) as $uriString => [$language, $stamp]) {
             yield;
-            if (array_key_exists($uriString, $indexedFiles) && $indexedFiles[$uriString] === $timestamp) {
+            if (array_key_exists($uriString, $indexedFiles) && $indexedFiles[$uriString] === $stamp) {
                 unset($indexedFiles[$uriString]);
                 continue;
             }
@@ -225,13 +225,13 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
                 $document = yield $this->documentStore->load($uri, $language, $text);
                 $processedFilesCount++;
 
-                yield $this->indexDocument($document, $indexStorage, $timestamp, $transform);
+                yield $this->indexDocument($document, $indexStorage, $stamp, $transform);
             } catch (\Throwable $e) {
                 $this->logger->warning("Can't index $uriString", ['exception' => $e]);
             }
         }
 
-        foreach ($indexedFiles as $uriString => $timestamp) {
+        foreach ($indexedFiles as $uriString => $stamp) {
             yield;
             $uri = Uri::fromString($uriString);
             yield $this->clearDocument($uri, $indexStorage);
@@ -317,7 +317,7 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         /** @var WritableIndexStorage $openFilesIndex */
         $openFilesIndex = $project->get('index.open_files');
 
-        yield $this->indexDocument($document, $openFilesIndex, $document->getVersion(), null);
+        yield $this->indexDocument($document, $openFilesIndex, (string)$document->getVersion(), null);
         yield $this->eventDispatcher->dispatch(OnIndexingFinished::class);
     }
 

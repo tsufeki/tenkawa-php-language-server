@@ -30,11 +30,11 @@ class ChainedStorageTest extends TestCase
             $storage1 = $this->createMock(IndexStorage::class);
             $storage1
                 ->expects($this->once())
-                ->method('getFileTimestamps')
+                ->method('getFileStamps')
                 ->willReturn((function () {
                     return [
-                        'file:///foo' => 121212,
-                        'file:///bar' => 131313,
+                        'file:///foo' => '121212',
+                        'file:///bar' => '131313',
                     ];
                     yield;
                 })());
@@ -54,11 +54,11 @@ class ChainedStorageTest extends TestCase
             $storage2 = $this->createMock(IndexStorage::class);
             $storage2
                 ->expects($this->exactly(2))
-                ->method('getFileTimestamps')
+                ->method('getFileStamps')
                 ->willReturn((function () {
                     return [
-                        'file:///bar' => 141414,
-                        'file:///baz' => 151515,
+                        'file:///bar' => '141414',
+                        'file:///baz' => '151515',
                     ];
                     yield;
                 })());
@@ -74,10 +74,10 @@ class ChainedStorageTest extends TestCase
             $storage = new ChainedStorage($storage2, $storage1);
 
             $this->assertSame([
-                'file:///foo' => 121212,
-                'file:///bar' => 141414,
-                'file:///baz' => 151515,
-            ], yield $storage->getFileTimestamps());
+                'file:///foo' => '121212',
+                'file:///bar' => '141414',
+                'file:///baz' => '151515',
+            ], yield $storage->getFileStamps());
 
             $this->assertSame([$entries2[0], $entries2[1], $entries1[0]], yield $storage->search($query));
         });

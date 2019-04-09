@@ -30,7 +30,7 @@ abstract class WritableIndexStorageTest extends TestCase
     private function getStorageWithEntries(): \Generator
     {
         $storage = $this->getStorage();
-        yield $storage->replaceFile(Uri::fromString('file:///dir/foo'), $this->getEntries(), 123456);
+        yield $storage->replaceFile(Uri::fromString('file:///dir/foo'), $this->getEntries(), '123456');
 
         return $storage;
     }
@@ -145,9 +145,9 @@ abstract class WritableIndexStorageTest extends TestCase
             $entry->sourceUri = Uri::fromString('file:///qux/foo');
             $entry->key = 'qux';
             $entry->category = 'cat2';
-            yield $storage->replaceFile(Uri::fromString('file:///qux/foo'), [$entry], 234567);
+            yield $storage->replaceFile(Uri::fromString('file:///qux/foo'), [$entry], '234567');
 
-            $result = yield $storage->getFileTimestamps($filterUri !== null ? Uri::fromString($filterUri) : null);
+            $result = yield $storage->getFileStamps($filterUri !== null ? Uri::fromString($filterUri) : null);
             ksort($result);
 
             $this->assertSame($expected, $result);
@@ -157,12 +157,12 @@ abstract class WritableIndexStorageTest extends TestCase
     public function data_get_files(): array
     {
         return [
-            [null, ['file:///dir/foo' => 123456, 'file:///qux/foo' => 234567]],
-            ['file:///', ['file:///dir/foo' => 123456, 'file:///qux/foo' => 234567]],
-            ['file:///dir', ['file:///dir/foo' => 123456]],
-            ['file:///qux', ['file:///qux/foo' => 234567]],
-            ['file:///dir/foo', ['file:///dir/foo' => 123456]],
-            ['file:///qux/foo', ['file:///qux/foo' => 234567]],
+            [null, ['file:///dir/foo' => '123456', 'file:///qux/foo' => '234567']],
+            ['file:///', ['file:///dir/foo' => '123456', 'file:///qux/foo' => '234567']],
+            ['file:///dir', ['file:///dir/foo' => '123456']],
+            ['file:///qux', ['file:///qux/foo' => '234567']],
+            ['file:///dir/foo', ['file:///dir/foo' => '123456']],
+            ['file:///qux/foo', ['file:///qux/foo' => '234567']],
             ['file:///baz', []],
         ];
     }

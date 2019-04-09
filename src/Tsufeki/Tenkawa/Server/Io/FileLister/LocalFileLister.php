@@ -8,63 +8,68 @@ class LocalFileLister implements FileLister
 {
     public function list(Uri $uri, array $filters, ?Uri $baseUri = null): \Generator
     {
+        clearstatcache();
+
         $baseUri = $baseUri ?? $uri;
-        $path = $uri->getFilesystemPath();
-
-        if (!file_exists($path)) {
-            return new \ArrayIterator([]);
-        }
-
-        if (!is_dir($path)) {
-            $uriString = $uri->getNormalized();
-            [$accept, $fileType] = $this->voteOnAcceptFile($uriString, $filters, $baseUri->getNormalized());
-            if ($accept) {
-                return new \ArrayIterator([$uriString => [$fileType, filemtime($path)]]);
-            }
-
-            return new \ArrayIterator([]);
-        }
+        $info = new \SplFileInfo($uri->getFilesystemPath());
 
         try {
-            $iterator = new \RecursiveDirectoryIterator(
-                $uri->getFilesystemPath(),
-                \RecursiveDirectoryIterator::SKIP_DOTS |
-                \RecursiveDirectoryIterator::CURRENT_AS_FILEINFO |
-                \RecursiveDirectoryIterator::KEY_AS_PATHNAME
-            );
+            if ($info->isFile()) {
+                /** @var \RecursiveArrayIterator<string,\SplFileInfo> */
+                $iterator = new \RecursiveArrayIterator(
+                    [$uri->getFilesystemPath() => $info],
+                    \RecursiveArrayIterator::CHILD_ARRAYS_ONLY
+                );
+            } elseif ($info->isDir()) {
+                /** @var \RecursiveDirectoryIterator<string,\SplFileInfo> */
+                $iterator = new \RecursiveDirectoryIterator(
+                    $uri->getFilesystemPath(),
+                    \RecursiveDirectoryIterator::SKIP_DOTS |
+                    \RecursiveDirectoryIterator::CURRENT_AS_FILEINFO |
+                    \RecursiveDirectoryIterator::KEY_AS_PATHNAME
+                );
+            } else {
+                /** @var \RecursiveArrayIterator<string,\SplFileInfo> */
+                $iterator = new \RecursiveArrayIterator([]);
+            }
+
+            return $this->iterate($iterator, $filters, $baseUri->getNormalized());
         } catch (\Exception $e) {
-            return new \ArrayIterator([]);
         }
 
-        return $this->iterate($iterator, $filters, $baseUri->getNormalized());
+        return new \ArrayIterator([]);
         yield;
     }
 
     /**
-     * @param \RecursiveDirectoryIterator $iterator
-     * @param FileFilter[]                $filters
+     * @param \RecursiveIterator<string,\SplFileInfo> $iterator
+     * @param FileFilter[]                            $filters
      */
-    private function iterate(\RecursiveDirectoryIterator $iterator, array $filters, string $baseUri): \Iterator
+    private function iterate(\RecursiveIterator $iterator, array $filters, string $baseUri): \Iterator
     {
-        try {
-            /** @var \SplFileInfo $info */
-            foreach ($iterator as $path => $info) {
+        foreach ($iterator as $path => $info) {
+            try {
                 $uri = Uri::fromFilesystemPath($path)->getNormalized();
                 if ($info->isDir()) {
                     if ($this->voteOnEnterDirectory($uri, $filters, $baseUri) && $iterator->hasChildren()) {
-                        /** @var \RecursiveDirectoryIterator $children */
+                        /** @var \RecursiveDirectoryIterator<string,\SplFileInfo> $children */
                         $children = $iterator->getChildren();
                         yield from $this->iterate($children, $filters, $baseUri);
                     }
                 } else {
                     [$accept, $fileType] = $this->voteOnAcceptFile($uri, $filters, $baseUri);
                     if ($accept) {
-                        yield $uri => [$fileType, $info->getMTime()];
+                        yield $uri => [$fileType, $this->getStamp($info)];
                     }
                 }
+            } catch (\Exception $e) {
             }
-        } catch (\Exception $e) {
         }
+    }
+
+    private function getStamp(\SplFileInfo $info): string
+    {
+        return $info->getMTime() . '-' . $info->getSize();
     }
 
     /**
@@ -89,7 +94,7 @@ class LocalFileLister implements FileLister
     /**
      * @param FileFilter[] $filters
      *
-     * @return array [string $fileType, int $mtime]
+     * @return array [bool $accept, string $fileType]
      */
     private function voteOnAcceptFile(string $uri, array $filters, string $baseUri): array
     {

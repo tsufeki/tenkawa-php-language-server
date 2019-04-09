@@ -16,7 +16,7 @@ interface IndexStorage
     /**
      * @param Uri $filterUri Filter results to this file/directory.
      *
-     * @resolve array<string,int|null> string URI => int timestamp
+     * @resolve array<string,string|null> string URI => ?string stamp
      */
-    public function getFileTimestamps(?Uri $filterUri = null): \Generator;
+    public function getFileStamps(?Uri $filterUri = null): \Generator;
 }

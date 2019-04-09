@@ -76,7 +76,7 @@ class OpenDocumentsStorage implements WritableIndexStorage
         yield;
     }
 
-    public function replaceFile(Uri $uri, array $entries, ?int $timestamp): \Generator
+    public function replaceFile(Uri $uri, array $entries, ?string $stamp): \Generator
     {
         try {
             $document = $this->documentStore->get($uri);
@@ -97,9 +97,9 @@ class OpenDocumentsStorage implements WritableIndexStorage
         yield;
     }
 
-    public function getFileTimestamps(?Uri $filterUri = null): \Generator
+    public function getFileStamps(?Uri $filterUri = null): \Generator
     {
-        $timestamps = [];
+        $stamps = [];
         /** @var Document $document */
         foreach (yield $this->documentStore->getDocumentsForProject($this->project) as $document) {
             if ($document->get(self::KEY) !== null &&
@@ -107,11 +107,11 @@ class OpenDocumentsStorage implements WritableIndexStorage
                 || $filterUri->equals($document->getUri())
                 || $filterUri->isParentOf($document->getUri()))
             ) {
-                $timestamps[$document->getUri()->getNormalized()] = null;
+                $stamps[$document->getUri()->getNormalized()] = null;
             }
         }
 
-        return $timestamps;
+        return $stamps;
         yield;
     }
 }

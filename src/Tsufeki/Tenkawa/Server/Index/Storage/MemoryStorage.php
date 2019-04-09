@@ -15,9 +15,9 @@ class MemoryStorage implements WritableIndexStorage
     private $entries = [];
 
     /**
-     * @var array<string,int|null>
+     * @var array<string,string|null>
      */
-    private $timestamps = [];
+    private $stamps = [];
 
     public function search(Query $query): \Generator
     {
@@ -56,11 +56,11 @@ class MemoryStorage implements WritableIndexStorage
         yield;
     }
 
-    public function replaceFile(Uri $uri, array $entries, ?int $timestamp): \Generator
+    public function replaceFile(Uri $uri, array $entries, ?string $stamp): \Generator
     {
         $uriString = $uri->getNormalized();
         unset($this->entries[$uriString]);
-        unset($this->timestamps[$uriString]);
+        unset($this->stamps[$uriString]);
 
         foreach ($entries as $entry) {
             $entry->sourceUri = $uri;
@@ -68,24 +68,24 @@ class MemoryStorage implements WritableIndexStorage
         }
 
         if (!empty($entries)) {
-            $this->timestamps[$uriString] = $timestamp;
+            $this->stamps[$uriString] = $stamp;
         }
 
         return;
         yield;
     }
 
-    public function getFileTimestamps(?Uri $filterUri = null): \Generator
+    public function getFileStamps(?Uri $filterUri = null): \Generator
     {
         if ($filterUri === null) {
-            return $this->timestamps;
+            return $this->stamps;
         }
 
         $result = [];
-        foreach ($this->timestamps as $uriString => $timestamp) {
+        foreach ($this->stamps as $uriString => $stamp) {
             $uri = Uri::fromString($uriString);
             if ($filterUri->equals($uri) || $filterUri->isParentOf($uri)) {
-                $result[$uriString] = $timestamp;
+                $result[$uriString] = $stamp;
             }
         }
 

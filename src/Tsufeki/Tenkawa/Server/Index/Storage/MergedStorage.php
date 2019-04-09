@@ -34,12 +34,12 @@ class MergedStorage implements IndexStorage
         return $result;
     }
 
-    public function getFileTimestamps(?Uri $filterUri = null): \Generator
+    public function getFileStamps(?Uri $filterUri = null): \Generator
     {
         $result = [];
 
         foreach ($this->innerStorage as $storage) {
-            $result = array_merge($result, yield $storage->getFileTimestamps($filterUri));
+            $result = array_merge($result, yield $storage->getFileStamps($filterUri));
         }
 
         return $result;

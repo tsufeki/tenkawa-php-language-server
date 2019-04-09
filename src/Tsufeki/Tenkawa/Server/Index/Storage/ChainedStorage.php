@@ -32,7 +32,7 @@ class ChainedStorage implements IndexStorage
     public function search(Query $query): \Generator
     {
         $result = yield $this->primaryStorage->search($query);
-        $primaryFiles = yield $this->primaryStorage->getFileTimestamps();
+        $primaryFiles = yield $this->primaryStorage->getFileStamps();
 
         /** @var IndexEntry $entry */
         foreach (yield $this->secondaryStorage->search($query) as $entry) {
@@ -44,11 +44,11 @@ class ChainedStorage implements IndexStorage
         return $result;
     }
 
-    public function getFileTimestamps(?Uri $filterUri = null): \Generator
+    public function getFileStamps(?Uri $filterUri = null): \Generator
     {
         return array_merge(
-            yield $this->secondaryStorage->getFileTimestamps($filterUri),
-            yield $this->primaryStorage->getFileTimestamps($filterUri)
+            yield $this->secondaryStorage->getFileStamps($filterUri),
+            yield $this->primaryStorage->getFileStamps($filterUri)
         );
     }
 }

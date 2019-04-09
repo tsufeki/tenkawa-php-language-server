@@ -16,7 +16,7 @@ use Webmozart\PathUtil\Path;
 class SqliteStorage implements WritableIndexStorage
 {
     const MEMORY = ':memory:';
-    private const SCHEMA_VERSION = 5;
+    private const SCHEMA_VERSION = 6;
 
     /**
      * @var string
@@ -116,7 +116,7 @@ class SqliteStorage implements WritableIndexStorage
             data text not null,
             data_class text not null,
             tag varchar(255) null,
-            timestamp integer default null
+            stamp varchar(31) default null
         )')->execute();
 
         $this->getPdo()->prepare('create index if not exists tenkawa_index_source_uri
@@ -252,7 +252,7 @@ class SqliteStorage implements WritableIndexStorage
         return '~' . $this->makeFuzzyPattern($fuzzy, $separator) . '$~i';
     }
 
-    public function replaceFile(Uri $uri, array $entries, ?int $timestamp): \Generator
+    public function replaceFile(Uri $uri, array $entries, ?string $stamp): \Generator
     {
         $this->getPdo()->beginTransaction();
 
@@ -272,8 +272,8 @@ class SqliteStorage implements WritableIndexStorage
 
             $stmt = $this->getPdo()->prepare('
                 insert
-                    into tenkawa_index (source_uri, category, key, data, data_class, tag, timestamp)
-                    values (:sourceUri, :category, :key, :data, :dataClass, :tag, :timestamp)
+                    into tenkawa_index (source_uri, category, key, data, data_class, tag, stamp)
+                    values (:sourceUri, :category, :key, :data, :dataClass, :tag, :stamp)
             ');
 
             foreach ($entries as $entry) {
@@ -284,7 +284,7 @@ class SqliteStorage implements WritableIndexStorage
                     'data' => Json::encode($this->mapper->dump($entry->data)),
                     'dataClass' => is_object($entry->data) ? get_class($entry->data) : 'mixed',
                     'tag' => $entry->tag,
-                    'timestamp' => $timestamp,
+                    'stamp' => $stamp,
                 ]);
             }
         } catch (\Throwable $e) {
@@ -299,7 +299,7 @@ class SqliteStorage implements WritableIndexStorage
         yield;
     }
 
-    public function getFileTimestamps(?Uri $filterUri = null): \Generator
+    public function getFileStamps(?Uri $filterUri = null): \Generator
     {
         $params = [];
 
@@ -310,7 +310,7 @@ class SqliteStorage implements WritableIndexStorage
         }
 
         $sql = "
-            select $uriColumn as uri, min(timestamp) as timestamp
+            select $uriColumn as uri, min(stamp) as stamp
                 from tenkawa_index
                 group by uri
         ";
@@ -334,7 +334,7 @@ class SqliteStorage implements WritableIndexStorage
 
         $result = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $result[$this->uriMapper->restorePrefixNormalized($row['uri'])] = (int)$row['timestamp'] ?: null;
+            $result[$this->uriMapper->restorePrefixNormalized($row['uri'])] = (string)$row['stamp'] ?: null;
         }
 
         return $result;

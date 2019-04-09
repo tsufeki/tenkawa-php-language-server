@@ -10,5 +10,5 @@ interface WritableIndexStorage extends IndexStorage
     /**
      * @param IndexEntry[] $entries
      */
-    public function replaceFile(Uri $uri, array $entries, ?int $timestamp): \Generator;
+    public function replaceFile(Uri $uri, array $entries, ?string $stamp): \Generator;
 }
