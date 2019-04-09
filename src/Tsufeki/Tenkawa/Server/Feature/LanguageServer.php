@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Server\Feature;
 
 use Psr\Log\LoggerInterface;
+use Recoil\Recoil;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
 use Tsufeki\BlancheJsonRpc\MappedJsonRpc;
 use Tsufeki\Tenkawa\Server\Document\DocumentStore;
@@ -115,12 +116,12 @@ class LanguageServer implements MethodProvider
             yield $feature->initialize($capabilities, $serverCapabilities);
         }
 
-        $this->configurationFeature->setDefaults($initializationOptions);
-        yield $this->workspaceFeature->openInitialProjects($rootPath, $rootUri, $workspaceFolders);
+        $this->configurationFeature->setClientDefaults($initializationOptions);
 
         $result = new InitializeResult();
         $result->capabilities = $serverCapabilities;
 
+        yield Recoil::execute($this->workspaceFeature->openInitialProjects($rootPath, $rootUri, $workspaceFolders));
         yield $this->eventDispatcher->dispatch(OnInit::class);
 
         $this->logger->debug(__FUNCTION__ . " [$time]");

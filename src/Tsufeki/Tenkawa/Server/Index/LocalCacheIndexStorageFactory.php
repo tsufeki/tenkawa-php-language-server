@@ -8,6 +8,7 @@ use Tsufeki\Tenkawa\Server\Index\Storage\OpenDocumentsStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\SqliteStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\WritableIndexStorage;
 use Tsufeki\Tenkawa\Server\Io\Directories;
+use Tsufeki\Tenkawa\Server\Uri;
 
 class LocalCacheIndexStorageFactory implements IndexStorageFactory
 {
@@ -40,6 +41,17 @@ class LocalCacheIndexStorageFactory implements IndexStorageFactory
             $this->cacheDir . "/project-$hash.sqlite",
             $indexDataVersion,
             (string)$project->getRootUri()
+        );
+    }
+
+    public function createStubsIndex(Uri $uri, string $indexDataVersion): WritableIndexStorage
+    {
+        $hash = sha1((string)$uri);
+
+        return new SqliteStorage(
+            $this->cacheDir . "/stubs-$hash.sqlite",
+            $indexDataVersion,
+            (string)$uri
         );
     }
 }

@@ -7,6 +7,7 @@ use Tsufeki\Tenkawa\Server\Document\Project;
 use Tsufeki\Tenkawa\Server\Index\Storage\MemoryStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\OpenDocumentsStorage;
 use Tsufeki\Tenkawa\Server\Index\Storage\WritableIndexStorage;
+use Tsufeki\Tenkawa\Server\Uri;
 
 class MemoryIndexStorageFactory implements IndexStorageFactory
 {
@@ -26,6 +27,11 @@ class MemoryIndexStorageFactory implements IndexStorageFactory
     }
 
     public function createProjectFilesIndex(Project $project, string $indexDataVersion): WritableIndexStorage
+    {
+        return new MemoryStorage();
+    }
+
+    public function createStubsIndex(Uri $uri, string $indexDataVersion): WritableIndexStorage
     {
         return new MemoryStorage();
     }

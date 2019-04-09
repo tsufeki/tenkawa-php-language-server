@@ -14,6 +14,7 @@ use Tsufeki\Tenkawa\Server\Event\Document\OnProjectOpen;
 use Tsufeki\Tenkawa\Server\Event\EventDispatcher;
 use Tsufeki\Tenkawa\Server\Event\OnFileChange;
 use Tsufeki\Tenkawa\Server\Event\OnIndexingFinished;
+use Tsufeki\Tenkawa\Server\Feature\Configuration\ConfigurationFeature;
 use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\ProgressGroup;
 use Tsufeki\Tenkawa\Server\Feature\ProgressNotification\ProgressNotificationFeature;
 use Tsufeki\Tenkawa\Server\Index\Storage\ChainedStorage;
@@ -26,6 +27,7 @@ use Tsufeki\Tenkawa\Server\Io\FileReader;
 use Tsufeki\Tenkawa\Server\Uri;
 use Tsufeki\Tenkawa\Server\Utils\PriorityKernel\Priority;
 use Tsufeki\Tenkawa\Server\Utils\Stopwatch;
+use Webmozart\PathUtil\Path;
 
 class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
 {
@@ -80,6 +82,11 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
     private $eventDispatcher;
 
     /**
+     * @var ConfigurationFeature
+     */
+    private $configuration;
+
+    /**
      * @var ProgressGroup
      */
     private $progress;
@@ -115,6 +122,7 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         array $fileFilters,
         array $fileFilterFactories,
         EventDispatcher $eventDispatcher,
+        ConfigurationFeature $configuration,
         ProgressNotificationFeature $progressNotificationFeature,
         LoggerInterface $logger
     ) {
@@ -127,6 +135,7 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         $this->fileFilters = $fileFilters;
         $this->fileFilterFactories = $fileFilterFactories;
         $this->eventDispatcher = $eventDispatcher;
+        $this->configuration = $configuration;
         $this->progress = $progressNotificationFeature->create();
         $this->logger = $logger;
 
@@ -261,6 +270,9 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         $this->buildingGlobalIndex = false;
     }
 
+    /**
+     * @resolve IndexStorage
+     */
     private function getGlobalIndex(): \Generator
     {
         if ($this->globalIndex === null) {
@@ -272,8 +284,44 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         return $this->globalIndex;
     }
 
+    /**
+     * @resolve IndexStorage[]
+     */
+    private function getStubsIndexes(Project $project): \Generator
+    {
+        if (!$project->getRootUri()->isFilesystemPath()) {
+            return [];
+        }
+
+        /** @var string[] */
+        $paths = (yield $this->configuration->get('index.stubs', $project)) ?: [];
+        $uris = array_map(function (string $path) use ($project): Uri {
+            return Uri::fromFilesystemPath(Path::makeAbsolute($path, $project->getRootUri()->getFilesystemPath()));
+        }, $paths);
+        $indexes = [];
+
+        foreach ($uris as $uri) {
+            $indexes[] = $index = $this->indexStorageFactory->createStubsIndex($uri, $this->indexDataVersion);
+            $stubsProject = new Project($uri);
+
+            yield Recoil::execute(function () use ($stubsProject, $index) {
+                yield Priority::background(-50);
+                yield $this->indexProject($stubsProject, $index, null);
+            });
+        }
+
+        return $indexes;
+    }
+
     public function onProjectOpen(Project $project): \Generator
     {
+        if ($project->get('index.open_files') !== null) {
+            return;
+        }
+
+        $globalIndex = yield $this->getGlobalIndex();
+        $stubsIndexes = yield $this->getStubsIndexes($project);
+
         if ($project->get('index.open_files') !== null) {
             return;
         }
@@ -283,10 +331,11 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
 
         $index = new ChainedStorage(
             $openFilesIndex,
-            new MergedStorage([
-                $projectFilesIndex,
-                yield $this->getGlobalIndex(),
-            ])
+            new MergedStorage(array_merge(
+                [$projectFilesIndex],
+                $stubsIndexes,
+                [$globalIndex]
+            ))
         );
 
         $projectOnlyIndex = new ChainedStorage(
@@ -313,6 +362,7 @@ class Indexer implements OnOpen, OnChange, OnClose, OnProjectOpen, OnFileChange
         yield Priority::interactive(10);
         /** @var Project $project */
         $project = yield $this->documentStore->getProjectForDocument($document);
+        yield $this->onProjectOpen($project);
 
         /** @var WritableIndexStorage $openFilesIndex */
         $openFilesIndex = $project->get('index.open_files');

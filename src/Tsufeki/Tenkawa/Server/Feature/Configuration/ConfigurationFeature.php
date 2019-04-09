@@ -6,6 +6,7 @@ use Psr\Log\LoggerInterface;
 use Tsufeki\BlancheJsonRpc\Dispatcher\MethodProvider;
 use Tsufeki\BlancheJsonRpc\MappedJsonRpc;
 use Tsufeki\Tenkawa\Server\Document\Document;
+use Tsufeki\Tenkawa\Server\Document\Project;
 use Tsufeki\Tenkawa\Server\Event\OnInit;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ClientCapabilities;
 use Tsufeki\Tenkawa\Server\Feature\Capabilities\ServerCapabilities;
@@ -64,12 +65,18 @@ class ConfigurationFeature implements Feature, MethodProvider, OnInit
     /**
      * @var mixed
      */
-    private $defaults;
+    private $clientDefaults;
+
+    /**
+     * @var mixed
+     */
+    private $serverDefaults;
 
     private const VALUES_KEY = 'configuration.values';
     private const TIME_KEY = 'configuration.time';
 
     public function __construct(
+        $serverDefaults,
         RegistrationFeature $registrationFeature,
         MappedJsonRpc $rpc,
         LoggerInterface $logger
@@ -77,6 +84,7 @@ class ConfigurationFeature implements Feature, MethodProvider, OnInit
         $this->registrationFeature = $registrationFeature;
         $this->rpc = $rpc;
         $this->logger = $logger;
+        $this->serverDefaults = $serverDefaults;
         $this->rootKey = 'tenkawaphp';
     }
 
@@ -105,16 +113,17 @@ class ConfigurationFeature implements Feature, MethodProvider, OnInit
     }
 
     /**
-     * @param string $key Configuration key, possibly with multiple dot-separated parts.
+     * @param string                $key               Configuration key, possibly with multiple dot-separated parts.
+     * @param Document|Project|null $documentOrProject
      *
      * @resolve mixed|null
      */
-    public function get(string $key, ?Document $document = null): \Generator
+    public function get(string $key, $documentOrProject = null): \Generator
     {
         $value = null;
 
-        if ($document !== null) {
-            $value = $this->extract($key, yield $this->getForDocument($document));
+        if ($documentOrProject !== null) {
+            $value = $this->extract($key, yield $this->getForDocumentOrProject($documentOrProject));
         }
 
         if ($value === null) {
@@ -122,7 +131,11 @@ class ConfigurationFeature implements Feature, MethodProvider, OnInit
         }
 
         if ($value === null) {
-            $value = $this->extract($key, $this->defaults);
+            $value = $this->extract($key, $this->clientDefaults);
+        }
+
+        if ($value === null) {
+            $value = $this->extract($key, $this->serverDefaults);
         }
 
         $this->logger->debug("Configuration get: $key=" . var_export($value, true));
@@ -130,18 +143,27 @@ class ConfigurationFeature implements Feature, MethodProvider, OnInit
         return $value;
     }
 
-    private function getForDocument(Document $document): \Generator
+    /**
+     * @param Document|Project $documentOrProject
+     */
+    private function getForDocumentOrProject($documentOrProject): \Generator
     {
-        if ($this->time !== $document->get(self::TIME_KEY)) {
+        if ($this->time !== $documentOrProject->get(self::TIME_KEY)) {
+            if ($documentOrProject instanceof Document) {
+                $uri = $documentOrProject->getUri();
+            } else {
+                $uri = $documentOrProject->getRootUri();
+            }
+
             $item = new ConfigurationItem();
-            $item->scopeUri = (string)$document->getUri();
+            $item->scopeUri = (string)$uri;
             $item->section = $this->rootKey;
             $value = (yield $this->getConfiguration([$item]))[0] ?? null;
-            $document->set(self::TIME_KEY, $this->time);
-            $document->set(self::VALUES_KEY, $value);
+            $documentOrProject->set(self::TIME_KEY, $this->time);
+            $documentOrProject->set(self::VALUES_KEY, $value);
         }
 
-        return $document->get(self::VALUES_KEY);
+        return $documentOrProject->get(self::VALUES_KEY);
     }
 
     private function getGlobals(): \Generator
@@ -165,9 +187,9 @@ class ConfigurationFeature implements Feature, MethodProvider, OnInit
         return $value;
     }
 
-    public function setDefaults($defaults): void
+    public function setClientDefaults($defaults): void
     {
-        $this->defaults = $defaults->{$this->rootKey} ?? null;
+        $this->clientDefaults = $defaults->{$this->rootKey} ?? null;
     }
 
     public function onInit(): \Generator
@@ -228,6 +250,12 @@ class ConfigurationFeature implements Feature, MethodProvider, OnInit
 
         $this->logger->debug('send: ' . __FUNCTION__);
 
-        return yield $this->rpc->call('workspace/configuration', compact('items'), 'mixed');
+        try {
+            return yield $this->rpc->call('workspace/configuration', compact('items'), 'mixed');
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to fetch configuration', ['exception' => $e]);
+
+            return [];
+        }
     }
 }

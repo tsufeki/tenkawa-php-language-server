@@ -7,6 +7,7 @@ use Psr\Log\LogLevel;
 use Recoil\Exception\StrandException;
 use Recoil\Kernel;
 use Recoil\React\ReactKernel;
+use Tsufeki\BlancheJsonRpc\Json;
 use Tsufeki\BlancheJsonRpc\MappedJsonRpc;
 use Tsufeki\BlancheJsonRpc\Transport\Transport;
 use Tsufeki\HmContainer\Container;
@@ -95,6 +96,7 @@ class Tenkawa
         $container->setValue(LoggerInterface::class, $this->logger);
         $container->setValue(Kernel::class, $this->kernel);
         $container->setValue(SyncAsync::class, new NestedKernelsSyncAsync([ReactKernel::class, 'create']));
+        $container->setValue('configuration.serverDefaults', $options['config'] ?? null);
 
         foreach ($this->plugins as $plugin) {
             $plugin->configureContainer($container, $options);
@@ -144,6 +146,7 @@ class Tenkawa
             'log.client' => false,
             'log.level' => LogLevel::INFO,
             'transport.socket' => false,
+            'config' => null,
         ];
 
         foreach ($cmdLineArgs as $arg) {
@@ -171,6 +174,9 @@ class Tenkawa
                         continue 2;
                     case '--socket':
                         $options['transport.socket'] = $value;
+                        continue 2;
+                    case '--config-json':
+                        $options['config'] = Json::decode($value ?: '{}');
                         continue 2;
                 }
             }

@@ -101,9 +101,14 @@ class Uri
         return implode($delimiter, array_map('rawurlencode', explode($delimiter, $string) ?: []));
     }
 
+    public function isFilesystemPath(): bool
+    {
+        return in_array($this->scheme, ['file', null], true);
+    }
+
     public function getFilesystemPath(): string
     {
-        if (!in_array($this->scheme, ['file', null], true)) {
+        if (!$this->isFilesystemPath()) {
             throw new UriException("Not a file URI: $this");
         }
 

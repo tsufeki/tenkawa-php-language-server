@@ -142,7 +142,7 @@ class ServerPlugin extends Plugin
         $container->setAlias(Feature::class, CompletionFeature::class, true);
         $container->setAlias(MethodProvider::class, CompletionFeature::class, true);
 
-        $container->setClass(ConfigurationFeature::class);
+        $container->setClass(ConfigurationFeature::class, null, false, ['configuration.serverDefaults']);
         $container->setAlias(Feature::class, ConfigurationFeature::class, true);
         $container->setAlias(MethodProvider::class, ConfigurationFeature::class, true);
         $container->setAlias(OnInit::class, ConfigurationFeature::class, true);

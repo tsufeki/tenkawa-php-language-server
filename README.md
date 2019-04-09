@@ -122,6 +122,8 @@ Command line options
   `<level>` can be one of `emergency`, `alert`, `critical`, `error`,
   `warning`, `notice`, `info`, `debug`. Defaults to `info`.
 * `--build-index` - build standard library index instead of starting the server.
+* `--config-json=<json>` - default options, see [Configuration](#configuration).
+  Example: `--config-json={"completion":{"autoImport":false}}`.
 
 Configuration
 -------------
@@ -148,6 +150,10 @@ Recognized options:
       // By default, only some PHP extensions are used for autocompletion.
       // Additional ones can be enabled here.
       "extensions": ["mysqli", "redis"]
+    },
+    "index": {
+      // Additional stubs directories
+      "stubs": ["/path/to/stubs/dir"]
     }
   }
 }
