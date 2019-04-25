@@ -89,7 +89,7 @@ class ScheduledApi implements Api
 
     public function __call(string $name, array $arguments)
     {
-        return $this->innerApi->__call($name, $arguments);
+        return $this->innerApi->$name(...$arguments);
     }
 
     public function execute(SystemStrand $strand, $coroutine)
