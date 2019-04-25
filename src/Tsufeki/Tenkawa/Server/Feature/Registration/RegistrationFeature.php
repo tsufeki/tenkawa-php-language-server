@@ -11,7 +11,7 @@ use Tsufeki\Tenkawa\Server\Feature\Feature;
 class RegistrationFeature implements Feature
 {
     /**
-     * @var MappedJsonRpc
+     * @var MappedJsonRpc|null
      */
     private $rpc;
 
@@ -21,7 +21,7 @@ class RegistrationFeature implements Feature
     private $logger;
 
     public function __construct(
-        MappedJsonRpc $rpc,
+        ?MappedJsonRpc $rpc = null,
         LoggerInterface $logger
     ) {
         $this->rpc = $rpc;
@@ -50,6 +50,10 @@ class RegistrationFeature implements Feature
      */
     public function registerCapability(array $registrations): \Generator
     {
+        if ($this->rpc === null) {
+            throw new \LogicException('Not connected');
+        }
+
         $unregistrations = [];
         foreach ($registrations as $registration) {
             $registration->id = $registration->id ?? $this->generateId();
@@ -73,6 +77,10 @@ class RegistrationFeature implements Feature
      */
     public function unregisterCapability(array $unregisterations): \Generator
     {
+        if ($this->rpc === null) {
+            throw new \LogicException('Not connected');
+        }
+
         $this->logger->debug('send: ' . __FUNCTION__);
         yield $this->rpc->call('client/unregisterCapability', compact('unregisterations'));
     }

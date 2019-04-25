@@ -23,7 +23,7 @@ class ConfigurationFeature implements Feature, MethodProvider, OnInit
     private $registrationFeature;
 
     /**
-     * @var MappedJsonRpc
+     * @var MappedJsonRpc|null
      */
     private $rpc;
 
@@ -78,7 +78,7 @@ class ConfigurationFeature implements Feature, MethodProvider, OnInit
     public function __construct(
         $serverDefaults,
         RegistrationFeature $registrationFeature,
-        MappedJsonRpc $rpc,
+        ?MappedJsonRpc $rpc = null,
         LoggerInterface $logger
     ) {
         $this->registrationFeature = $registrationFeature;
@@ -244,14 +244,14 @@ class ConfigurationFeature implements Feature, MethodProvider, OnInit
      */
     private function getConfiguration(array $items): \Generator
     {
-        if (!$this->supportsConfigurationRequest) {
+        if (!$this->supportsConfigurationRequest || $this->rpc === null) {
             return [];
         }
 
         $this->logger->debug('send: ' . __FUNCTION__);
 
         try {
-            return yield $this->rpc->call('workspace/configuration', compact('items'), 'mixed');
+            return (yield $this->rpc->call('workspace/configuration', compact('items'), 'mixed')) ?? [];
         } catch (\Exception $e) {
             $this->logger->error('Failed to fetch configuration', ['exception' => $e]);
 
