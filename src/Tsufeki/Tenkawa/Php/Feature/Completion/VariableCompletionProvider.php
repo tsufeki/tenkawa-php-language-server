@@ -102,11 +102,17 @@ class VariableCompletionProvider implements CompletionProvider
                 $item->filterText = $name;
                 $item->sortText = $name;
                 $item->insertText = $name;
+
                 $item->textEdit = new TextEdit();
+                $item->textEdit->newText = $name;
                 $item->textEdit->range = clone $range;
                 $item->textEdit->range->start = clone $item->textEdit->range->start;
                 $item->textEdit->range->start->character++;
-                $item->textEdit->newText = $name;
+                if ($variableUnderCursor === null) {
+                    // when completing  `$` with empty name, following tokens
+                    // may be caught and parsed as variable variable, e.g. $ $a
+                    $item->textEdit->range->end = $item->textEdit->range->start;
+                }
 
                 $completions->items[] = $item;
             }
