@@ -131,6 +131,9 @@ class SqliteStorage implements WritableIndexStorage
         $this->getPdo()->prepare('create index if not exists tenkawa_index_tag
             on tenkawa_index (tag)')->execute();
 
+        $this->getPdo()->prepare('create index if not exists tenkawa_index_key_length
+            on tenkawa_index (length(key) asc)')->execute();
+
         $this->getPdo()->sqliteCreateFunction('regexp', static function ($pattern, $string) {
             return \preg_match($pattern, $string) === 1;
         }, 2);
@@ -202,14 +205,20 @@ class SqliteStorage implements WritableIndexStorage
             $fields[] = 'data_class';
         }
 
-        $stmt = $this->getPdo()->prepare('
-            select ' . implode(', ', $fields) . '
-                from tenkawa_index
-                where ' . implode(' and ', $conditions) . '
-                limit ' . ($query->limit ?? -1)
-        );
+        $sql = [
+            'select ' . implode(', ', $fields),
+            'from tenkawa_index',
+            'where ' . implode(' and ', $conditions),
+        ];
 
+        if ($query->limit !== null) {
+            $sql[] = 'order by length(key) asc';
+            $sql[] = 'limit ' . $query->limit;
+        }
+
+        $stmt = $this->getPdo()->prepare(implode(' ', $sql));
         $stmt->execute($params);
+
         $result = [];
         $i = 0;
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {

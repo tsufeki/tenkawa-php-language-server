@@ -34,7 +34,7 @@ class CompletionList
         }
 
         $completions->items = array_merge(...array_map(function (CompletionList $list) {
-            return $list->items;
+            return array_values($list->items);
         }, $completionsLists));
 
         $completions->isIncomplete = 0 !== array_sum(array_map(function (CompletionList $list) {
