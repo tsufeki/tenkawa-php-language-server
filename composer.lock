@@ -362,12 +362,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "b0d555d088d7109ceefeb22488a869cc20a78ffc"
+                "reference": "39e3cc814e4fdd1c738e43da4eb6d9c83325e4b0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/b0d555d088d7109ceefeb22488a869cc20a78ffc",
-                "reference": "b0d555d088d7109ceefeb22488a869cc20a78ffc",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/39e3cc814e4fdd1c738e43da4eb6d9c83325e4b0",
+                "reference": "39e3cc814e4fdd1c738e43da4eb6d9c83325e4b0",
                 "shasum": ""
             },
             "require-dev": {
@@ -393,7 +393,7 @@
                 "stubs",
                 "type"
             ],
-            "time": "2019-04-24T18:12:42+00:00"
+            "time": "2019-04-26T11:38:43+00:00"
         },
         {
             "name": "league/html-to-markdown",
@@ -1139,16 +1139,16 @@
         },
         {
             "name": "phpdocumentor/reflection-docblock",
-            "version": "4.3.0",
+            "version": "4.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpDocumentor/ReflectionDocBlock.git",
-                "reference": "94fd0001232e47129dd3504189fa1c7225010d08"
+                "reference": "bdd9f737ebc2a01c06ea7ff4308ec6697db9b53c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/94fd0001232e47129dd3504189fa1c7225010d08",
-                "reference": "94fd0001232e47129dd3504189fa1c7225010d08",
+                "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/bdd9f737ebc2a01c06ea7ff4308ec6697db9b53c",
+                "reference": "bdd9f737ebc2a01c06ea7ff4308ec6697db9b53c",
                 "shasum": ""
             },
             "require": {
@@ -1186,7 +1186,7 @@
                 }
             ],
             "description": "With this component, a library can provide support for annotations via DocBlocks or otherwise retrieve information that is embedded in a DocBlock.",
-            "time": "2017-11-30T07:14:17+00:00"
+            "time": "2019-04-30T17:48:53+00:00"
         },
         {
             "name": "phpdocumentor/type-resolver",
@@ -2351,7 +2351,7 @@
                 },
                 {
                     "name": "Gert de Pagter",
-                    "email": "backendtea@gmail.com"
+                    "email": "BackEndTea@gmail.com"
                 }
             ],
             "description": "Symfony polyfill for ctype functions",
