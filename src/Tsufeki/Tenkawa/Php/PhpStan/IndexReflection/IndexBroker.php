@@ -2,7 +2,7 @@
 
 namespace Tsufeki\Tenkawa\Php\PhpStan\IndexReflection;
 
-use PhpParser\Node\Expr\New_;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\PrettyPrinter\Standard;
@@ -199,9 +199,9 @@ class IndexBroker extends Broker implements AnalysedDocumentAware, AnalysedCache
         return $classReflection;
     }
 
-    public function getAnonymousClassReflection(New_ $node, Scope $scope): ClassReflection
+    public function getAnonymousClassReflection(Class_ $classNode, Scope $scope): ClassReflection
     {
-        if (!$node->class instanceof Class_) {
+        if (isset($classNode->namespacedName)) {
             throw new \PHPStan\ShouldNotHappenException();
         }
 
@@ -211,7 +211,9 @@ class IndexBroker extends Broker implements AnalysedDocumentAware, AnalysedCache
             $scopeFile = $trait->getFileName() ?: $scopeFile;
         }
 
-        $className = NameHelper::getAnonymousClassName(Uri::fromFilesystemPath($scopeFile), $node->class);
+        $className = NameHelper::getAnonymousClassName(Uri::fromFilesystemPath($scopeFile), $classNode);
+        $classNode->name = new Identifier($className);
+        $classNode->setAttribute('anonymousClass', true);
 
         return $this->getClass($className);
     }

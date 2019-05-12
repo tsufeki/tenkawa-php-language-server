@@ -50,6 +50,7 @@ use PHPStan\Type\Php\ArgumentBasedFunctionReturnTypeExtension;
 use PHPStan\Type\Php\ArrayFillFunctionReturnTypeExtension;
 use PHPStan\Type\Php\ArrayFillKeysFunctionReturnTypeExtension;
 use PHPStan\Type\Php\ArrayFilterFunctionReturnTypeReturnTypeExtension;
+use PHPStan\Type\Php\ArrayKeyDynamicReturnTypeExtension;
 use PHPStan\Type\Php\ArrayKeyExistsFunctionTypeSpecifyingExtension;
 use PHPStan\Type\Php\ArrayKeyFirstDynamicReturnTypeExtension;
 use PHPStan\Type\Php\ArrayKeyLastDynamicReturnTypeExtension;
@@ -61,16 +62,20 @@ use PHPStan\Type\Php\ArrayPopFunctionReturnTypeExtension;
 use PHPStan\Type\Php\ArrayReduceFunctionReturnTypeExtension;
 use PHPStan\Type\Php\ArraySearchFunctionDynamicReturnTypeExtension;
 use PHPStan\Type\Php\ArrayShiftFunctionReturnTypeExtension;
+use PHPStan\Type\Php\ArraySliceFunctionReturnTypeExtension;
 use PHPStan\Type\Php\ArrayValuesFunctionDynamicReturnTypeExtension;
 use PHPStan\Type\Php\AssertFunctionTypeSpecifyingExtension;
 use PHPStan\Type\Php\CountFunctionReturnTypeExtension;
+use PHPStan\Type\Php\CountFunctionTypeSpecifyingExtension;
 use PHPStan\Type\Php\CurlInitReturnTypeExtension;
 use PHPStan\Type\Php\DefineConstantTypeSpecifyingExtension;
 use PHPStan\Type\Php\DefinedConstantTypeSpecifyingExtension;
 use PHPStan\Type\Php\DioStatDynamicFunctionReturnTypeExtension;
 use PHPStan\Type\Php\ExplodeFunctionDynamicReturnTypeExtension;
+use PHPStan\Type\Php\FilterVarDynamicReturnTypeExtension;
 use PHPStan\Type\Php\GetParentClassDynamicFunctionReturnTypeExtension;
 use PHPStan\Type\Php\GettimeofdayDynamicFunctionReturnTypeExtension;
+use PHPStan\Type\Php\HrtimeFunctionReturnTypeExtension;
 use PHPStan\Type\Php\InArrayFunctionTypeSpecifyingExtension;
 use PHPStan\Type\Php\IsAFunctionTypeSpecifyingExtension;
 use PHPStan\Type\Php\IsArrayFunctionTypeSpecifyingExtension;
@@ -88,14 +93,16 @@ use PHPStan\Type\Php\IsScalarFunctionTypeSpecifyingExtension;
 use PHPStan\Type\Php\IsStringFunctionTypeSpecifyingExtension;
 use PHPStan\Type\Php\IsSubclassOfFunctionTypeSpecifyingExtension;
 use PHPStan\Type\Php\JsonThrowOnErrorDynamicReturnTypeExtension;
-use PHPStan\Type\Php\MbStrlenFunctionReturnTypeExtension;
+use PHPStan\Type\Php\MbFunctionsReturnTypeExtension;
 use PHPStan\Type\Php\MethodExistsTypeSpecifyingExtension;
 use PHPStan\Type\Php\MicrotimeFunctionReturnTypeExtension;
 use PHPStan\Type\Php\MinMaxFunctionReturnTypeExtension;
+use PHPStan\Type\Php\ParseUrlFunctionDynamicReturnTypeExtension;
 use PHPStan\Type\Php\PathinfoFunctionDynamicReturnTypeExtension;
 use PHPStan\Type\Php\PropertyExistsTypeSpecifyingExtension;
 use PHPStan\Type\Php\RangeFunctionReturnTypeExtension;
 use PHPStan\Type\Php\ReplaceFunctionsDynamicReturnTypeExtension;
+use PHPStan\Type\Php\SprintfFunctionDynamicReturnTypeExtension;
 use PHPStan\Type\Php\StatDynamicReturnTypeExtension;
 use PHPStan\Type\Php\StrSplitFunctionReturnTypeExtension;
 use PHPStan\Type\Php\StrtotimeFunctionReturnTypeExtension;
@@ -103,6 +110,7 @@ use PHPStan\Type\Php\TypeSpecifyingFunctionsDynamicReturnTypeExtension;
 use PHPStan\Type\Php\VarExportFunctionDynamicReturnTypeExtension;
 use PHPStan\Type\Php\VersionCompareFunctionDynamicReturnTypeExtension;
 use PHPStan\Type\StaticMethodTypeSpecifyingExtension;
+use PHPStan\Type\TypeCombinator;
 use Tsufeki\HmContainer\Container;
 use Tsufeki\HmContainer\Definition\Value;
 use Tsufeki\Tenkawa\Php\Composer\ComposerService;
@@ -348,12 +356,16 @@ class PhpPlugin extends Plugin
 
         $container->setClass(WorkspaceSymbolsProvider::class, ReflectionWorkspaceSymbolsProvider::class, true);
 
+        TypeCombinator::$enableSubtractableTypes = true;
+
         $container->setValue('checkAlwaysTrueCheckTypeFunctionCall', true);
         $container->setValue('checkAlwaysTrueInstanceof', true);
         $container->setValue('checkAlwaysTrueStrictComparison', true);
         $container->setValue('checkArgumentTypes', true);
         $container->setValue('checkArgumentsPassedByReference', true);
         $container->setValue('checkClassCaseSensitivity', true);
+        $container->setValue('checkExplicitMixedMissingReturn', true);
+        $container->setValue('checkPhpDocMissingReturn', true);
         $container->setValue('checkFunctionNameCase', true);
         $container->setValue('checkMaybeUndefinedVariables', true);
         $container->setValue('checkNullables', true);
@@ -361,19 +373,38 @@ class PhpPlugin extends Plugin
         $container->setValue('checkUnionTypes', true);
         $container->setValue('cliArgumentsVariablesRegistered', true);
         $container->setValue('earlyTerminatingMethodCalls', []);
+        $container->setValue('missingClosureNativeReturnCheckObjectTypehint', false);
         $container->setValue('polluteCatchScopeWithTryAssignments', false);
         $container->setValue('polluteScopeWithLoopInitialAssignments', false);
+        $container->setValue('polluteScopeWithAlwaysIterableForeach', false);
         $container->setValue('reportMagicProperties', true);
         $container->setValue('reportMagicMethods', true);
         $container->setValue('reportMaybes', true);
+        $container->setValue('reportMaybesInMethodSignatures', true);
+        $container->setValue('reportStaticMethodSignatures', true);
         $container->setValue('universalObjectCratesClasses', ['stdClass', 'SimpleXMLElement']);
         $container->setValue('dynamicConstantNames', [
             'ICONV_IMPL',
             'PHP_VERSION',
+            'PHP_MAJOR_VERSION',
+            'PHP_MINOR_VERSION',
+            'PHP_RELEASE_VERSION',
+            'PHP_VERSION_ID',
             'PHP_EXTRA_VERSION',
+            'PHP_ZTS',
+            'PHP_DEBUG',
+            'PHP_MAXPATHLEN',
             'PHP_OS',
             'PHP_OS_FAMILY',
             'PHP_SAPI',
+            'PHP_EOL',
+            'PHP_INT_MAX',
+            'PHP_INT_MIN',
+            'PHP_INT_SIZE',
+            'PHP_FLOAT_DIG',
+            'PHP_FLOAT_EPSILON',
+            'PHP_FLOAT_MIN',
+            'PHP_FLOAT_MAX',
             'DEFAULT_INCLUDE_PATH',
             'PEAR_INSTALL_DIR',
             'PEAR_EXTENSION_DIR',
@@ -390,21 +421,14 @@ class PhpPlugin extends Plugin
             'PHP_CONFIG_FILE_SCAN_DIR',
             'PHP_SHLIB_SUFFIX',
             'PHP_FD_SETSIZE',
-            'PHP_MAJOR_VERSION',
-            'PHP_MINOR_VERSION',
-            'PHP_RELEASE_VERSION',
-            'PHP_VERSION_ID',
-            'PHP_ZTS',
-            'PHP_DEBUG',
-            'PHP_MAXPATHLEN',
         ]);
 
         $container->setClass(TypeInference::class, PhpStanTypeInference::class);
         $container->setClass(AstPruner::class);
         $container->setClass(NodeScopeResolver::class, null, false,
-            [null, null, null, null, null, 'polluteScopeWithLoopInitialAssignments', 'polluteCatchScopeWithTryAssignments', 'earlyTerminatingMethodCalls']
+            [null, null, null, null, null, 'polluteScopeWithLoopInitialAssignments', 'polluteCatchScopeWithTryAssignments', 'polluteScopeWithAlwaysIterableForeach', 'earlyTerminatingMethodCalls']
         );
-        $container->setClass(ScopeFactory::class, null, false, [new Value(Scope::class), null, null, null, 'dynamicConstantNames']);
+        $container->setClass(ScopeFactory::class, null, false, [new Value(Scope::class)]);
         $container->setClass(DocumentParser::class);
         $container->setAlias(PhpStanParser::class, DocumentParser::class);
         $container->setAlias(AnalysedDocumentAware::class, DocumentParser::class, true);
@@ -450,6 +474,7 @@ class PhpPlugin extends Plugin
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayFillFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayFillKeysFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayFilterFunctionReturnTypeReturnTypeExtension::class, true);
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayKeyDynamicReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayKeyFirstDynamicReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayKeyLastDynamicReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayKeysFunctionDynamicReturnTypeExtension::class, true);
@@ -460,20 +485,25 @@ class PhpPlugin extends Plugin
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayReduceFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArraySearchFunctionDynamicReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayShiftFunctionReturnTypeExtension::class, true);
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, ArraySliceFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ArrayValuesFunctionDynamicReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, CountFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, CurlInitReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, DioStatDynamicFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ExplodeFunctionDynamicReturnTypeExtension::class, true);
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, FilterVarDynamicReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, GetParentClassDynamicFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, GettimeofdayDynamicFunctionReturnTypeExtension::class, true);
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, HrtimeFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, JsonThrowOnErrorDynamicReturnTypeExtension::class, true);
-        $container->setClass(DynamicFunctionReturnTypeExtension::class, MbStrlenFunctionReturnTypeExtension::class, true);
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, MbFunctionsReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, MicrotimeFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, MinMaxFunctionReturnTypeExtension::class, true);
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, ParseUrlFunctionDynamicReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, PathinfoFunctionDynamicReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, RangeFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, ReplaceFunctionsDynamicReturnTypeExtension::class, true);
+        $container->setClass(DynamicFunctionReturnTypeExtension::class, SprintfFunctionDynamicReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, StatDynamicReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, StrSplitFunctionReturnTypeExtension::class, true);
         $container->setClass(DynamicFunctionReturnTypeExtension::class, StrtotimeFunctionReturnTypeExtension::class, true);
@@ -482,6 +512,7 @@ class PhpPlugin extends Plugin
         $container->setClass(DynamicFunctionReturnTypeExtension::class, VersionCompareFunctionDynamicReturnTypeExtension::class, true);
         $container->setClass(FunctionTypeSpecifyingExtension::class, ArrayKeyExistsFunctionTypeSpecifyingExtension::class, true);
         $container->setClass(FunctionTypeSpecifyingExtension::class, AssertFunctionTypeSpecifyingExtension::class, true);
+        $container->setClass(FunctionTypeSpecifyingExtension::class, CountFunctionTypeSpecifyingExtension::class, true);
         $container->setClass(FunctionTypeSpecifyingExtension::class, DefineConstantTypeSpecifyingExtension::class, true);
         $container->setClass(FunctionTypeSpecifyingExtension::class, DefinedConstantTypeSpecifyingExtension::class, true);
         $container->setClass(FunctionTypeSpecifyingExtension::class, InArrayFunctionTypeSpecifyingExtension::class, true);
@@ -505,15 +536,21 @@ class PhpPlugin extends Plugin
 
         $container->setClass(Rule::class, Rules\Arrays\AppendedArrayItemTypeRule::class, true);
         $container->setClass(Rule::class, Rules\Arrays\AppendedArrayKeyTypeRule::class, true, [null, 'checkUnionTypes']);
+        $container->setClass(Rule::class, Rules\Arrays\DeadForeachRule::class, true);
         $container->setClass(Rule::class, Rules\Arrays\DuplicateKeysInLiteralArraysRule::class, true);
         $container->setClass(Rule::class, Rules\Arrays\InvalidKeyInArrayDimFetchRule::class, true, ['reportMaybes']);
         $container->setClass(Rule::class, Rules\Arrays\InvalidKeyInArrayItemRule::class, true, ['reportMaybes']);
         $container->setClass(Rule::class, Rules\Arrays\IterableInForeachRule::class, true);
-        $container->setClass(Rule::class, Rules\Arrays\NonexistentOffsetInArrayDimFetchRule::class, true);
+        $container->setClass(Rule::class, Rules\Arrays\NonexistentOffsetInArrayDimFetchRule::class, true, [null, 'reportMaybes']);
+        $container->setClass(Rule::class, Rules\Arrays\OffsetAccessAssignmentRule::class, true);
+        $container->setClass(Rule::class, Rules\Arrays\OffsetAccessAssignOpRule::class, true);
+        $container->setClass(Rule::class, Rules\Arrays\OffsetAccessWithoutDimForReadingRule::class, true);
+        $container->setClass(Rule::class, Rules\Cast\EchoRule::class, true);
         // $container->setClass(Rule::class, Rules\Cast\InvalidCastRule::class, true);
         $container->setClass(Rule::class, Rules\Cast\InvalidPartOfEncapsedStringRule::class, true);
-        $container->setClass(Rule::class, Rules\Cast\UselessCastRule::class, true);
+        $container->setClass(Rule::class, Rules\Cast\PrintRule::class, true);
         $container->setClass(Rule::class, Rules\Classes\ClassConstantRule::class, true);
+        $container->setClass(Rule::class, Rules\Classes\ClassConstantDeclarationRule::class, true);
         $container->setClass(Rule::class, Rules\Classes\ExistingClassInClassExtendsRule::class, true);
         $container->setClass(Rule::class, Rules\Classes\ExistingClassInInstanceOfRule::class, true, [null, null, 'checkClassCaseSensitivity']);
         $container->setClass(Rule::class, Rules\Classes\ExistingClassInTraitUseRule::class, true);
@@ -533,44 +570,65 @@ class PhpPlugin extends Plugin
         $container->setClass(Rule::class, Rules\Comparison\ImpossibleCheckTypeStaticMethodCallRule::class, true, [null, 'checkAlwaysTrueCheckTypeFunctionCall']);
         $container->setClass(Rule::class, Rules\Comparison\StrictComparisonOfDifferentTypesRule::class, true, ['checkAlwaysTrueStrictComparison']);
         $container->setClass(Rule::class, Rules\Comparison\TernaryOperatorConstantConditionRule::class, true);
+        $container->setClass(Rule::class, Rules\Comparison\UnreachableIfBranchesRule::class, true);
+        $container->setClass(Rule::class, Rules\Comparison\UnreachableTernaryElseBranchRule::class, true);
         $container->setClass(Rule::class, Rules\Constants\ConstantRule::class, true);
+        $container->setClass(Rule::class, Rules\DeadCode\NoopRule::class, true);
+        $container->setClass(Rule::class, Rules\DeadCode\UnreachableStatementRule::class, true);
         $container->setClass(Rule::class, Rules\Exceptions\CaughtExceptionExistenceRule::class, true, [null, null, 'checkClassCaseSensitivity']);
+        $container->setClass(Rule::class, Rules\Exceptions\DeadCatchRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\CallCallablesRule::class, true, [null, null, 'reportMaybes']);
         $container->setClass(Rule::class, Rules\Functions\CallToFunctionParametersRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\CallToNonExistentFunctionRule::class, true, [null, 'checkFunctionNameCase']);
         $container->setClass(Rule::class, Rules\Functions\ClosureReturnTypeRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\ExistingClassesInClosureTypehintsRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\ExistingClassesInTypehintsRule::class, true);
+        $container->setClass(Rule::class, Rules\Functions\IncompatibleDefaultParameterTypeRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\InnerFunctionRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\NonExistentDefinedFunctionRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\PrintfParametersRule::class, true);
         // $container->setClass(Rule::class, Rules\Functions\ReturnTypeRule::class, true);
         $container->setClass(Rule::class, Rules\Functions\UnusedClosureUsesRule::class, true);
+        $container->setClass(Rule::class, Rules\Generators\YieldFromTypeRule::class, true, [null, 'reportMaybes']);
+        $container->setClass(Rule::class, Rules\Generators\YieldInGeneratorRule::class, true, ['reportMaybes']);
+        $container->setClass(Rule::class, Rules\Generators\YieldTypeRule::class, true);
         $container->setClass(Rule::class, Rules\Methods\CallMethodsRule::class, true, [null, null, null, 'checkFunctionNameCase', 'reportMagicMethods']);
         $container->setClass(Rule::class, Rules\Methods\CallStaticMethodsRule::class, true, [null, null, null, null, 'checkFunctionNameCase', 'reportMagicMethods']);
         $container->setClass(Rule::class, Rules\Methods\ExistingClassesInTypehintsRule::class, true);
+        $container->setClass(Rule::class, Rules\Methods\IncompatibleDefaultParameterTypeRule::class, true);
+        $container->setClass(Rule::class, Rules\Methods\MethodSignatureRule::class, true, ['reportMaybesInMethodSignatures', 'reportStaticMethodSignatures']);
         $container->setClass(Rule::class, Rules\Methods\ReturnTypeRule::class, true);
+        $container->setClass(Rule::class, Rules\Missing\MissingClosureNativeReturnTypehintRule::class, true, ['missingClosureNativeReturnCheckObjectTypehint']);
+        $container->setClass(Rule::class, Rules\Missing\MissingReturnRule::class, true, ['checkExplicitMixedMissingReturn', 'checkPhpDocMissingReturn']);
         $container->setClass(Rule::class, Rules\Namespaces\ExistingNamesInGroupUseRule::class, true, [null, null, 'checkFunctionNameCase']);
         $container->setClass(Rule::class, Rules\Namespaces\ExistingNamesInUseRule::class, true, [null, null, 'checkFunctionNameCase']);
         $container->setClass(Rule::class, Rules\Operators\InvalidBinaryOperationRule::class, true);
+        $container->setClass(Rule::class, Rules\Operators\InvalidComparisonOperationRule::class, true);
         $container->setClass(Rule::class, Rules\Operators\InvalidIncDecOperationRule::class, true, ['checkThisOnly']);
         $container->setClass(Rule::class, Rules\Operators\InvalidUnaryOperationRule::class, true);
         $container->setClass(Rule::class, Rules\PhpDoc\IncompatiblePhpDocTypeRule::class, true);
+        $container->setClass(Rule::class, Rules\PhpDoc\IncompatiblePropertyPhpDocTypeRule::class, true);
         $container->setClass(Rule::class, Rules\PhpDoc\InvalidPhpDocTagValueRule::class, true);
         $container->setClass(Rule::class, Rules\PhpDoc\InvalidThrowsPhpDocValueRule::class, true);
-        $container->setClass(Rule::class, Rules\Properties\AccessPropertiesRule::class, true, [null, null, 'reportMagicProperties']);
-        $container->setClass(Rule::class, Rules\Properties\AccessStaticPropertiesRule::class, true);
+        $container->setClass(Rule::class, Rules\Properties\AccessPropertiesInAssignRule::class, true);
+        $container->setClass(Rule::class, Rules\Properties\AccessStaticPropertiesInAssignRule::class, true);
         $container->setClass(Rule::class, Rules\Properties\DefaultValueTypesAssignedToPropertiesRule::class, true);
         $container->setClass(Rule::class, Rules\Properties\ExistingClassesInPropertiesRule::class, true, [null, null, 'checkClassCaseSensitivity']);
         $container->setClass(Rule::class, Rules\Properties\ReadingWriteOnlyPropertiesRule::class, true, [null, null, null, 'checkThisOnly']);
         $container->setClass(Rule::class, Rules\Properties\TypesAssignedToPropertiesRule::class, true);
         $container->setClass(Rule::class, Rules\Properties\WritingToReadOnlyPropertiesRule::class, true, [null, null, null, 'checkThisOnly']);
+        $container->setClass(Rule::class, Rules\Regexp\RegularExpressionPatternRule::class, true);
         $container->setClass(Rule::class, Rules\Variables\DefinedVariableInAnonymousFunctionUseRule::class, true, ['checkMaybeUndefinedVariables']);
         $container->setClass(Rule::class, Rules\Variables\DefinedVariableRule::class, true, ['cliArgumentsVariablesRegistered', 'checkMaybeUndefinedVariables']);
         $container->setClass(Rule::class, Rules\Variables\ThisVariableRule::class, true);
         $container->setClass(Rule::class, Rules\Variables\ThrowTypeRule::class, true);
         $container->setClass(Rule::class, Rules\Variables\VariableCertaintyInIssetRule::class, true);
         $container->setClass(Rule::class, Rules\Variables\VariableCloningRule::class, true);
+
+        $container->setClass(Rules\Properties\AccessPropertiesRule::class, null, false, [null, null, 'reportMagicProperties']);
+        $container->setClass(Rules\Properties\AccessStaticPropertiesRule::class);
+        $container->setAlias(Rule::class, Rules\Properties\AccessPropertiesRule::class, true);
+        $container->setAlias(Rule::class, Rules\Properties\AccessStaticPropertiesRule::class, true);
     }
 
     /**

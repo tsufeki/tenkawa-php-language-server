@@ -3,6 +3,7 @@
 namespace Tsufeki\Tenkawa\Php\PhpStan;
 
 use PhpParser\Node;
+use PHPStan\AnalysedCodeException;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Registry;
 use Tsufeki\Tenkawa\Php\PhpStan\Analyser\Analyser;
@@ -88,9 +89,19 @@ class PhpStanDiagnosticsProvider implements WorkspaceDiagnosticsProvider
             $document,
             function (Node $node, Scope $scope) use (&$diagnostics) {
                 foreach ($this->registry->getRules(get_class($node)) as $rule) {
-                    foreach ($rule->processNode($node, $scope) as $message) {
+                    $ruleErrors = [];
+
+                    try {
+                        $ruleErrors = $rule->processNode($node, $scope);
+                    } catch (AnalysedCodeException $e) {
+                        $ruleErrors[] = $e->getMessage();
+                    }
+
+                    foreach ($ruleErrors as $ruleError) {
                         try {
-                            $uri = Uri::fromFilesystemPath($scope->getFile());
+                            $message = is_string($ruleError) ? $ruleError : $ruleError->getMessage();
+                            $path = $scope->getTraitReflection() ? $scope->getTraitReflection()->getFileName() : $scope->getFile();
+                            $uri = Uri::fromFilesystemPath($path);
                             $document = $this->documentStore->get($uri);
                             $diag = new Diagnostic();
                             $diag->severity = $this->severity;
