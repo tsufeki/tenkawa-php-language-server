@@ -139,8 +139,8 @@ class IndexBroker extends Broker implements AnalysedDocumentAware, AnalysedCache
                 {
                 }
             },
-            new class() extends RelativePathHelper {
-                public function __construct()
+            new class() implements RelativePathHelper {
+                public function getRelativePath(string $filename): string
                 {
                 }
             },

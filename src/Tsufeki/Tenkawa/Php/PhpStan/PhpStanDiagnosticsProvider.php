@@ -100,7 +100,7 @@ class PhpStanDiagnosticsProvider implements WorkspaceDiagnosticsProvider
                     foreach ($ruleErrors as $ruleError) {
                         try {
                             $message = is_string($ruleError) ? $ruleError : $ruleError->getMessage();
-                            $path = $scope->getTraitReflection() ? $scope->getTraitReflection()->getFileName() : $scope->getFile();
+                            $path = $scope->getTraitReflection() !== null ? $scope->getTraitReflection()->getFileName() : $scope->getFile();
                             $uri = Uri::fromFilesystemPath($path);
                             $document = $this->documentStore->get($uri);
                             $diag = new Diagnostic();
