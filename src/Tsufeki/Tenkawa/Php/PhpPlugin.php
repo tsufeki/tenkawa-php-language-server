@@ -12,6 +12,7 @@ use PHPStan\Analyser\ScopeFactory;
 use PHPStan\Analyser\TypeSpecifier;
 use PHPStan\Analyser\TypeSpecifierAwareExtension;
 use PHPStan\Broker\Broker;
+use PHPStan\DependencyInjection\Container as PhpStanContainer;
 use PHPStan\File\FileHelper;
 use PHPStan\Parser\Parser as PhpStanParser;
 use PHPStan\PhpDoc\PhpDocNodeResolver;
@@ -163,6 +164,7 @@ use Tsufeki\Tenkawa\Php\PhpStan\PhpStanSignatureFinder;
 use Tsufeki\Tenkawa\Php\PhpStan\PhpStanTypeInference;
 use Tsufeki\Tenkawa\Php\PhpStan\Utils\AstPruner;
 use Tsufeki\Tenkawa\Php\PhpStan\Utils\DocumentParser;
+use Tsufeki\Tenkawa\Php\PhpStan\Utils\DummyPhpStanContainer;
 use Tsufeki\Tenkawa\Php\PhpStan\Utils\ErrorTolerantPrettyPrinter;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolver;
 use Tsufeki\Tenkawa\Php\Reflection\ClassResolverExtension;
@@ -425,6 +427,7 @@ class PhpPlugin extends Plugin
 
         $container->setClass(TypeInference::class, PhpStanTypeInference::class);
         $container->setClass(AstPruner::class);
+        $container->setClass(PhpStanContainer::class, DummyPhpStanContainer::class, false, ['dynamicConstantNames']);
         $container->setClass(NodeScopeResolver::class, null, false,
             [null, null, null, null, null, 'polluteScopeWithLoopInitialAssignments', 'polluteCatchScopeWithTryAssignments', 'polluteScopeWithAlwaysIterableForeach', 'earlyTerminatingMethodCalls']
         );
