@@ -10,7 +10,7 @@ use Tsufeki\Tenkawa\Server\Utils\StringUtils;
 class MemoryStorage implements WritableIndexStorage
 {
     /**
-     * @var array<string,IndexEntry[]>
+     * @var array<string,array<string,IndexEntry[]>> uri => category => entries
      */
     private $entries = [];
 
@@ -24,31 +24,30 @@ class MemoryStorage implements WritableIndexStorage
         $result = [];
         $entries = $query->uri === null ? $this->entries : [$this->entries[$query->uri->getNormalized()] ?? []];
 
-        foreach ($entries as $fileEntries) {
-            foreach ($fileEntries as $entry) {
-                if ($query->category !== null && $entry->category !== $query->category) {
-                    continue;
-                }
+        foreach ($entries as $entriesByCategory) {
+            $categories = $query->category !== null ? [$query->category] : array_keys($entriesByCategory);
+            foreach ($categories as $category) {
+                foreach ($entriesByCategory[$category] ?? [] as $entry) {
+                    if ($query->key !== null) {
+                        if ($query->match === Query::FULL && $entry->key !== $query->key) {
+                            continue;
+                        }
 
-                if ($query->key !== null) {
-                    if ($query->match === Query::FULL && $entry->key !== $query->key) {
+                        if ($query->match === Query::PREFIX && !StringUtils::startsWith($entry->key, $query->key)) {
+                            continue;
+                        }
+
+                        if ($query->match === Query::SUFFIX && !StringUtils::endsWith($entry->key, $query->key)) {
+                            continue;
+                        }
+                    }
+
+                    if ($query->tag !== null && !in_array($entry->tag, $query->tag, true)) {
                         continue;
                     }
 
-                    if ($query->match === Query::PREFIX && !StringUtils::startsWith($entry->key, $query->key)) {
-                        continue;
-                    }
-
-                    if ($query->match === Query::SUFFIX && !StringUtils::endsWith($entry->key, $query->key)) {
-                        continue;
-                    }
+                    $result[] = $entry;
                 }
-
-                if ($query->tag !== null && !in_array($entry->tag, $query->tag, true)) {
-                    continue;
-                }
-
-                $result[] = $entry;
             }
         }
 
@@ -64,7 +63,7 @@ class MemoryStorage implements WritableIndexStorage
 
         foreach ($entries as $entry) {
             $entry->sourceUri = $uri;
-            $this->entries[$uriString][] = $entry;
+            $this->entries[$uriString][$entry->category][] = $entry;
         }
 
         if (!empty($entries)) {
