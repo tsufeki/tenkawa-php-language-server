@@ -362,12 +362,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JetBrains/phpstorm-stubs.git",
-                "reference": "b0d555d088d7109ceefeb22488a869cc20a78ffc"
+                "reference": "af4d1b9cf3ed4dd5a771da060b3f9cf55221d747"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/b0d555d088d7109ceefeb22488a869cc20a78ffc",
-                "reference": "b0d555d088d7109ceefeb22488a869cc20a78ffc",
+                "url": "https://api.github.com/repos/JetBrains/phpstorm-stubs/zipball/af4d1b9cf3ed4dd5a771da060b3f9cf55221d747",
+                "reference": "af4d1b9cf3ed4dd5a771da060b3f9cf55221d747",
                 "shasum": ""
             },
             "require-dev": {
@@ -393,7 +393,7 @@
                 "stubs",
                 "type"
             ],
-            "time": "2019-04-24T18:12:42+00:00"
+            "time": "2019-05-24T14:53:26+00:00"
         },
         {
             "name": "league/html-to-markdown",
@@ -984,16 +984,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v4.2.1",
+            "version": "v4.2.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "5221f49a608808c1e4d436df32884cbc1b821ac0"
+                "reference": "1bd73cc04c3843ad8d6b0bfc0956026a151fc420"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/5221f49a608808c1e4d436df32884cbc1b821ac0",
-                "reference": "5221f49a608808c1e4d436df32884cbc1b821ac0",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/1bd73cc04c3843ad8d6b0bfc0956026a151fc420",
+                "reference": "1bd73cc04c3843ad8d6b0bfc0956026a151fc420",
                 "shasum": ""
             },
             "require": {
@@ -1031,7 +1031,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2019-02-16T20:54:15+00:00"
+            "time": "2019-05-25T20:07:01+00:00"
         },
         {
             "name": "ocramius/package-versions",
@@ -2351,7 +2351,7 @@
                 },
                 {
                     "name": "Gert de Pagter",
-                    "email": "backendtea@gmail.com"
+                    "email": "BackEndTea@gmail.com"
                 }
             ],
             "description": "Symfony polyfill for ctype functions",
