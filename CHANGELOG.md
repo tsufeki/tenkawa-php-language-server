@@ -1,6 +1,21 @@
 Changelog
 =========
 
+0.4.2 - 2019-05-04
+------------------
+
+### Added
+
+* Automatically turn off xdebug for better performance.
+* Option to index additional stubs.
+
+### Fixed
+
+* Open documents index querying performance.
+* Sort completions by length to not lose (near-)exact matches when cutting long
+  lists.
+
+
 0.4.0 - 2018-12-30
 ------------------
 
