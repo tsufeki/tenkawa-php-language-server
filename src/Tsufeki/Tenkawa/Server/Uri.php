@@ -186,7 +186,7 @@ class Uri
     /**
      * Return normalized form of the URI, which should be suitable to use as array key.
      */
-    public function getNormalized(): string
+    public function getNormalized(bool $preserveCase = false): string
     {
         $normalized = clone $this;
 
@@ -203,7 +203,7 @@ class Uri
                 $normalized->path = '/';
             }
 
-            if (Platform::isWindows()) {
+            if (Platform::isWindows() && !$preserveCase) {
                 $normalized->path = strtolower($normalized->path);
             }
         }
@@ -261,12 +261,13 @@ class Uri
 
         $thisNormalized = $this->getNormalizedWithSlash();
         $subNormalized = $subUri->getNormalized();
+        $subNormalizedPreservedCase = $subUri->getNormalized(true);
 
         if (!StringUtils::startsWith($subNormalized, $thisNormalized)) {
             return null;
         }
 
-        return substr($subNormalized, strlen($thisNormalized));
+        return substr($subNormalizedPreservedCase, strlen($thisNormalized));
     }
 
     public function withLineNumber(int $lineNumber): self
