@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.4.3 - 2019-09-05
+------------------
+
+### Fixed
+
+* Windows: Preserve case when checking namespace/class name for autoloading.
+
 0.4.2 - 2019-05-04
 ------------------
 
