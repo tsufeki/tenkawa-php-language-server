@@ -24,6 +24,7 @@ unset($xdebug);
 $requiredExtensions = [
     'pdo_sqlite' => 2,
     'mbstring' => 3,
+    'xml' => 4,
 ];
 
 foreach ($requiredExtensions as $ext => $errorCode) {
