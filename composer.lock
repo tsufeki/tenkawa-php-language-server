@@ -370,8 +370,9 @@
                 "shasum": ""
             },
             "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.16",
                 "nikic/php-parser": "^4",
-                "php": "^7.1",
+                "php": "^7.4",
                 "phpdocumentor/reflection-docblock": "^4.3",
                 "phpunit/phpunit": "^7"
             },
@@ -401,16 +402,16 @@
         },
         {
             "name": "league/html-to-markdown",
-            "version": "4.9.0",
+            "version": "4.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/html-to-markdown.git",
-                "reference": "71319108e3db506250b8987721b13568fd9fa446"
+                "reference": "0868ae7a552e809e5cd8f93ba022071640408e88"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/html-to-markdown/zipball/71319108e3db506250b8987721b13568fd9fa446",
-                "reference": "71319108e3db506250b8987721b13568fd9fa446",
+                "url": "https://api.github.com/repos/thephpleague/html-to-markdown/zipball/0868ae7a552e809e5cd8f93ba022071640408e88",
+                "reference": "0868ae7a552e809e5cd8f93ba022071640408e88",
                 "shasum": ""
             },
             "require": {
@@ -461,7 +462,25 @@
                 "html",
                 "markdown"
             ],
-            "time": "2019-11-02T14:54:14+00:00"
+            "funding": [
+                {
+                    "url": "https://www.colinodell.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://www.paypal.me/colinpodell/10.00",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/colinodell",
+                    "type": "github"
+                },
+                {
+                    "url": "https://www.patreon.com/colinodell",
+                    "type": "patreon"
+                }
+            ],
+            "time": "2020-07-01T00:34:03+00:00"
         },
         {
             "name": "nette/bootstrap",
@@ -4089,8 +4108,8 @@
             "authors": [
                 {
                     "name": "Arne Blankerts",
-                    "role": "Developer",
-                    "email": "arne@blankerts.de"
+                    "email": "arne@blankerts.de",
+                    "role": "Developer"
                 }
             ],
             "description": "A small library for converting tokenized PHP source code into XML and potentially other formats",
@@ -4117,5 +4136,6 @@
         "ext-pdo": "*",
         "ext-pdo_sqlite": "*"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }
