@@ -370,10 +370,11 @@
                 "shasum": ""
             },
             "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.16",
                 "nikic/php-parser": "^4",
-                "php": "^7.1",
-                "phpdocumentor/reflection-docblock": "^4.3",
-                "phpunit/phpunit": "^7"
+                "php": "^7.4",
+                "phpdocumentor/reflection-docblock": "dev-master",
+                "phpunit/phpunit": "^9"
             },
             "type": "library",
             "autoload": {
@@ -2004,20 +2005,20 @@
         },
         {
             "name": "recoil/kernel",
-            "version": "1.0.2",
+            "version": "1.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/recoilphp/kernel.git",
-                "reference": "cf307c4f8de2b82dfd3798b1bdd1d2c229239b3a"
+                "reference": "10dcfb26890f93b9e3d671e5624a7e18cb3ed865"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/recoilphp/kernel/zipball/cf307c4f8de2b82dfd3798b1bdd1d2c229239b3a",
-                "reference": "cf307c4f8de2b82dfd3798b1bdd1d2c229239b3a",
+                "url": "https://api.github.com/repos/recoilphp/kernel/zipball/10dcfb26890f93b9e3d671e5624a7e18cb3ed865",
+                "reference": "10dcfb26890f93b9e3d671e5624a7e18cb3ed865",
                 "shasum": ""
             },
             "require": {
-                "icecave/repr": "^2",
+                "icecave/repr": "^4|^3|^2",
                 "php": "^7.1",
                 "recoil/api": "^1"
             },
@@ -2060,7 +2061,7 @@
                 "multitasking",
                 "react"
             ],
-            "time": "2019-10-31T08:17:10+00:00"
+            "time": "2020-08-25T06:12:52+00:00"
         },
         {
             "name": "recoil/react",
@@ -3404,6 +3405,7 @@
             "keywords": [
                 "tokenizer"
             ],
+            "abandoned": true,
             "time": "2019-09-17T06:23:10+00:00"
         },
         {
@@ -4089,8 +4091,8 @@
             "authors": [
                 {
                     "name": "Arne Blankerts",
-                    "role": "Developer",
-                    "email": "arne@blankerts.de"
+                    "email": "arne@blankerts.de",
+                    "role": "Developer"
                 }
             ],
             "description": "A small library for converting tokenized PHP source code into XML and potentially other formats",
@@ -4117,5 +4119,6 @@
         "ext-pdo": "*",
         "ext-pdo_sqlite": "*"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }
